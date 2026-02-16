@@ -1,0 +1,23 @@
+---
+id: theia-setup-checklist
+name: Theia AI Setup Checklist
+description: Checklist to configure Theia AI with OpenAI provider + useful defaults.
+---
+
+# Theia AI Setup Checklist (Workspace)
+
+1) Enable AI features (experimental) if required by your Theia build.
+2) Configure **OpenAI Official** provider:
+   - Set API key via environment `OPENAI_API_KEY` (preferred) or in settings.
+   - Consider enabling “Use Response API” for official OpenAI models.
+3) Configure prompt templates:
+   - Workspace template directories: `.prompts`
+   - Task context storage: `ai/prompts/task-contexts`
+4) Configure skills:
+   - Add `ai/skills` to “AI-features > Skills > Skill Directories”
+5) Configure MCP clients (later):
+   - Add MCP servers (e.g. `mcp.wti.net/fs`) with least-privilege scopes.
+
+# Suggested defaults
+- Keep approval/confirmation ON for tool calls until your allowlists and auth are proven.
+- Ignore build outputs via `.aiignore` to reduce noise.

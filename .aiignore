@@ -1,0 +1,21 @@
+# AI context ignore (conservative defaults)
+# Gradle
+**/.gradle/**
+**/build/**
+**/out/**
+**/target/**
+
+# Node
+**/node_modules/**
+**/dist/**
+**/.next/**
+**/.turbo/**
+**/.parcel-cache/**
+
+# IDE / OS
+**/.idea/**
+**/*.iml
+**/.DS_Store
+
+# Theia workspace settings (optional; comment out if you want AI to see them)
+**/.theia/**

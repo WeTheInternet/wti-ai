@@ -1,0 +1,7 @@
+# Logs
+ai/infra/logs/
+*.log
+
+# Local env overrides
+.env
+.env.*

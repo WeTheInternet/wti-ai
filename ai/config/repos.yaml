@@ -1,0 +1,10 @@
+# Repositories to mount into /repos (format: <owner>:<repo>)
+repos:
+  - WeTheInternet:xapi
+  - WeTheInternet:wti-ui
+  - JamesXNelson:wti
+  - WeTheInternet:theia
+
+special:
+  theia:
+    allowForkOverride: true
