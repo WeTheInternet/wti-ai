@@ -14,7 +14,7 @@
   - Optional; keep OFF until you explicitly want code-snippet analysis off-box.
 
 ## WTI recommendation
-Use Theia’s Orchestrator/Agents as optional helpers, but keep `agent.wti.net`
+Use Theia’s Orchestrator/Agents as optional helpers, but keep `conductor.wti.net`
 as the authoritative dispatcher so your workflow is IDE-agnostic.
 
 ## Links

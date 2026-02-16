@@ -22,5 +22,5 @@ else
     --namespace envoy-gateway-system
 fi
 
-_log "NOTE: To bind a reserved static IP, you'll set Gateway.spec.addresses to an IPAddress. citeturn0search6"
+_log "NOTE: To bind a reserved static IP, set Gateway.spec.addresses to an IPAddress."
 _log "We will add Gateway + HTTPRoutes manifests in a later task once services exist."

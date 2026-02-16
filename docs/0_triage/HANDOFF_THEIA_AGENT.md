@@ -1,6 +1,21 @@
+---
+status: UNREVIEWED
+owner: wti
+reviewed-by: TBD
+review-date: TBD
+verification:
+  - "(manual) Source preserved from original handoff"
+changelog:
+  - 2026-02-16: Moved from docs/HANDOFF_THEIA_AGENT.md
+---
+
 # Handoff Prompt for Theia AI Chat (OpenAI provider)
 
-See `docs/0_triage/HANDOFF_THEIA_AGENT.md`.
+Paste this into Theia AI Chat.
+
+---
+
+You are assisting with setting up an agentic development environment inside Theia.
 
 ## Project context
 - Workspace/repo: `wti-ai` (opened in Theia).

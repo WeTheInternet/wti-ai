@@ -33,10 +33,10 @@ Use this skill when the user asks about:
 - Orchestrator concept (agents delegate): https://eclipsesource.com/blogs/2024/09/30/theia-ai-sneak-preview-orchestrator/
 
 ## Suggested approach for this repo
-- Treat `agent.wti.net` as the authoritative workflow engine.
+- Treat `conductor.wti.net` as the authoritative workflow engine.
 - Use Theia only as UI + client integration point.
-- Prefer integrating `agent` by:
-  1) A Theia extension panel that calls `agent` and streams results
+- Prefer integrating `conductor` by:
+  1) A Theia extension panel that calls `conductor` and streams results
   2) (later) optional integration as a first-class Theia AI agent if beneficial
 
 ## Practical UX pattern (edit/apply)

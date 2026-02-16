@@ -1,13 +1,13 @@
 # WTI Agentic Dev Platform — Master Plan (WIP → PROD)
 
 > Targets: GKE Autopilot + Envoy Gateway now, Istio later.  
-> UI: Theia. Orchestration: Quarkus `agent`. Tools: MCP (`rg`/filesystem) read-only first.
+> UI: Theia. Orchestration: Quarkus `conductor`. Tools: MCP (`rg`/filesystem) read-only first.
 
 ---
 
 ## 0. Glossary
 - **demo**: Theia web frontend (`demo.wti.net`)
-- **agent**: Quarkus control plane (`agent.wti.net`)
+- **conductor**: Quarkus control plane (`conductor.wti.net`)
 - **mcp**: MCP tool endpoints (`mcp.wti.net/fs`, `/git`, ...)
 - **workspace**: shared repo volume mounted at `/opt/workspace`
 
@@ -15,7 +15,7 @@
 
 ## 1. Goals
 1. Theia provides IDE shell + custom UI panels (threaded convos, approvals, streaming).
-2. `agent` owns prompt parsing (javacc), planning, multi-agent workflow, cancellation.
+2. `conductor` owns prompt parsing (javacc), planning, multi-agent workflow, cancellation.
 3. MCP servers provide repo access (ripgrep + file_get), sandboxed to `/opt/workspace`.
 4. Default safety: **Step Mode** (plan → approve → execute), tool approvals ON.
 5. WIP cluster first (`wti-wip`), then rebuild as PROD (`wti-ai`).
@@ -24,11 +24,11 @@
 
 ## 2. Traffic & Control Flow
 ### 2.1 Default request path
-Theia UI → `agent` → OpenAI API → (tool calls) → `mcp` → back to `agent` → Theia UI
+Theia UI → `conductor` → OpenAI API → (tool calls) → `mcp` → back to `conductor` → Theia UI
 
-### 2.2 Why keep external `agent` even if Theia supports OpenAI
-- `agent` keeps prompt parsing + dispatch rules out of model prompts.
-- `agent` implements plan gating + fan-out/fan-in merge logic.
+### 2.2 Why keep external `conductor` even if Theia supports OpenAI
+- `conductor` keeps prompt parsing + dispatch rules out of model prompts.
+- `conductor` implements plan gating + fan-out/fan-in merge logic.
 - Theia “direct LLM provider” remains optional for quick ad-hoc use.
 
 ---
@@ -36,7 +36,7 @@ Theia UI → `agent` → OpenAI API → (tool calls) → `mcp` → back to `agen
 ## 3. Domains (no wildcard certs)
 **WIP (now):**
 - `demo.wti.net` (Theia)
-- `agent.wti.net` (Quarkus)
+- `conductor.wti.net` (Quarkus)
 - `mcp.wti.net` (Envoy Gateway; path-based routing)
 
 **Later:**
@@ -52,7 +52,7 @@ Theia UI → `agent` → OpenAI API → (tool calls) → `mcp` → back to `agen
 - Static external IP(s) for load balancers.
 - **Allowlist**:
   - `mcp.wti.net`: OpenAI egress CIDRs + optionally home IP
-  - `agent.wti.net`: home IP only (and maybe VPN/mobile)
+  - `conductor.wti.net`: home IP only (and maybe VPN/mobile)
   - `demo.wti.net`: home IP only (initially)
 
 ### 4.2 OpenAI allowlist source of truth
@@ -80,7 +80,7 @@ Not needed. Don’t expose sensitive endpoints to crawlers.
 ---
 
 ## 6. Region choice
-Use `northamerica-northeast2` for WIP (per your measurements/preferences).
+Use `us-west1` for WIP (per your measurements/preferences).
 To compare without deploying: use `gcping.com` and Google’s Region Picker.
 
 ---
@@ -135,7 +135,7 @@ Reserve regional static external IP(s), named from cluster:
 
 Later add:
 - `${GKE_CLUSTER_NAME}-demo-ip`
-- `${GKE_CLUSTER_NAME}-agent-ip`
+- `${GKE_CLUSTER_NAME}-conductor-ip`
 
 ---
 
@@ -146,7 +146,7 @@ Install via Helm. Use DNS-01 for cert issuance once DNS is configured.
 ### 11.2 Envoy Gateway
 Install via Helm. Use Gateway API resources (Gateway + HTTPRoute) for:
 - `demo.wti.net` → Theia service
-- `agent.wti.net` → agent service
+- `conductor.wti.net` → conductor service
 - `mcp.wti.net/fs` → mcp-fs service
 
 Bind static IP by setting `Gateway.spec.addresses` (type `IPAddress`) to the reserved IP.
@@ -171,15 +171,15 @@ layer where practical (curl, git, bash, ca-certs).
 
 ## 14. Milestones
 ### Phase 0 (WIP infrastructure & skeleton apps)
-1) Create WIP cluster `wti-wip` in `northamerica-northeast2`.
+1) Create WIP cluster `wti-wip` in `us-west1`.
 2) Install cert-manager + Envoy Gateway.
 3) Stand up shared workspace volume.
 4) Deploy skeleton:
    - Theia (demo)
-   - Quarkus agent (stub endpoints)
+   - Quarkus conductor (stub endpoints)
    - MCP fs (rg + file_get)
 
-Exit: Theia can call agent; agent can call MCP; end-to-end request works.
+Exit: Theia can call conductor; conductor can call MCP; end-to-end request works.
 
 ### Phase 1 (tightening + step mode)
 1) Add allowlist CronJob for OpenAI CIDRs.
