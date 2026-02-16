@@ -14,12 +14,18 @@ changelog:
 This repository uses a review/certification workflow.
 
 ## Start here
-- docs/INDEX.md
-- docs/README.md
+- PURPOSE.md
+- docs/PURPOSE.md
+
+## Reading scope
+- Prefer loading `PURPOSE.md` routers whose frontmatter `teams` and `roles` match the task, if you already understand wti-ai teams and roles; if you do not, assume your team and role are both 'agent'.
+- Avoid loading large numbers of files; read the minimum set needed.
 
 ## Trust rules
-- Anything under `docs/5_certified/` is authoritative.
-- Everything else is `DRAFT`/`UNREVIEWED` and must not be treated as truth.
+- Authoritative truth is determined by frontmatter: only `status: CERTIFIED` is authoritative.
+- Folder location does not determine authority (including `docs/5_certified/`).
+- `docs/0_triage/` is non-authoritative by default.
+- Generated indexes (e.g. `docs/status/`) are non-authoritative unless explicitly certified.
 
 ## Approval gates
 Do not run tasks, scripts, or destructive commands without explicit user approval.

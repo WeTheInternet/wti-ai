@@ -12,7 +12,7 @@ description: Checklist to configure Theia AI with OpenAI provider + useful defau
    - Consider enabling “Use Response API” for official OpenAI models.
 3) Configure prompt templates:
    - Workspace template directories: `.prompts`
-   - Task context storage: `ai/prompts/task-contexts`
+   - Task context storage (canonical): `.prompts/task-contexts/`
 4) Configure skills:
    - Add `ai/skills` to “AI-features > Skills > Skill Directories”
 5) Configure MCP clients (later):

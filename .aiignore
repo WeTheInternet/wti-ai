@@ -19,3 +19,6 @@
 
 # Theia workspace settings (optional; comment out if you want AI to see them)
 **/.theia/**
+
+# Trash staging (do not read)
+docs/trash/**

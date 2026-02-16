@@ -1,18 +1,18 @@
 ---
-status: DRAFT
-owner: wti
-reviewed-by: TBD
-review-date: TBD
+status: DEPRECATED
+teams: []
+roles: []
+authors:
+  - JamesXNelson
+lastUpdated: 2026-02-16T00:00:00Z
 verification:
-  - "(manual) Only CERTIFIED docs live here"
-changelog:
-  - 2026-02-16: Initial draft
+  - "(manual) Folder is treated as legacy and not a routing hub"
 ---
 
 # PURPOSE
 
-Certified, reviewed documents.
+Legacy location containing some `status: CERTIFIED` documents.
 
-All documents here must use `status: CERTIFIED`.
+Authority is determined by frontmatter `status: CERTIFIED`, not by directory location.
 
-These documents must be treated as strict requirements, unless the agent has been instructed to perform a design review.
+New certified product specifications should be placed under `docs/specs/`.
