@@ -33,10 +33,12 @@ NEXT STEPS (approval-gated):
    - Suggested output file (local): ./secrets/clouddns-dns01-key.json
    - Command (example):
        gcloud iam service-accounts keys create ./secrets/clouddns-dns01-key.json \\
-         --iam-account ${DNS01_SA_EMAIL}
+         --project "${GOOGLE_PROJECT_ID}" \\
+         --zone "${GKE_ZONE}" \\
+         --iam-account "${DNS01_SA_EMAIL}"
 
 2) Create the Kubernetes Secret in the cert-manager namespace (do not commit it):
-       kubectl -n cert-manager create secret generic clouddns-dns01-svc-acct \\
+       kubectl --context "${KUBE_CONTEXT}" --namespace cert-manager create secret generic clouddns-dns01-svc-acct \\
          --from-file=key.json=./secrets/clouddns-dns01-key.json
 
 3) Update and apply the ClusterIssuer manifest:

@@ -5,6 +5,9 @@ start_task_log "070-conductor-gateway-placeholder"
 
 ensure_kube_credentials
 
+KUBE_NAMESPACE="${KUBE_NAMESPACE:-wti-ai}"
+ensure_kube_namespace
+
 MANIFESTS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/manifests"
 
 _log "Applying manifests (cert-manager ClusterIssuer)"
@@ -23,18 +26,18 @@ cat <<EOF
 VERIFICATION (run manually):
 
 1) Confirm GatewayClass name and that Gateway is programmed:
-   kubectl get gatewayclass
-   kubectl get gateway -n wti-ai
-   kubectl describe gateway -n wti-ai conductor-gateway
+   kubectl --context "${KUBE_CONTEXT}" get gatewayclass
+   kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" get gateway
+   kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" describe gateway conductor-gateway
 
 2) Confirm HTTPRoute accepted:
-   kubectl get httproute -n wti-ai
-   kubectl describe httproute -n wti-ai conductor
+   kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" get httproute
+   kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" describe httproute conductor
 
 3) Confirm cert issuance:
-   kubectl get certificate -n wti-ai
-   kubectl describe certificate -n wti-ai conductor-wti-net
-   kubectl get order,challenge -A
+   kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" get certificate
+   kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" describe certificate conductor-wti-net
+   kubectl --context "${KUBE_CONTEXT}" get order,challenge -A
 
 4) Confirm DNS A record for conductor.wti.net points at the reserved static IP.
 

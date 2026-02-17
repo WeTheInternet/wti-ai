@@ -21,12 +21,16 @@ What exists now:
 - `ai/infra/tasks/030-cluster-autopilot.sh`
 - `ai/infra/tasks/040-static-ips.sh` (reserves `${GKE_CLUSTER_NAME}-gw-ip`)
 - `ai/infra/tasks/050-cert-manager.sh`
+- `ai/infra/tasks/055-clouddns-dns01-issuer.sh`
 - `ai/infra/tasks/060-envoy-gateway.sh` (installs Envoy Gateway but does not create Gateway/HTTPRoute)
+- `ai/infra/tasks/070-conductor-gateway-placeholder.sh`
 
 What is missing for the Phase 0 edge vertical slice:
-- Gateway API manifests: Namespace, placeholder backend, Certificate, Gateway, HTTPRoute
-- cert-manager DNS-01 integration with Google Cloud DNS (service account/IAM + secret + ClusterIssuer)
-- A single runnable path that makes `https://conductor.wti.net` serve a payload
+- Cloud DNS details for `wti.net` (zone name, project, delegation status)
+- A single reviewed and repeatable path that makes `https://conductor.wti.net` serve a payload
+
+Reference plan/runbook (non-authoritative):
+- `docs/plans/infra/hello-envoy-certmanager-dns01.md`
 
 ## Open questions (with owner)
 

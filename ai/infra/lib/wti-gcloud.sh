@@ -27,12 +27,21 @@ validate_var() {
 
 ensure_gcloud_context() {
   validate_var GOOGLE_PROJECT_ID "Set GOOGLE_PROJECT_ID"
-  validate_var GKE_REGION "Set GKE_REGION (e.g. us-west1)"
-  _gc config set project "$GOOGLE_PROJECT_ID" >/dev/null
+  validate_var GKE_ZONE "Set GKE_ZONE (e.g. northamerica-northeast2-a)"
+}
+
+ensure_kube_context() {
+  validate_var KUBE_CONTEXT "Set KUBE_CONTEXT (kubectl context name)"
+}
+
+ensure_kube_namespace() {
+  validate_var KUBE_NAMESPACE "Set KUBE_NAMESPACE"
 }
 
 _gc() {
-  gcloud --quiet "$@"
+  validate_var GOOGLE_PROJECT_ID "Set GOOGLE_PROJECT_ID"
+  validate_var GKE_ZONE "Set GKE_ZONE"
+  gcloud --quiet --project "${GOOGLE_PROJECT_ID}" --zone "${GKE_ZONE}" "$@"
 }
 
 _helm() {
@@ -40,11 +49,18 @@ _helm() {
 }
 
 _k8() {
-  kubectl "$@"
+  validate_var KUBE_CONTEXT "Set KUBE_CONTEXT"
+  kubectl --context "${KUBE_CONTEXT}" "$@"
+}
+
+_k8n() {
+  validate_var KUBE_CONTEXT "Set KUBE_CONTEXT"
+  validate_var KUBE_NAMESPACE "Set KUBE_NAMESPACE"
+  kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" "$@"
 }
 
 gcloud_resource_exists() {
-  gcloud --quiet "$@" >/dev/null 2>&1
+  _gc "$@" >/dev/null 2>&1
 }
 
 ensure_gcloud() {
@@ -55,7 +71,7 @@ ensure_gcloud() {
   while [[ "$#" -gt 0 ]]; do
     if [[ "$1" == "--" ]]; then
       shift
-      create_cmd=("$@")
+      create_cmd=("$@");
       break
     fi
     describe_cmd+=("$1")
@@ -73,7 +89,12 @@ ensure_gcloud() {
 
 ensure_kube_credentials() {
   validate_var GKE_CLUSTER_NAME "Set GKE_CLUSTER_NAME"
-  validate_var GKE_REGION "Set GKE_REGION"
   ensure_gcloud_context
-  _gc container clusters get-credentials "$GKE_CLUSTER_NAME" --region "$GKE_REGION" >/dev/null
+  _gc container clusters get-credentials "${GKE_CLUSTER_NAME}"
+
+  if [[ -z "${KUBE_CONTEXT:-}" ]]; then
+    KUBE_CONTEXT="$(kubectl config current-context)"
+  fi
+
+  ensure_kube_context
 }
