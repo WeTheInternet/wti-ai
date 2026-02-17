@@ -221,7 +221,7 @@ Deliverables:
 - Scripted setup for Google DNS solver prerequisites (service account, IAM roles, secret creation).
 
 Decisions needed (record as ADRs):
-- single-namespace vs per-component namespaces (recommend: per-component namespaces, but keep it simple in WIP)
+- single-namespace vs per-component namespaces (recommend: per-component namespaces, but keep it simple in dev)
 - DNS-01 solver implementation details (SA + secret + issuer naming)
 
 

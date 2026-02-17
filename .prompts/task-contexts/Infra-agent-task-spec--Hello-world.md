@@ -25,7 +25,7 @@ label: >-
   - Envoy Gateway install (`ai/infra/tasks/060-envoy-gateway.sh`) (note: currently does **not** create `Gateway` / `HTTPRoute`)
 
 ## Design (what “done” should look like)
-### A. Vertical slice (WIP) deliverable
+### A. Vertical slice (dev) deliverable
 A minimal HTTPS endpoint served through Envoy Gateway:
 - **Hostname:** `conductor.wti.net`
 - DNS `A` record for `conductor.wti.net` points to the reserved Gateway static IP (`${GKE_CLUSTER_NAME}-gw-ip`).
@@ -45,7 +45,7 @@ A minimal HTTPS endpoint served through Envoy Gateway:
      - `Issuer` is namespace-scoped and can only be referenced by `Certificate` resources in the same namespace.
      - `ClusterIssuer` is cluster-scoped and can be referenced from any namespace.
 4) **Namespace + Gateway naming conventions (for now):**
-   - Use a single namespace `wti-ai` for all WIP resources (Gateway, HTTPRoutes, placeholder service, Certificates).
+   - Use a single namespace `wti-ai` for all dev resources (Gateway, HTTPRoutes, placeholder service, Certificates).
    - Gateway resource name should be `conductor-gateway` (shortname is safe within namespace).
    - `GatewayClass` name: do **not** invent one; use the Envoy Gateway default/recommended class.
      - Judgment call: assume `gatewayClassName: envoy-gateway` unless `kubectl get gatewayclass` shows a different name. The infra agent should query and set the manifest accordingly.
@@ -60,7 +60,7 @@ Create a directory for k8s manifests (pick one and be consistent):
 Add these manifests (filenames indicative; adjust as needed):
 1) `ai/infra/manifests/wti-ai/00-namespace.yaml`
    - Namespace `wti-ai`.
-   - For now, keep WIP infra/app objects together here to make naming simple and avoid cross-namespace references.
+   - For now, keep dev infra/app objects together here to make naming simple and avoid cross-namespace references.
 
 2) `ai/infra/manifests/wti-ai/10-placeholder-deployment.yaml`
    - A tiny placeholder backend for `conductor.wti.net` until the real conductor service exists.
@@ -193,7 +193,7 @@ Also verify DNS:
 - `dig A <hostname>` returns the reserved static IP.
 
 ### Step 5: Document the runbook
-Add a short runbook doc under `docs/plans/infra/hello-envoy-certmanager-dns01.md` including:
+Add usage and verification sections to `docs/plans/kube-infra.md` and `infra/terraform/README.md`, including:
 - required env vars (mirroring `ai/infra/README.md`)
 - prerequisites (DNS zone, DNS provider creds)
 - “apply manifests” steps

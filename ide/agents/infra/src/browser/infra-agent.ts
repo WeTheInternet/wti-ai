@@ -15,10 +15,10 @@ import {
     ProgressChatResponseContentImpl
 } from '@theia/ai-chat';
 import { BasePromptFragment, LanguageModelRequirement, LanguageModelMessage } from '@theia/ai-core';
-import { injectable } from '@theia/core/shared/inversify';
+import { injectable, inject } from '@theia/core/shared/inversify';
 import { nls } from '@theia/core';
+import { GodmodeService } from './godmode-service';
 
-type InfraModeId = 'design' | 'implement' | 'review' | 'test';
 
 /**
  * Orchestrator agent:
@@ -37,9 +37,10 @@ const infraSystemPrompt: BasePromptFragment = {
 You are the "Infra" orchestrator agent in Theia.
 
 Your job:
-1) Turn the user's request into a "smart work order" that a specialist agent can execute with minimal ambiguity.
-2) If needed, ask concise clarifying questions using the <question>...</question> format.
-3) When ready, delegate to the specialist agent using ~{delegateToAgent}.
+1) Turn the user's request into an executable orchestration plan.
+2) Use the `ops` block as an internal work-order and instruction-passing channel between agents.
+3) If needed, ask concise clarifying questions using the <question>...</question> format.
+4) When ready, delegate to one or more specialist agents using ~{delegateToAgent}.
 
 Hard rules:
 - Do NOT run commands or tasks unless the user explicitly asks.
@@ -48,18 +49,40 @@ Hard rules:
 - Prefer minimal, scoped changes and avoid drive-by refactors.
 - If requirements are ambiguous and no question is asked, choose a reasonable assumption and state it.
 
-Target agent selection:
+Godmode:
+- The UI may enable a "godmode" flag per session.
+- When godmode is ON, you may relax default conservatism and allow broader refactors or faster iteration.
+- Hard safety rules still apply.
+
+Target agent selection (default):
 - design   -> @Architect
 - implement-> @Coder
-- review   -> @Reviewer
+- review   -> @Architect
 - test     -> @AppTester
+
+Mode behaviors (orchestration):
+- design:
+  - Coordinate @Architect + @Coder to produce/modify docs/specs.
+  - First delegate to Architect for outline/spec decisions, then delegate to Coder to apply edits.
+- implement:
+  - Run an implementation loop between @Coder and a reviewer.
+  - Use @Architect as the reviewer for now.
+  - If changes are requested, send a follow-up delegation to @Coder.
+- review:
+  - Ask @Architect to review and split feedback into:
+    - "FOR_SURE" changesets: safe, unambiguous edits that @Coder should apply now.
+    - "SUGGESTIONS": non-blocking or uncertain items to return to the user for another loop.
+  - Delegate only "FOR_SURE" changesets to @Coder.
+- test:
+  - Orchestrate @Coder + @AppTester loops to get tests passing.
+  - If blocked by missing environment details or non-deterministic failures, stop and ask the user for help.
 
 You MUST output the work order in this exact format first:
 
 \`\`\`ops
 Title: <short imperative title>
 Mode: design|implement|review|test
-TargetAgent: @Coder|@Architect|@Reviewer|@AppTester
+TargetAgent: @Coder|@Architect|@AppTester
 Risk: LOW|MEDIUM|HIGH
 Context:
 - <what the user asked>
@@ -83,7 +106,12 @@ Prompt:
 
 After the ops block:
 - If you need a user decision or clarification, ask ONE question using the exact <question>...</question> format.
-- Otherwise, delegate immediately using ~{delegateToAgent} (agentId should match without "@", e.g. "Coder") and then summarize results.
+- Otherwise, follow the mode behavior and delegate.
+
+Delegation rules:
+- Prefer at most ONE delegation per response.
+- The `ops` block is the instruction-passing contract.
+- When delegating, pass ONLY the contents of the "Prompt:" section as the delegated prompt.
 
 Interactive question format (exact):
 <question>
@@ -98,7 +126,6 @@ Interactive question format (exact):
 
 IMPORTANT:
 - Only use <question> when truly necessary (missing critical info or user must choose).
-- If you delegate, pass ONLY the contents of the "Prompt:" section as the delegated prompt.
 - Delegation tool available here: ~{delegateToAgent}
 `
 };
@@ -107,6 +134,9 @@ IMPORTANT:
 export class InfraAgent extends AbstractStreamParsingChatAgent {
     id: string = 'Infra';
     name: string = 'Infra';
+
+    @inject(GodmodeService)
+    protected readonly godmodeService: GodmodeService;
 
     override description = nls.localize(
         'wti/infra/description',
@@ -200,16 +230,24 @@ export class InfraAgent extends AbstractStreamParsingChatAgent {
     protected override async getMessages(model: ChatModel): Promise<LanguageModelMessage[]> {
         const messages = await super.getMessages(model, true);
 
+        const godmode = this.godmodeService?.isEnabled() === true;
+        const godmodeMessage: LanguageModelMessage = {
+            type: 'text',
+            actor: 'system',
+            text: `Godmode: ${godmode ? 'ON' : 'OFF'} (scope: browser session).`
+        };
+
         const requests = model.getRequests();
         const last = requests[requests.length - 1];
         if (!last) {
-            return messages;
+            return [...messages, godmodeMessage];
         }
 
         // If the response is still open and already has content, we are in "continue after answer" flow.
         if (!last.response.isComplete && (last.response.response?.content?.length ?? 0) > 0) {
             return [
                 ...messages,
+                godmodeMessage,
                 {
                     type: 'text',
                     actor: 'user',
@@ -220,6 +258,6 @@ export class InfraAgent extends AbstractStreamParsingChatAgent {
             ];
         }
 
-        return messages;
+        return [...messages, godmodeMessage];
     }
 }

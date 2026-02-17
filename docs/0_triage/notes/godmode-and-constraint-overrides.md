@@ -23,18 +23,35 @@ This repo currently has multiple constraint sources:
 - doc trust rules (`docs/features/doc-system-spec.md`)
 - task-scoped autonomy rules (system/developer instructions)
 
-## Proposal
+## Implemented command
 
-Introduce an explicit, approval-gated override concept that can be invoked per-session:
+A chat slash command is available in the Theia IDE:
 
-- `/godmode` (or equivalent UI toggle)
-  - expands reading scope to all relevant specs
-  - allows broader refactors when necessary
-  - still preserves hard safety gates:
-    - do not exfiltrate secrets
-    - do not run cloud operations without explicit approval
+- `/godmode` (toggles)
+- `/godmode on` (enables)
+- `/godmode off` (disables)
+- `/godmode status` (prints current status)
 
-## Suggested structure
+### Scope and persistence
+
+Godmode is persisted per browser session via `window.sessionStorage`.
+
+- Closing/reloading the browser clears the state.
+- It is not persisted per-workspace.
+
+This is the smallest scope consistent with current patterns in this repo (no existing workspace-scoped chat state store).
+
+## Behavior
+
+When godmode is ON:
+- A `Godmode: ON` marker is injected into the Infra agent prompt context.
+- Infra may choose to relax default conservatism and allow broader refactors or faster iteration.
+- Hard safety rules still apply.
+
+When godmode is OFF:
+- A `Godmode: OFF` marker is injected into the Infra agent prompt context.
+
+## Suggested structure (future)
 
 - Override is time-bounded and recorded in chat.
 - Override is scoped (what is relaxed, what is still enforced).
@@ -44,5 +61,4 @@ Introduce an explicit, approval-gated override concept that can be invoked per-s
 
 Create a skill doc under `skills/` for:
 - “constraint conflict detection”
-- “how to propose rule updates safely”
-
+- “how to propose rule updates safely"

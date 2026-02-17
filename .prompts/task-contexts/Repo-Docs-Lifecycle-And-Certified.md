@@ -13,7 +13,7 @@ label: Repo Docs Lifecycle And Certified Workflow Setup
 
 ## Context discovered in repo
 Key reference docs reviewed:
-- `MASTER_PLAN.md`: WTI agentic dev platform plan (GKE Autopilot WIP cluster `wti-wip` in `us-west1`, cert-manager + Envoy Gateway, static IP `${GKE_CLUSTER_NAME}-gw-ip`, per-host TLS for `demo.wti.net`, `conductor.wti.net`, `mcp.wti.net`, later skeleton services: Theia demo, Quarkus conductor, MCP fs read-only).
+- `MASTER_PLAN.md`: WTI agentic dev platform plan (GKE Autopilot dev cluster `wti-dev` in `us-west1`, cert-manager + Envoy Gateway, static IP `${GKE_CLUSTER_NAME}-gw-ip`, per-host TLS for `demo.wti.net`, `conductor.wti.net`, `mcp.wti.net`, later skeleton services: Theia demo, Quarkus conductor, MCP fs read-only).
 - `docs/theia/SETUP_NOTES.md`: Theia AI settings notes and links:
   - https://theia-ide.org/docs/user_ai/
   - https://theia-ide.org/docs/theia_ai/
@@ -72,7 +72,7 @@ Key reference docs reviewed:
 ## Decisions / requirements captured
 - **Docs trust model**: only `docs/5_certified/` is authoritative; everything else is draft/unreviewed.
 - **Approval gates**: do not run scripts or destructive commands without explicit user approval (codified in `AGENTS.md`).
-- **Near-term infra target** (from existing docs): GKE Autopilot `wti-wip` in `us-west1`, Envoy Gateway + cert-manager, static IP `${GKE_CLUSTER_NAME}-gw-ip`, per-host TLS (no wildcards) for `demo.wti.net`, `conductor.wti.net`, `mcp.wti.net`.
+- **Near-term infra target** (from existing docs): GKE Autopilot `wti-dev` in `us-west1`, Envoy Gateway + cert-manager, static IP `${GKE_CLUSTER_NAME}-gw-ip`, per-host TLS (no wildcards) for `demo.wti.net`, `conductor.wti.net`, `mcp.wti.net`.
 
 ---
 

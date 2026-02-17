@@ -52,11 +52,11 @@ Restructure and formalize repository documentation navigation and authority rule
 - `AGENTS.md` (currently hardcodes: “Anything under docs/5_certified is authoritative.” Must change.)
 - `docs/README.md` (currently says: “status: CERTIFIED only in docs/5_certified/”. Must change.)
 - `docs/INDEX.md` (to retire)
-- `docs/5_certified/WTI_AI_GLOSSARY.md` (CERTIFIED; defines “Certified = under docs/5_certified” → must update definition)
+- `docs/5_certified/WTI_AI_GLOSSARY.md` (CERTIFIED; glossary)
 - `docs/0_triage/HANDOFF_THEIA_AGENT.md` (move to trash)
 - Existing PURPOSE dirs: `docs/0_triage/PURPOSE.md`, `docs/adr/PURPOSE.md`, `docs/goals/PURPOSE.md`, `docs/plans/PURPOSE.md`, `docs/status/PURPOSE.md`, `docs/teams/PURPOSE.md`, `docs/features/PURPOSE.md`, `docs/5_certified/PURPOSE.md` (legacy)
 - Skills currently in `ai/skills/*/SKILL.md`
-- Prompts currently in `ai/prompts/task-contexts/wti-ai-wip.md`
+- Prompts currently in `docs/0_triage/imported_prompts/task-contexts/wti-ai-wip.md`
 - `.aiignore` exists at repo root (update to ignore `docs/trash/**`)
 
 ### Implementation approach (task steps)

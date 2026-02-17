@@ -9,10 +9,10 @@ changelog:
   - 2026-02-16: Initial draft
 ---
 
-# Infra Acceptance Criteria (WIP)
+# Infra Acceptance Criteria (dev)
 
 ## Scope
-Bring up a GKE Autopilot WIP cluster with Envoy Gateway + cert-manager, and prove HTTPS routing to at least one hello-world service.
+Bring up a GKE Autopilot dev cluster with Envoy Gateway + cert-manager, and prove HTTPS routing to at least one hello-world service.
 
 ## DNS prerequisites
 - Domains/hosts (no wildcard certs):
@@ -27,7 +27,7 @@ Bring up a GKE Autopilot WIP cluster with Envoy Gateway + cert-manager, and prov
 - DNS provider: **Google Cloud DNS**.
 - cert-manager configuration includes:
   - a ClusterIssuer or Issuer configured for CloudDNS DNS-01
-  - Kubernetes Secret containing CloudDNS service account credentials
+  - Workload Identity for Cloud DNS access (no service account key JSON)
 
 ## Gateway routing
 - Envoy Gateway installed via Helm.

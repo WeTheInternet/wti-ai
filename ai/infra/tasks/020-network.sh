@@ -3,7 +3,8 @@ set -Eeuo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/lib/wti-gcloud.sh"
 start_task_log "020-network"
 
-ensure_gcloud_context
+ensure_gcloud_project
+ensure_gcloud_region
 
 # Network defaults (override via env)
 GKE_NETWORK_NAME="${GKE_NETWORK_NAME:-wti-ai-net}"
@@ -30,9 +31,8 @@ if gcloud_resource_exists compute networks subnets describe "$GKE_SUBNET_NAME" -
   _log "Exists: subnet $GKE_SUBNET_NAME"
 else
   _log "Creating: subnet $GKE_SUBNET_NAME with secondary ranges (pods/services)"
-  _gc compute networks subnets create "$GKE_SUBNET_NAME" \
+  _gc_region compute networks subnets create "$GKE_SUBNET_NAME" \
     --network "$GKE_NETWORK_NAME" \
-    --region "$GKE_REGION" \
     --range "$GKE_SUBNET_CIDR" \
     --secondary-range "${GKE_PODS_RANGE_NAME}=${GKE_PODS_CIDR},${GKE_SERVICES_RANGE_NAME}=${GKE_SERVICES_CIDR}"
 fi

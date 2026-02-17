@@ -15,4 +15,4 @@ Infra plans and execution runbooks.
 
 ## Read next
 
-- `docs/plans/infra/hello-envoy-certmanager-dns01.md`
+- `docs/plans/kube-infra.md`

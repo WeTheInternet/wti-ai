@@ -18,6 +18,6 @@ changelog:
 - **Envoy Gateway**: Gateway API implementation providing edge routing into the cluster.
 - **cert-manager**: Kubernetes controller for issuing and renewing TLS certificates.
 - **DNS-01**: ACME challenge type using DNS TXT records to validate domain ownership.
-- **WIP cluster**: The initial, disposable environment to prove the vertical slice before production hardening.
+- **dev cluster**: The initial, disposable environment to prove the vertical slice before production hardening.
 - **Certified**: Reviewed and promoted content with frontmatter `status: CERTIFIED` (folder location does not determine authority).
 - **Unreviewed**: Imported or scratch content that must not be treated as truth.

@@ -3,9 +3,7 @@ set -Eeuo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/lib/wti-gcloud.sh"
 start_task_log "055-clouddns-dns01-issuer"
 
-ensure_gcloud_context
-
-validate_var GOOGLE_PROJECT_ID "Set GOOGLE_PROJECT_ID"
+ensure_gcloud_project
 
 DNS01_SA_NAME="${DNS01_SA_NAME:-cert-manager-dns01}"
 DNS01_SA_DISPLAY_NAME="${DNS01_SA_DISPLAY_NAME:-cert-manager DNS01}"
@@ -16,11 +14,11 @@ _log "Ensuring service account ${DNS01_SA_EMAIL}"
 if gcloud_resource_exists iam service-accounts describe "${DNS01_SA_EMAIL}"; then
   _log "Exists: service account ${DNS01_SA_EMAIL}"
 else
-  _gc iam service-accounts create "${DNS01_SA_NAME}" --display-name "${DNS01_SA_DISPLAY_NAME}"
+  _gc_project iam service-accounts create "${DNS01_SA_NAME}" --display-name "${DNS01_SA_DISPLAY_NAME}"
 fi
 
 _log "Ensuring IAM binding for Cloud DNS"
-_gc projects add-iam-policy-binding "${GOOGLE_PROJECT_ID}" \
+_gc_project projects add-iam-policy-binding "${GOOGLE_PROJECT_ID}" \
   --member "serviceAccount:${DNS01_SA_EMAIL}" \
   --role "roles/dns.admin" \
   >/dev/null
@@ -34,7 +32,6 @@ NEXT STEPS (approval-gated):
    - Command (example):
        gcloud iam service-accounts keys create ./secrets/clouddns-dns01-key.json \\
          --project "${GOOGLE_PROJECT_ID}" \\
-         --zone "${GKE_ZONE}" \\
          --iam-account "${DNS01_SA_EMAIL}"
 
 2) Create the Kubernetes Secret in the cert-manager namespace (do not commit it):

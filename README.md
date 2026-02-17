@@ -73,7 +73,7 @@ These are the intended “personalities” in the platform model. Some are alrea
 - **Scout / Navigator**: read-only context retrieval; finds relevant routers/docs/code.
 - **Planner**: produces a plan/task context with acceptance criteria.
 - **Coder**: proposes code/doc changes as small diffs.
-- **Reviewer / Validator**: checks diffs against rules, acceptance criteria, and repo reality.
+- **Reviewer / Validator**: checks diffs against rules, acceptance criteria, and repo reality (often performed by **Architect** in this repo).
 - **Tester**: defines and runs verification strategy (tests/diagnostics) when approved.
 - **Compliance / Safety** (optional): enforces trust rules and prevents secret leakage.
 - **Guru** (internet-connected; unable to write repo content):

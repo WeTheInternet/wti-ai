@@ -1,6 +1,9 @@
-# ai/infra starter
+# ai/infra
 
-This is a bash-first, idempotent-ish scaffolding for provisioning a **GKE Autopilot** cluster and base addons.
+This directory contains optional bash helpers for provisioning a GKE Autopilot cluster and addons.
+
+Terraform is the authoritative path for building dev:
+- `infra/terraform/envs/dev/`
 
 ## Quick start
 
@@ -18,26 +21,36 @@ cd ai/infra
 ```bash
 cd ai/infra
 
-# required
-export GOOGLE_PROJECT_ID="we-the-internet"
-export GKE_ZONE="northamerica-northeast2-a"
-export GKE_CLUSTER_NAME="wti-wip"
+# required per-run operator input
 export ADMIN_IP_CIDR="67.225.49.153/32"
 
-# required for kubectl commands used by tasks
-export KUBE_CONTEXT="gke_${GOOGLE_PROJECT_ID}_${GKE_ZONE}_${GKE_CLUSTER_NAME}"
+./bin/run-all.sh dev
+```
 
-# optional (defaults shown)
-export GKE_NETWORK_NAME="wti-ai-net"
-export GKE_SUBNET_NAME="wti-ai-subnet"
-export GKE_SUBNET_CIDR="10.44.0.0/24"
-export GKE_PODS_RANGE_NAME="pods"
-export GKE_PODS_CIDR="10.44.8.0/21"
-export GKE_SERVICES_RANGE_NAME="services"
-export GKE_SERVICES_CIDR="10.44.4.0/23"
+## Environment mapping
 
-# Run tasks (safe to re-run; each task does best-effort "check then create")
-./bin/run-all.sh
+`./bin/run-all.sh <env>` loads its configuration from `ai/infra/env/<env>.env`.
+
+For dev builds, prefer Terraform (`infra/terraform/envs/dev/`).
+
+The mapping file provides explicit values (no reliance on shell defaults), including:
+- `GOOGLE_PROJECT_ID`, `GKE_REGION`, `GKE_ZONE`, `GKE_CLUSTER_NAME`
+- `KUBE_CONTEXT`, `KUBE_NAMESPACE`
+- `DNS_ZONE`
+- network/subnet CIDRs
+- `TERRAFORM_ENV_DIR` (printed/suggested; Terraform is not executed)
+
+Override any value by exporting it before running `./bin/run-all.sh`.
+
+Example override:
+
+```bash
+cd ai/infra
+
+export ADMIN_IP_CIDR="67.225.49.153/32"
+export DNS_ZONE="wti-net"
+
+./bin/run-all.sh dev
 ```
 
 ## Tasks

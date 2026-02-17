@@ -25,9 +25,20 @@ validate_var() {
   [[ -n "${!var:-}" ]] || _die "${msg:-Missing required env var: ${var}}"
 }
 
-ensure_gcloud_context() {
+ensure_gcloud_project() {
   validate_var GOOGLE_PROJECT_ID "Set GOOGLE_PROJECT_ID"
+}
+
+ensure_gcloud_region() {
+  validate_var GKE_REGION "Set GKE_REGION (e.g. northamerica-northeast2)"
+}
+
+ensure_gcloud_zone() {
   validate_var GKE_ZONE "Set GKE_ZONE (e.g. northamerica-northeast2-a)"
+}
+
+ensure_gcloud_dns_zone() {
+  validate_var DNS_ZONE "Set DNS_ZONE (Cloud DNS managed zone name)"
 }
 
 ensure_kube_context() {
@@ -38,10 +49,27 @@ ensure_kube_namespace() {
   validate_var KUBE_NAMESPACE "Set KUBE_NAMESPACE"
 }
 
-_gc() {
-  validate_var GOOGLE_PROJECT_ID "Set GOOGLE_PROJECT_ID"
-  validate_var GKE_ZONE "Set GKE_ZONE"
+_gc_project() {
+  ensure_gcloud_project
+  gcloud --quiet --project "${GOOGLE_PROJECT_ID}" "$@"
+}
+
+_gc_region() {
+  ensure_gcloud_project
+  ensure_gcloud_region
+  gcloud --quiet --project "${GOOGLE_PROJECT_ID}" --region "${GKE_REGION}" "$@"
+}
+
+_gc_zone() {
+  ensure_gcloud_project
+  ensure_gcloud_zone
   gcloud --quiet --project "${GOOGLE_PROJECT_ID}" --zone "${GKE_ZONE}" "$@"
+}
+
+_gc_dns() {
+  ensure_gcloud_project
+  ensure_gcloud_dns_zone
+  gcloud --quiet --project "${GOOGLE_PROJECT_ID}" --dns-zone "${DNS_ZONE}" "$@"
 }
 
 _helm() {
@@ -49,18 +77,18 @@ _helm() {
 }
 
 _k8() {
-  validate_var KUBE_CONTEXT "Set KUBE_CONTEXT"
+  ensure_kube_context
   kubectl --context "${KUBE_CONTEXT}" "$@"
 }
 
 _k8n() {
-  validate_var KUBE_CONTEXT "Set KUBE_CONTEXT"
-  validate_var KUBE_NAMESPACE "Set KUBE_NAMESPACE"
+  ensure_kube_context
+  ensure_kube_namespace
   kubectl --context "${KUBE_CONTEXT}" --namespace "${KUBE_NAMESPACE}" "$@"
 }
 
 gcloud_resource_exists() {
-  _gc "$@" >/dev/null 2>&1
+  _gc_project "$@" >/dev/null 2>&1
 }
 
 ensure_gcloud() {
@@ -84,17 +112,15 @@ ensure_gcloud() {
   fi
 
   _log "Creating: ${label}"
-  _gc "${create_cmd[@]}"
+  _gc_project "${create_cmd[@]}"
 }
 
 ensure_kube_credentials() {
   validate_var GKE_CLUSTER_NAME "Set GKE_CLUSTER_NAME"
-  ensure_gcloud_context
-  _gc container clusters get-credentials "${GKE_CLUSTER_NAME}"
+  ensure_gcloud_project
+  ensure_gcloud_region
 
-  if [[ -z "${KUBE_CONTEXT:-}" ]]; then
-    KUBE_CONTEXT="$(kubectl config current-context)"
-  fi
+  _gc_project container clusters get-credentials "${GKE_CLUSTER_NAME}" --region "${GKE_REGION}"
 
   ensure_kube_context
 }

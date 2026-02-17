@@ -32,7 +32,7 @@ verification:
 
 - `design` → `@Architect`
 - `implement` → `@Coder`
-- `review` → `@Reviewer`
+- `review` → `@Architect`
 - `test` → `@AppTester`
 
 ## Ops block format (stable)

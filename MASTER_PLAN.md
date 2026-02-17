@@ -1,4 +1,4 @@
-# WTI Agentic Dev Platform — Master Plan (WIP → PROD)
+# WTI Agentic Dev Platform — Master Plan (DEV → PROD)
 
 > Targets: GKE Autopilot + Envoy Gateway now, Istio later.  
 > UI: Theia. Orchestration: Quarkus `conductor`. Tools: MCP (`rg`/filesystem) read-only first.
@@ -18,7 +18,7 @@
 2. `conductor` owns prompt parsing (javacc), planning, multi-agent workflow, cancellation.
 3. MCP servers provide repo access (ripgrep + file_get), sandboxed to `/opt/workspace`.
 4. Default safety: **Step Mode** (plan → approve → execute), tool approvals ON.
-5. WIP cluster first (`wti-wip`), then rebuild as PROD (`wti-ai`).
+5. DEV cluster first (`wti-dev`), then rebuild as PROD (`wti-ai`).
 
 ---
 
@@ -34,7 +34,7 @@ Theia UI → `conductor` → OpenAI API → (tool calls) → `mcp` → back to `
 ---
 
 ## 3. Domains (no wildcard certs)
-**WIP (now):**
+**DEV (now):**
 - `demo.wti.net` (Theia)
 - `conductor.wti.net` (Quarkus)
 - `mcp.wti.net` (Envoy Gateway; path-based routing)
@@ -80,7 +80,7 @@ Not needed. Don’t expose sensitive endpoints to crawlers.
 ---
 
 ## 6. Region choice
-Use `us-west1` for WIP (per your measurements/preferences).
+Use `us-west1` for DEV (per your measurements/preferences).
 To compare without deploying: use `gcping.com` and Google’s Region Picker.
 
 ---
@@ -177,8 +177,8 @@ layer where practical (curl, git, bash, ca-certs).
 ---
 
 ## 14. Milestones
-### Phase 0 (WIP infrastructure & skeleton apps)
-1) Create WIP cluster `wti-wip` in `us-west1`.
+### Phase 0 (DEV infrastructure & skeleton apps)
+1) Create DEV cluster `wti-dev` in `us-west1`.
 2) Install cert-manager + Envoy Gateway.
 3) Stand up shared workspace volume.
 4) Deploy skeleton:
@@ -190,7 +190,7 @@ Exit: Theia can call conductor; conductor can call MCP; end-to-end request works
 
 #### Phase 0 edge vertical slice (concrete)
 Serve HTTPS for `conductor.wti.net` through Envoy Gateway with cert-manager DNS-01:
-- Plan: `docs/plans/infra/hello-envoy-certmanager-dns01.md`
+- Plan: `docs/plans/kube-infra.md`
 - Backlog: `docs/0_triage/goals/setup-infra.md`
 
 ### Phase 1 (tightening + step mode)
@@ -210,6 +210,6 @@ Serve HTTPS for `conductor.wti.net` through Envoy Gateway with cert-manager DNS-
 ---
 
 ## 15. Graduation
-When WIP is stable, re-run scripts with:
-- `GKE_CLUSTER_NAME=wti-ai`
-and migrate DNS/certs, then scale down WIP.
+When DEV is stable, re-run Terraform with:
+- `cluster_name = "wti-ai"`
+and migrate DNS/certs, then scale down DEV.
