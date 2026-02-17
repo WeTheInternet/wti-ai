@@ -9,7 +9,7 @@ Canonical build/run workflow:
 - **Orchestrator: Excluded Agents**
   - Controls which internal Theia agents the Orchestrator is allowed to delegate to.
 - **Prompt Templates**
-  - Task context storage directory: `ai/prompts/task-contexts`
+  - Task context storage directory: `.prompts/task-contexts`
   - Workspace template directories: `.prompts`
 - **Skills**
   - Add `ai/skills` to Skill Directories

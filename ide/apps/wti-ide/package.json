@@ -14,6 +14,8 @@
     "@theia/navigator": "1.68.2",
     "@theia/output": "1.68.2",
     "@theia/outline-view": "1.68.2",
+    "@theia/preferences": "1.68.2",
+    "@theia/userstorage": "1.68.2",
     "@theia/process": "1.68.2",
     "@theia/terminal": "1.68.2",
     "@theia/variable-resolver": "1.68.2",

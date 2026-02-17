@@ -18,10 +18,6 @@ Routing hub for Theia-related documentation in this repository.
 - Build/run the WTI Theia browser IDE and bundled agents from the `ide/` pnpm workspace:
   - `WTI_IDE_WORKFLOW.md`
 
-## Legacy / historical
-
-- Manual `/opt/theia` runtime + packing/installing agent `.tgz` files:
-  - `LOCAL_AGENT_BUILD_AND_INSTALL.md`
 
 ## Repo boundaries
 

@@ -13,4 +13,4 @@ if [[ -n "${WTI_AI_ENV_FILES:-}" && -d "${WTI_AI_ENV_FILES}" ]]; then
   done < <(find "$WTI_AI_ENV_FILES" -maxdepth 1 -type f -print0)
 fi
 
-pnpm --filter @wti/wti-ide run start -- --port "$PORT"
+pnpm --filter @wti/wti-ide exec theia start --mode development --hostname 0.0.0.0 --port "$PORT"
