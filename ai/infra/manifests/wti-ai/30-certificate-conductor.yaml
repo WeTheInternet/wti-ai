@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: conductor-wti-net
+  namespace: wti-ai
+spec:
+  secretName: conductor-wti-net-tls
+  dnsNames:
+    - conductor.wti.net
+  issuerRef:
+    name: letsencrypt-dns01
+    kind: ClusterIssuer

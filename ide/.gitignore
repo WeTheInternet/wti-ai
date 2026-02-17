@@ -1,0 +1,16 @@
+# Dependencies
+**/node_modules/**
+
+# Build outputs
+**/dist/
+**/lib/
+**/src-gen/
+
+# TypeScript incremental build info
+**/*.tsbuildinfo
+
+# Tooling caches
+**/.cache/
+
+# OS / editor
+.DS_Store

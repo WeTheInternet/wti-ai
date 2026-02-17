@@ -151,6 +151,13 @@ Install via Helm. Use Gateway API resources (Gateway + HTTPRoute) for:
 
 Bind static IP by setting `Gateway.spec.addresses` (type `IPAddress`) to the reserved IP.
 
+### 11.3 Canonical execution plans (router)
+Detailed infra execution lives under:
+- `docs/plans/infra/PURPOSE.md`
+
+Backlog and open questions live under:
+- `docs/0_triage/goals/setup-infra.md`
+
 ---
 
 ## 12. No-root container policy
@@ -180,6 +187,11 @@ layer where practical (curl, git, bash, ca-certs).
    - MCP fs (rg + file_get)
 
 Exit: Theia can call conductor; conductor can call MCP; end-to-end request works.
+
+#### Phase 0 edge vertical slice (concrete)
+Serve HTTPS for `conductor.wti.net` through Envoy Gateway with cert-manager DNS-01:
+- Plan: `docs/plans/infra/hello-envoy-certmanager-dns01.md`
+- Backlog: `docs/0_triage/goals/setup-infra.md`
 
 ### Phase 1 (tightening + step mode)
 1) Add allowlist CronJob for OpenAI CIDRs.

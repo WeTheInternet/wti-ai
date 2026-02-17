@@ -5,3 +5,10 @@ ai/infra/logs/
 # Local env overrides
 .env
 .env.*
+
+**/node_modules/**
+
+# Infra agent build artifacts
+ai/agents/infra/lib/
+ai/agents/infra/dist/
+ai/agents/infra/tsconfig.tsbuildinfo

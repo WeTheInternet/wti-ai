@@ -1,107 +1,79 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# ---------- Paths (cwd-agnostic) ----------
-__SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-__INFRA_DIR="$(cd -- "${__SCRIPT_DIR}/.." && pwd)"
-LOG_DIR="${LOG_DIR:-${__INFRA_DIR}/logs}"
-BIN_DIR="${BIN_DIR:-${__INFRA_DIR}/bin}"
-AI_ROOT_DIR="${AI_ROOT_DIR:-$(cd -- "${__INFRA_DIR}/../.." && pwd)}"
+__INFRA_LIB_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+__INFRA_DIR="$(cd -- "${__INFRA_LIB_DIR}/.." && pwd)"
 
-mkdir -p "$LOG_DIR"
+LOG_DIR="${__INFRA_DIR}/logs"
+mkdir -p "${LOG_DIR}"
 
-# ---------- Logging ----------
-_ts() { date +"%Y-%m-%dT%H:%M:%S%z"; }
-_caller() { caller 1 | awk '{print $1 ":" $2}'; } # line:function
-_log()  { echo "[$(_ts)] [INFO]  $(_caller)  $*" >&2; }
-_warn() { echo "[$(_ts)] [WARN]  $(_caller)  $*" >&2; }
-_die()  { echo "[$(_ts)] [ERROR] $(_caller)  $*" >&2; exit 1; }
+_ts() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+_log() { echo "[$(_ts)] $*"; }
+_die() { echo "ERROR: $*" >&2; exit 1; }
 
-# ---------- Debug / trace ----------
-enable_xtrace() {
-  export PS4='+ ${BASH_SOURCE}:${LINENO}:${FUNCNAME[0]}() '
-  set -x
+start_task_log() {
+  local name="${1:-task}"
+  local logfile="${LOG_DIR}/${name}.log"
+  exec > >(tee -a "${logfile}") 2>&1
+  _log "Log: ${logfile}"
 }
 
-# ---------- Traps ----------
-_on_err() {
-  local ec=$?
-  _die "Command failed (exit=$ec): ${BASH_COMMAND}"
-}
-trap _on_err ERR
-
-# ---------- Validation ----------
 validate_var() {
-  local var_name="$1"
-  local msg="${2:-Missing required variable: $var_name}"
-  [[ -n "${!var_name:-}" ]] || _die "$msg"
+  local var="${1:-}"; shift || true
+  local msg="${1:-}"; shift || true
+  [[ -n "${var}" ]] || _die "validate_var: missing var name"
+  [[ -n "${!var:-}" ]] || _die "${msg:-Missing required env var: ${var}}"
 }
 
-# ---------- Command helpers ----------
-_need() {
-  command -v "$1" >/dev/null 2>&1 || _die "Missing required command: $1"
+ensure_gcloud_context() {
+  validate_var GOOGLE_PROJECT_ID "Set GOOGLE_PROJECT_ID"
+  validate_var GKE_REGION "Set GKE_REGION (e.g. us-west1)"
+  _gc config set project "$GOOGLE_PROJECT_ID" >/dev/null
 }
 
 _gc() {
-  _need gcloud
   gcloud --quiet "$@"
 }
 
-_k8() {
-  _need kubectl
-  kubectl "$@"
-}
-
 _helm() {
-  _need helm
   helm "$@"
 }
 
-# ---------- GCloud context ----------
-ensure_gcloud_context() {
-  validate_var GOOGLE_PROJECT_ID "Set GOOGLE_PROJECT_ID (e.g. we-the-internet)"
-  _gc config set project "$GOOGLE_PROJECT_ID" >/dev/null
-  # Region is used by many commands; keep separate var names to avoid collisions
-  validate_var GKE_REGION "Set GKE_REGION (e.g. us-west1, northamerica-northeast2)"
+_k8() {
+  kubectl "$@"
 }
 
-ensure_kube_credentials() {
-  validate_var GKE_CLUSTER_NAME "Set GKE_CLUSTER_NAME (e.g. wti-wip)"
-  ensure_gcloud_context
-  _log "Fetching kube credentials for cluster=$GKE_CLUSTER_NAME region=$GKE_REGION"
-  _gc container clusters get-credentials "$GKE_CLUSTER_NAME" --region "$GKE_REGION" >/dev/null
-  # quick sanity
-  _k8 version --client >/dev/null
-}
-
-# ---------- Idempotent-ish patterns ----------
 gcloud_resource_exists() {
-  # Usage: gcloud_resource_exists "compute networks describe ..." (args after gcloud)
-  _gc "$@" >/dev/null 2>&1
+  gcloud --quiet "$@" >/dev/null 2>&1
 }
 
 ensure_gcloud() {
-  # Usage: ensure_gcloud "<desc>" <exists_cmd...> -- <create_cmd...>
-  local desc="$1"; shift
-  local sep="--"
-  local exists=()
-  while [[ "$#" -gt 0 && "$1" != "$sep" ]]; do exists+=("$1"); shift; done
-  [[ "${1:-}" == "$sep" ]] || _die "ensure_gcloud: missing -- separator for $desc"
-  shift
-  local create=("$@")
+  local label="$1"; shift
+  local -a describe_cmd=("$1"); shift
+  local -a create_cmd=()
 
-  if gcloud_resource_exists "${exists[@]}"; then
-    _log "Exists: $desc"
-  else
-    _log "Creating: $desc"
-    _gc "${create[@]}"
+  while [[ "$#" -gt 0 ]]; do
+    if [[ "$1" == "--" ]]; then
+      shift
+      create_cmd=("$@")
+      break
+    fi
+    describe_cmd+=("$1")
+    shift
+  done
+
+  if gcloud_resource_exists "${describe_cmd[@]}"; then
+    _log "Exists: ${label}"
+    return 0
   fi
+
+  _log "Creating: ${label}"
+  _gc "${create_cmd[@]}"
 }
 
-# ---------- Logging redirection per-task ----------
-start_task_log() {
-  local task_name="$1"
-  local log_file="${LOG_DIR}/$(date +%Y%m%d_%H%M%S)_${task_name}.log"
-  _log "Logging to $log_file"
-  exec > >(tee -a "$log_file") 2>&1
+ensure_kube_credentials() {
+  validate_var GKE_CLUSTER_NAME "Set GKE_CLUSTER_NAME"
+  validate_var GKE_REGION "Set GKE_REGION"
+  ensure_gcloud_context
+  _gc container clusters get-credentials "$GKE_CLUSTER_NAME" --region "$GKE_REGION" >/dev/null
 }

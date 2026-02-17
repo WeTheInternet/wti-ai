@@ -12,6 +12,14 @@
 **/.turbo/**
 **/.parcel-cache/**
 
+# Theia monorepo checkout (default opaque)
+repos/theia/**
+
+# Infra agent build artifacts
+ai/agents/infra/lib/**
+ai/agents/infra/dist/**
+ai/agents/infra/tsconfig.tsbuildinfo
+
 # IDE / OS
 **/.idea/**
 **/*.iml

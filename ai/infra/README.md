@@ -4,6 +4,17 @@ This is a bash-first, idempotent-ish scaffolding for provisioning a **GKE Autopi
 
 ## Quick start
 
+### Prereqs: Node + pnpm
+
+- Use Node LTS 22 (Theia is not compatible with Node 24).
+- Enable pnpm via corepack.
+
+```bash
+cd ai/infra
+
+./bin/ensure-pnpm.sh
+```
+
 ```bash
 cd ai/infra
 

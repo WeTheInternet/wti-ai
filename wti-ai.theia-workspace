@@ -1,0 +1,34 @@
+{
+  "folders": [
+    {
+      "path": ""
+    },
+    {
+      "path": "file:///opt/theia"
+    }
+  ],
+  "settings": {
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/.next": true,
+      "**/.turbo": true,
+      "**/.cache": true,
+      "repos/theia/**": true
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/build/**": true,
+      "**/.next/**": true,
+      "**/.turbo/**": true,
+      "**/.cache/**": true,
+      "repos/theia/**": true
+    },
+    "files.exclude": {
+      "**/node_modules": true,
+      "repos/theia": true
+    }
+  }
+}

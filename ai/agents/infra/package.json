@@ -1,0 +1,38 @@
+{
+  "name": "@wti/infra-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WTI Infra chat agent for Eclipse Theia (standalone extension package).",
+  "license": "UNLICENSED",
+  "keywords": [
+    "theia-extension",
+    "theia-ai",
+    "chat-agent"
+  ],
+  "packageManager": "pnpm@9.15.5",
+  "dependencies": {
+    "@theia/ai-chat": "^1.68.0",
+    "@theia/ai-core": "^1.68.0",
+    "@theia/core": "^1.68.0"
+  },
+  "devDependencies": {
+    "@theia/cli": "^1.68.0",
+    "typescript": "^5.0.0"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/frontend-module"
+    }
+  ],
+  "files": [
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "build": "theiaext build",
+    "clean": "theiaext clean",
+    "compile": "theiaext compile",
+    "lint": "theiaext lint",
+    "watch": "theiaext watch"
+  }
+}

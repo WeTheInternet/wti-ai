@@ -14,6 +14,7 @@ changelog:
 This repository uses a review/certification workflow.
 
 ## Start here
+- docs/features/doc-system-spec.md
 - PURPOSE.md
 - docs/PURPOSE.md
 
@@ -31,6 +32,12 @@ This repository uses a review/certification workflow.
 Do not run tasks, scripts, or destructive commands without explicit user approval.
 
 Do not propose broad refactors unless the user asks.
+
+## Runtime assumptions (durable)
+- The WTI Theia browser IDE is built and run from the `ide/` pnpm workspace.
+- A `repos/theia` directory may exist in this repo for IDE performance (workspace excludes) and source lookup.
+  - Keep the workspace ignores/excludes for `repos/theia` enabled to prevent IDE indexing/watching overload.
+  - Do not reference `repos/theia` in product code, scripts, or non-workspace configuration.
 
 ## Current top priorities (near-term)
 1. Establish documentation taxonomy + certification headers.

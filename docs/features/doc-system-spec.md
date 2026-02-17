@@ -10,9 +10,36 @@ verification:
   - "(manual) Frontmatter schema matches agent parsing expectations"
 ---
 
-# WTI AI Docs Spec (Draft)
+# Docs system spec (draft)
 
 Machine-oriented specification for repository documentation metadata, authority, and navigation.
+
+## Non-negotiable vs best-effort
+
+Non-negotiable:
+- Only documents with `status: CERTIFIED` are authoritative.
+
+Best-effort (may be missing, incomplete, or incorrect):
+- `teams`, `roles`, `verification`
+- `lifecycle`, `maturity`, `approvedSha`, `approvedBy`
+- Any routing metadata used for discovery
+
+No enforcement yet:
+- Missing or inconsistent metadata must not block work.
+- When metadata gaps materially increase uncertainty or risk, create a goal to correct docs rather than enforcing a hard stop.
+
+## Three orthogonal axes
+
+The documentation system uses three independent dimensions:
+
+1) Trust / authority (`status`)
+- Determines whether a doc can be treated as authoritative truth.
+
+2) Feature/work phase (`lifecycle`)
+- Best-effort statement of where the work is in its lifecycle.
+
+3) Implementation reality (`maturity`)
+- Best-effort statement of how real/operational the implementation is.
 
 ## Required frontmatter schema
 
@@ -24,8 +51,35 @@ All documentation intended for agent consumption should begin with YAML frontmat
 - `authors` (list of strings; include `JamesXNelson`)
 - `lastUpdated` (string; ISO-8601 UTC with seconds resolution, e.g. `2026-02-16T15:08:31Z`)
 
+## Optional frontmatter keys
+
 Optional-but-encouraged:
 - `verification` (string or list) describing how an agent/human can validate claims.
+
+Optional (best-effort) lifecycle keys:
+- `lifecycle` (string)
+  - Allowed values:
+    - `TRIAGE`
+    - `CONFIRMED`
+    - `SPECCED`
+    - `APPROVED`
+    - `IMPLEMENTING`
+    - `COMPLETE`
+    - `DEPRECATED`
+
+- `maturity` (string)
+  - Recommended values:
+    - `NONE` (default)
+    - `SPIKE`
+    - `RUNNABLE`
+    - `DEPLOYABLE`
+    - `TESTED`
+    - `DOCUMENTED`
+    - `PRODUCTION`
+
+Approval metadata (expected when `lifecycle: APPROVED`, and remains relevant in later lifecycle states):
+- `approvedSha` (string; git short sha)
+- `approvedBy` (string; human or bot id)
 
 ## Status values and meaning
 
@@ -48,6 +102,19 @@ Minimum supported statuses:
   - define what belongs / what does not
   - route to next reads via links
   - state authority expectations (CERTIFIED semantics)
+
+## Routing principle (read routers first)
+
+Read routers first, then drill down.
+
+Preferred order:
+1. `AGENTS.md`
+2. `PURPOSE.md` (repo root)
+3. `docs/PURPOSE.md`
+4. Directory routers (`docs/*/PURPOSE.md`)
+
+See also:
+- `docs/0_triage/workflow/role-based-reading-and-trust.md`
 
 ## Triage rules
 

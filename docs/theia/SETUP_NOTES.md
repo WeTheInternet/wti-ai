@@ -1,5 +1,8 @@
 # Theia AI Setup Notes (WTI)
 
+Canonical build/run workflow:
+- `docs/theia/WTI_IDE_WORKFLOW.md`
+
 ## Key settings you surfaced
 - **OpenAI Official: Use Response API**
   - Prefer ON for official OpenAI models; it uses the newer Responses API.

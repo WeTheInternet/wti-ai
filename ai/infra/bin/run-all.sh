@@ -10,7 +10,9 @@ tasks=(
   "030-cluster-autopilot.sh"
   "040-static-ips.sh"
   "050-cert-manager.sh"
+  "055-clouddns-dns01-issuer.sh"
   "060-envoy-gateway.sh"
+  "070-conductor-gateway-placeholder.sh"
 )
 
 for t in "${tasks[@]}"; do

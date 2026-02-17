@@ -1,0 +1,42 @@
+{
+  "name": "@wti/wti-ide",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@9.15.5",
+  "dependencies": {
+    "@theia/core": "1.68.2",
+    "@theia/editor": "1.68.2",
+    "@theia/filesystem": "1.68.2",
+    "@theia/file-search": "1.68.2",
+    "@theia/markers": "1.68.2",
+    "@theia/monaco": "1.68.2",
+    "@theia/monaco-editor-core": "1.96.302",
+    "@theia/navigator": "1.68.2",
+    "@theia/output": "1.68.2",
+    "@theia/outline-view": "1.68.2",
+    "@theia/process": "1.68.2",
+    "@theia/terminal": "1.68.2",
+    "@theia/variable-resolver": "1.68.2",
+    "@theia/workspace": "1.68.2",
+    "@vscode/ripgrep": "1.15.14",
+    "@theia/ai-core": "1.68.2",
+    "@theia/ai-chat": "1.68.2",
+    "@wti/infra-agent": "workspace:*"
+  },
+  "devDependencies": {
+    "@theia/cli": "1.68.2",
+    "css-loader": "^7.1.2",
+    "node-loader": "^2.0.0",
+    "reflect-metadata": "^0.2.2",
+    "source-map-loader": "^5.0.0",
+    "style-loader": "^4.0.0",
+    "typescript": "^5.9.0",
+    "umd-compat-loader": "^2.0.0"
+  },
+  "scripts": {
+    "build": "theia build --mode development",
+    "build:prod": "theia build --mode production",
+    "start": "theia start --mode development --hostname 0.0.0.0 --port 1771",
+    "watch": "theia build --watch --mode development"
+  }
+}

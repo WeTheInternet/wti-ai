@@ -1,0 +1,20 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: conductor-gateway
+  namespace: wti-ai
+spec:
+  gatewayClassName: envoy-gateway
+  addresses:
+    - type: IPAddress
+      value: REPLACE_ME_RESERVED_STATIC_IP
+  listeners:
+    - name: https
+      hostname: conductor.wti.net
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: conductor-wti-net-tls
