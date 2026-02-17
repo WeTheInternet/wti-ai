@@ -15,6 +15,18 @@ configs[0].module.rules.push({
     loader: require.resolve('@theia/application-manager/lib/expose-loader')
 }); */
 
+configs[0].plugins.unshift(
+    new (require('copy-webpack-plugin'))({
+        patterns: [
+            {
+                from: require('path').resolve(__dirname, 'extensions'),
+                to: require('path').resolve(__dirname, 'lib', 'frontend', 'extensions'),
+                noErrorOnMissing: true
+            }
+        ]
+    })
+);
+
 module.exports = [
     ...configs,
     nodeConfig.config

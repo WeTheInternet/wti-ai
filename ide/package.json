@@ -14,7 +14,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@theia/*": "1.68.2"
+      "@theia/*": "1.68.2",
+      "zod": "3.25.1"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",

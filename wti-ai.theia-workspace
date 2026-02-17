@@ -29,6 +29,7 @@
     "files.exclude": {
       "**/node_modules": true,
       "repos/theia": true
-    }
+    },
+    "ai-features.chat.bypassModelRequirement": true
   }
 }
