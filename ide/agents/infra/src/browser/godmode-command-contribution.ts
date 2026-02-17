@@ -29,10 +29,10 @@ export namespace GodmodeCommands {
 export class GodmodeCommandContribution implements CommandContribution {
 
     @inject(GodmodeService)
-    protected readonly godmodeService: GodmodeService;
+    protected readonly godmodeService!: GodmodeService;
 
     @inject(MessageService)
-    protected readonly messageService: MessageService;
+    protected readonly messageService!: MessageService;
 
     registerCommands(registry: CommandRegistry): void {
         registry.registerCommand(GodmodeCommands.TOGGLE, {

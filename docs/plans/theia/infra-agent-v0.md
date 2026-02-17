@@ -8,16 +8,16 @@ lastUpdated: 2026-02-16T00:00:00Z
 lifecycle: CONFIRMED
 maturity: NONE
 verification:
-  - "(manual) @Infra is selectable as a ChatAgent and shows its modes"
-  - "(manual) @Infra can generate an ops block and refine it via Next mode"
-  - "(manual) ops block targets @Coder in implement mode"
+  - "(manual) Infra is selectable as a ChatAgent and shows its modes"
+  - "(manual) Infra can generate an ops block and refine it via Next mode"
+  - "(manual) ops block targets Coder in implement mode"
 ---
 
-# Theia `@Infra` agent v0 (modes + refine + delegation)
+# Theia `Infra` agent v0 (modes + refine + delegation)
 
 ## Shipped in v0
 
-- A chat agent named `Infra` (`@Infra`) registered in Theia.
+- A chat agent named `Infra` (`Infra`) registered in Theia.
 - Explicit modes:
   - `design`
   - `implement`
@@ -30,10 +30,10 @@ verification:
 
 ## Modes → target agent mapping
 
-- `design` → `@Architect`
-- `implement` → `@Coder`
-- `review` → `@Architect`
-- `test` → `@AppTester`
+- `design` → `Architect`
+- `implement` → `Coder`
+- `review` → `Architect`
+- `test` → `AppTester`
 
 ## Ops block format (stable)
 
@@ -72,6 +72,6 @@ Rollback:
 
 ## Manual verification checklist
 
-- Confirm `@Infra` appears in the chat agent list / can be invoked by mention.
+- Confirm `@Prime` appears in the chat agent list / can be invoked by mention.
 - Switch between modes and confirm the target agent in the ops block changes accordingly.
 - Use the refine loop and confirm preconditions/expected outputs/rollback become more explicit.

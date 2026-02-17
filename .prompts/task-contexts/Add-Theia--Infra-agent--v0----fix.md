@@ -1,12 +1,13 @@
+---
 id: 8e2f4933-6bf2-475b-837e-650d466faf9d
 sessionId: 3cda3097-9cd0-4d3c-b3ef-e4aa19454352
 date: '2026-02-16T20:01:53.358Z'
-label: Add Theia @Infra agent (v0) + fix theia-dev skill + repo boundary rules
+label: Add Theia @Prime agent (v0) + fix theia-dev skill + repo boundary rules
 ---
-# Add Theia `@Infra` agent (v0) + improve `theia-dev` skill + repo boundary rules
+# Add Theia `@Prime` agent (v0) + improve `theia-dev` skill + repo boundary rules
 
 ## Goal
-Deliver the first usable Theia-integrated `@Infra` agent with explicit modes and a refine/delegate loop (coder mode functional first), while also upgrading `skills/theia-dev` to include concrete, repo-verified extension points and adding a repo-boundary policy so only theia-dev work touches `repos/theia`.
+Deliver the first usable Theia-integrated `@Prime` agent with explicit modes and a refine/delegate loop (coder mode functional first), while also upgrading `skills/theia-dev` to include concrete, repo-verified extension points and adding a repo-boundary policy so only theia-dev work touches `repos/theia`.
 
 ## Design
 
@@ -14,7 +15,7 @@ Deliver the first usable Theia-integrated `@Infra` agent with explicit modes and
 - **No commands run** in this planning context.
 - **No invented APIs**: all Theia extension points must be discovered by reading code in `repos/theia`.
 - v0 scope: **Coder mode must be implementable**; other modes may route/stub but must be visible.
-- `@Infra` should:
+- `@Prime` should:
   1) present explicit modes (design/implement/review/test)
   2) delegate to default Theia agents by generating **ready-to-send prompts/ops blocks**
   3) provide a “Next mode” refine loop (human iterates until click-to-send)
@@ -33,8 +34,8 @@ Deliver the first usable Theia-integrated `@Infra` agent with explicit modes and
 ### Agent naming/handles convention
 - Use **Title-case agent names** to match Theia defaults (e.g. `Architect`).
 - New agent will be registered as:
-  - Display name: `Infra`
-  - Handle/mention: `@Infra` (Title-case)
+  - Display name: `Prime`
+  - Handle/mention: `@Prime` (Title-case)
 
 ### Where the Theia extension will live
 - Per user instruction: create extension code under `ai/agents/infra/` (not root `packages/`).
@@ -44,8 +45,8 @@ Deliver the first usable Theia-integrated `@Infra` agent with explicit modes and
 
 ### UX scope (vertical slice)
 - Minimal UI contribution (either):
-  - A chat agent/persona `@Infra` available in the default chat window, OR
-  - A simple panel (command palette opens “Infra Agent” widget)
+  - A chat agent/persona `@Prime` available in the default chat window, OR
+  - A simple panel (command palette opens “Prime Agent” widget)
 - Panel/chat UI must expose mode selector and generate “ready-to-send” delegations.
 - “Next mode” in v0: **agent refines/explains options** for delegation (does not execute anything).
 
@@ -144,33 +145,33 @@ Deliver the first usable Theia-integrated `@Infra` agent with explicit modes and
 
 ---
 
-### 5) Implement `@Infra` agent registration (minimal) in Theia (coder mode functional, others stub)
+### 5) Implement `@Prime` agent registration (minimal) in Theia (coder mode functional, others stub)
 **Inspect**
 - The registration points found in Task 3.
 
 **Change**
-- In `repos/theia` (as needed) add an agent/persona named `Infra`:
-  - Display name: `Infra`
-  - Mention/selector handle: `@Infra`
+- In `repos/theia` (as needed) add an agent/persona named `Prime`:
+  - Display name: `Prime`
+  - Mention/selector handle: `@Prime`
   - Modes exposed: `design`, `implement`, `review`, `test`
   - For v0:
     - `implement` delegates to default `coder` agent via generated prompt
     - other modes either delegate or stub with a message
 
 **Acceptance criteria**
-- `@Infra` appears in the default chat agent selector or mention syntax.
+- `@Prime` appears in the default chat agent selector or mention syntax.
 
 **Rollback**
 - Remove the registration entry / revert changes in `repos/theia`.
 
 ---
 
-### 6) Implement the mode+refine+delegation behavior (prompt generator) for `@Infra`
+### 6) Implement the mode+refine+delegation behavior (prompt generator) for `@Prime`
 **Inspect**
 - Any existing agent implementations and prompt templating patterns in `repos/theia`.
 
 **Change**
-- Add a small state machine for `@Infra`:
+- Add a small state machine for `@Prime`:
   - State: current mode, last generated prompt, user “task intent” input.
   - “Generate ready-to-send prompt” produces:
     - operations/prompt block with required fields
@@ -191,12 +192,12 @@ Deliver the first usable Theia-integrated `@Infra` agent with explicit modes and
 
 ---
 
-### 7) Add minimal UI affordance (command palette) to open an “Infra Agent” helper view (optional but recommended)
+### 7) Add minimal UI affordance (command palette) to open an “Prime Agent” helper view (optional but recommended)
 **Inspect**
 - Theia UI contribution patterns in `repos/theia`.
 
 **Change**
-- Add command: `Infra: Open Helper`
+- Add command: `Prime: Open Helper`
 - Add a simple widget/view that:
   - shows mode selector
   - shows generated block
@@ -253,7 +254,7 @@ Deliver the first usable Theia-integrated `@Infra` agent with explicit modes and
 ## Verification (repo-local)
 - Manual verification steps (no command execution required in this context):
   - Confirm `WTI-ROLES.md` markers exist.
-  - Confirm `@Infra` is registered and visible (per Theia UI).
+  - Confirm `@Prime` is registered and visible (per Theia UI).
   - Confirm generated prompts include mode, risk, rollback, and target agent.
   - Confirm send/copy flow works.
 

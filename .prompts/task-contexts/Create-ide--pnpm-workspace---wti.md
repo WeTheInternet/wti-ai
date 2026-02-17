@@ -1,3 +1,4 @@
+---
 id: cd092dcb-1d82-4669-9fb6-5c32a18acb87
 sessionId: 08d479e2-c312-4d6b-9e7e-1105d41df040
 date: '2026-02-17T02:34:53.577Z'
@@ -8,7 +9,7 @@ label: >-
 # Create `ide/` pnpm workspace + `wti-ide` (Theia browser app) + agents + Playwright harness
 
 ## Goal
-Stand up a new standalone frontend “repo root” under `ide/` containing a pnpm workspace that builds and runs a browser-based Theia IDE app (`wti-ide`) from npm-published `@theia/*@1.68.2`, plus WTI agent extensions (starting with Infra) and a Playwright test harness.
+Stand up a new standalone frontend “repo root” under `ide/` containing a pnpm workspace that builds and runs a browser-based Theia IDE app (`wti-ide`) from npm-published `@theia/*@1.68.2`, plus WTI agent extensions (starting with Prime) and a Playwright test harness.
 
 Non-goals:
 - Do **not** migrate/maintain the existing “junky/manual” Theia setup. Leave it untouched.
@@ -343,7 +344,7 @@ pnpm --filter @wti/tests-playwright run test
 ### `ide/tests/playwright/tests/smoke.spec.ts` (initial tests)
 - Loads the app.
 - Verifies key UI shells exist.
-- Opens AI Chat view and asserts that `@Infra` agent is present (selector text may differ; implement robust selector strategy).
+- Opens AI Chat view and asserts that `@Prime` agent is present (selector text may differ; implement robust selector strategy).
 
 ## Slash-and-burn migration steps (as requested)
 1. Delete `ai/agents/infra/pnpm-lock.yaml` and stop treating that folder as an installable unit.
@@ -359,7 +360,7 @@ From repo root:
 3. `./run.sh`
    - open http://localhost:1771
    - verify Theia loads
-   - verify AI Chat loads and Infra agent is present
+   - verify AI Chat loads and Prime agent is present
 
 E2E:
 1. `cd ide`

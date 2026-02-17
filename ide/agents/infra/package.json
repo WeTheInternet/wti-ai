@@ -13,7 +13,9 @@
   "dependencies": {
     "@theia/ai-chat": "1.68.2",
     "@theia/ai-core": "1.68.2",
-    "@theia/core": "1.68.2"
+    "@theia/core": "1.68.2",
+    "@theia/workspace": "1.68.2",
+    "@theia/filesystem": "1.68.2"
   },
   "devDependencies": {
     "@theia/cli": "1.68.2",

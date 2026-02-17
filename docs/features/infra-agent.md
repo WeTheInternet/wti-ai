@@ -13,14 +13,14 @@ verification:
   - "(manual) A developer can implement the first mode (coder) without re-interpreting requirements"
 ---
 
-# Infra Agent (`@Infra`) feature (draft)
+# Infra Agent (`@Prime`) feature (draft)
 
 ## Goal
 
-Provide a single `@Infra` agent that can operate as a full DevOps team by switching between explicit modes (design → implement → review → test), producing click-to-send, approval-gated operations that set up and maintain `ai/infra` and cluster infrastructure.
+Provide a single `@Prime` agent that can operate as a full DevOps team by switching between explicit modes (design → implement → review → test), producing click-to-send, approval-gated operations that set up and maintain `ai/infra` and cluster infrastructure.
 
 Primary near-term outcome:
-- Implement only **Coder mode** first, so `@Infra` can finish wiring and executing the infra setup tasks safely.
+- Implement only **Coder mode** first, so `@Prime` can finish wiring and executing the infra setup tasks safely.
 
 ## Non-goals
 
@@ -34,7 +34,7 @@ Primary near-term outcome:
 
 ## Key concept: modes = hats
 
-`@Infra` is one agent with multiple hats. Each hat is a **mode** with different outputs and different standards of evidence.
+`@Prime` is one agent with multiple hats. Each hat is a **mode** with different outputs and different standards of evidence.
 
 ### Mode overview
 
@@ -62,7 +62,7 @@ Primary near-term outcome:
 
 ## Delegation model (ideal Theia bot team)
 
-In the ideal UI, `@Infra` delegates to specialized Theia bots. These are logical roles; they may map to separate agents or separate prompts.
+In the ideal UI, `@Prime` delegates to specialized Theia bots. These are logical roles; they may map to separate agents or separate prompts.
 
 - **Architect bot** (design mode)
   - Produces: end-state diagrams, resource inventory, API versions, assumptions.
@@ -83,7 +83,7 @@ In the ideal UI, `@Infra` delegates to specialized Theia bots. These are logical
 
 ## UX concept: “ready to send” operations
 
-`@Infra` produces operation blocks that are not executed automatically.
+`@Prime` produces operation blocks that are not executed automatically.
 
 Each operation block includes:
 - Title

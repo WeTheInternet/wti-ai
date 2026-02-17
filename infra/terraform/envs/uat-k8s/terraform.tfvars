@@ -6,5 +6,5 @@ env = "uat"
 
 conductor_hostname = "conductor-uat.wti.net"
 
-cert_manager_acme_email  = "james@wti.net"
+cert_manager_acme_email  = "james@wetheinter.net"
 cert_manager_acme_server = "https://acme-staging-v02.api.letsencrypt.org/directory"

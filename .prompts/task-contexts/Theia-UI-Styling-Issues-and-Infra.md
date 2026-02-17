@@ -1,12 +1,13 @@
+---
 id: 26c62721-4173-4243-adfc-eb9034eaf329
 sessionId: 6ff53f46-6489-4127-bc33-4081b037120b
 date: '2026-02-17T05:48:33.537Z'
-label: Theia UI Styling Issues and Infra Agent Errors
+label: Theia UI Styling Issues and Prime Agent Errors
 ---
 ## Summary of Current Chat Session
 
 ### Context
-- User has a Theia-based app `wti-ide` running. The `@wti/infra-agent` appears in the UI, but the UI is “barebones/broken” (e.g., missing nice AI UX like “Ask the Theia IDE AI”, and editor cursor/caret issues). `@Infra` prompts also “mess up”.
+- User has a Theia-based app `wti-ide` running. The `@wti/infra-agent` appears in the UI, but the UI is “barebones/broken” (e.g., missing nice AI UX like “Ask the Theia IDE AI”, and editor cursor/caret issues). `@Prime` prompts also “mess up”.
 - The immediate coding request is **not** to debug runtime issues, but to **add missing Theia packages** to the app so the richer UI/integrations are available.
 - The app package being modified is **`ide/apps/wti-ide/package.json`** (this is the running application package in the repo).
 - Current app uses **Theia 1.68.2** across dependencies (do not mix with 1.68.0). User provided a reference list from a working setup using 1.68.0, but this repo’s app should remain on **1.68.2**.
@@ -47,7 +48,7 @@ Update `ide/apps/wti-ide/package.json` to include additional Theia dependencies 
 6. If peer dependency issues appear, resolve by aligning to **1.68.2** (do not introduce 1.68.0).
 
 ### Ambiguities / Follow-ups (for later, not required to complete the coding task)
-- The underlying “no cursor” and “@Infra prompt breaks” issues might persist even after dependency additions; not requested to fix now.
+- The underlying “no cursor” and “@Prime prompt breaks” issues might persist even after dependency additions; not requested to fix now.
 - User’s working reference includes many additional packages (anthropic/google/ollama/etc). Only the 10 packages above were explicitly requested for addition in this task.
 
 ### Example / Guidance

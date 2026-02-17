@@ -21,6 +21,9 @@ export GCLOUD_ACCOUNT=you@example.com
 # Verify account + show whether roles are present
 ./ai/infra/bin/bootstrap-terraform-gcp.sh check
 
+# Auto-fix active gcloud account mismatch (will run: gcloud auth login "$GCLOUD_ACCOUNT")
+./ai/infra/bin/bootstrap-terraform-gcp.sh --login apply
+
 # Grant roles to your user (or set TARGET_PRINCIPAL=serviceAccount:...)
 ./ai/infra/bin/bootstrap-terraform-gcp.sh apply
 

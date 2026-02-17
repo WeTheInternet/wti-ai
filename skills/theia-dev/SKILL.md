@@ -81,7 +81,7 @@ The mention leader is `@`:
 - `repos/theia/packages/ai-chat/src/common/parsed-chat-request.ts`
   - `export const chatAgentLeader = '@';`
 
-This is the basis for `@Infra`, `@Coder`, etc.
+This is the basis for `Prime`, `Coder`, etc.
 
 ### 3) Add modes to a chat agent
 

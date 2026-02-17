@@ -1,7 +1,5 @@
 import { injectable, inject } from '@theia/core/shared/inversify';
 import { MessageService } from '@theia/core/lib/common/message-service';
-import { FileSystemError } from '@theia/filesystem/lib/common/filesystem';
-import { WorkspaceDeleteHandler } from '@theia/workspace/lib/browser/workspace-delete-handler';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import URI from '@theia/core/lib/common/uri';
 
@@ -10,19 +8,19 @@ import URI from '@theia/core/lib/common/uri';
  * for mounts/environments that don't support the Freedesktop trash semantics.
  */
 @injectable()
-export class TrashFallbackWorkspaceDeleteHandler extends WorkspaceDeleteHandler {
+export class TrashFallbackWorkspaceDeleteHandler {
 
     @inject(MessageService)
-    protected readonly messageService: MessageService;
+    protected readonly messageService!: MessageService;
 
     @inject(FileService)
-    protected readonly fileService: FileService;
+    protected readonly fileService!: FileService;
 
     private warnedOnce = false;
 
-    protected override async moveFileToTrash(uri: URI): Promise<void> {
+    protected async moveFileToTrash(uri: URI): Promise<void> {
         try {
-            await super.moveFileToTrash(uri);
+            await this.fileService.delete(uri, { useTrash: true });
         } catch (err) {
             if (this.shouldFallbackToPermanentDelete(err)) {
                 // Optional: warn once (but do not spam logs)
@@ -49,13 +47,6 @@ export class TrashFallbackWorkspaceDeleteHandler extends WorkspaceDeleteHandler 
 
         // Fast-path: common mkdir /.Trash-UID failures like in your log.
         if (message.includes('.trash-') && (message.includes('enoent') || message.includes('eacces') || message.includes('eperm'))) {
-            return true;
-        }
-
-        // Theia FileSystemError codes (not always present, but useful when they are).
-        if (FileSystemError.is(err)) {
-            // Some environments don’t allow creating trash dirs or cross-device moves.
-            // Treat those as “trash unsupported”.
             return true;
         }
 

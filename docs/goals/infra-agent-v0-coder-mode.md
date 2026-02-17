@@ -15,7 +15,7 @@ verification:
 
 ## Goal
 
-Implement the first usable version of `@Infra` as a single agent operating in **Coder mode**, capable of producing complete infra patches that wire `ai/infra` scripts into a single canonical init path and finish the hello-world / gateway / cert-manager setup.
+Implement the first usable version of `@Prime` as a single agent operating in **Coder mode**, capable of producing complete infra patches that wire `ai/infra` scripts into a single canonical init path and finish the hello-world / gateway / cert-manager setup.
 
 ## Why this matters
 
@@ -26,7 +26,7 @@ Implement the first usable version of `@Infra` as a single agent operating in **
 
 ### In-scope
 
-- `@Infra` in coder mode produces patches to:
+- `@Prime` in coder mode produces patches to:
   - connect task scripts to a canonical entrypoint (e.g. `01-init-gcloud.sh` or equivalent)
   - normalize shared helpers used by `ai/infra/tasks/*.sh`
   - create/maintain k8s manifests layer needed for edge vertical slice

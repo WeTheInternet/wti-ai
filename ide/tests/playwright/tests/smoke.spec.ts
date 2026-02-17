@@ -17,7 +17,7 @@ test.describe('wti-ide smoke', () => {
         await aiChatText.click();
       }
 
-      await expect(page.getByText(/Infra/i).first()).toBeVisible({ timeout: 120_000 });
+      await expect(page.getByText(/Prime/i).first()).toBeVisible({ timeout: 120_000 });
     } finally {
       await started.dispose();
     }

@@ -9,14 +9,14 @@ lifecycle: TRIAGE
 maturity: NONE
 verification:
   - "(manual) Theia build includes the Infra agent as a standalone extension package"
-  - "(manual) @Infra remains registered and functional after extracting into its own package"
+  - "(manual) @Prime remains registered and functional after extracting into its own package"
 ---
 
-# Goal: Fix packaging for Theia `@Infra`
+# Goal: Fix packaging for Theia `@Prime`
 
 ## Goal
 
-Package the Theia `@Infra` agent like a normal Theia extension package, rather than wiring it directly into an existing package.
+Package the Theia `@Prime` agent like a normal Theia extension package, rather than wiring it directly into an existing package.
 
 ## Why
 
@@ -37,9 +37,9 @@ Package the Theia `@Infra` agent like a normal Theia extension package, rather t
 
 ## Acceptance criteria
 
-- `@Infra` appears in the chat agent selector.
-- `@Infra` modes are visible.
-- `@Infra` can generate and refine delegation blocks.
+- `@Prime` appears in the chat agent selector.
+- `@Prime` modes are visible.
+- `@Prime` can generate and refine delegation blocks.
 
 ## Rollback
 
