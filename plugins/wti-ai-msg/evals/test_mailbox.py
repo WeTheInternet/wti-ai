@@ -46,6 +46,33 @@ class MailboxEvals(unittest.TestCase):
     def current(self):
         return self.box.status(self.box.message(ALICE, self.mid))
 
+    def test_invalid_peer_schema_and_checksum_name_outbox_without_consuming_records(self):
+        self.send()
+        bad = self.box.send(CAROL, BOB, str(uuid.uuid4()), "other-request", 1, "fixture")["event"]
+        path = self.box.path(CAROL)
+        for fault, detail in (("schema", "missing=['body']"), ("checksum", "Event checksum mismatch")):
+            with self.subTest(fault=fault):
+                damaged = dict(bad)
+                if fault == "schema":
+                    damaged.pop("body")
+                    damaged["sha256"] = mail.digest(mail.event_payload(damaged))
+                else:
+                    damaged["body"] = "tampered without new checksum"
+                path.write_text(mail.render(CAROL, [damaged]))
+                before = {p.name:p.read_bytes() for p in self.root.iterdir()}
+                with self.assertRaises(mail.MailError) as error:
+                    self.box.reconcile(BOB)
+                self.assertIn(str(path), str(error.exception))
+                self.assertIn(detail, str(error.exception))
+                self.assertIsInstance(error.exception.__cause__, mail.MailError)
+                result = subprocess.run([sys.executable,str(SCRIPT),'--root',str(self.root),
+                                         '--actor',BOB,'reconcile'], capture_output=True,text=True)
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(result.stdout, "")
+                self.assertIn(str(path), json.loads(result.stderr)["error"])
+                self.assertIn(detail, json.loads(result.stderr)["error"])
+                self.assertEqual(before, {p.name:p.read_bytes() for p in self.root.iterdir()})
+
     def test_acceptance_race_rechecks_locked_terminal_history(self):
         self.send()
         self.ack()

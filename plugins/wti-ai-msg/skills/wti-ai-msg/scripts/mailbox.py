@@ -154,7 +154,7 @@ def decode(path):
         if render(actor, events) != text or path.name != actor.replace("/", "__") + ".md":
             raise MailError(f"Malformed or partially written outbox: {path}")
         return actor, events
-    except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
+    except (MailError, ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
         raise MailError(f"Invalid outbox: {path}: {exc}") from exc
 
 

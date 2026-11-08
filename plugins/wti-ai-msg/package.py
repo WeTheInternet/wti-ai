@@ -69,6 +69,8 @@ def main():
                 if not re.match(r"[a-z]+://", target) and not target.startswith("#"):
                     resolved = (source.parent / target.split("#")[0]).resolve()
                     require(resolved in packaged, f"Unpackaged link: {relative}: {target}")
+    # Publish the private temp mode (normally 0600 on POSIX), not prior output ACLs/mode.
+    # Sharing the archive is a separate explicit publication step; see README.md.
     fd, temporary = tempfile.mkstemp(prefix=".wti-package-", dir=args.output.parent)
     os.close(fd)
     try:

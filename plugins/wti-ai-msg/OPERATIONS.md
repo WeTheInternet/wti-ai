@@ -1,4 +1,4 @@
-# wti-ai-msg operations — package 0.2.1
+# wti-ai-msg operations — package 0.2.2
 
 Load `skills/wti-ai-msg/SKILL.md` by explicit path on each participating surface.
 Use the existing session and its exact identity, not a new agent. For permanent

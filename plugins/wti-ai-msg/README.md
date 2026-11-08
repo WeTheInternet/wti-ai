@@ -73,14 +73,20 @@ Run from this component directory, including after copying it out of `wti-ai`:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s evals -p 'test_*.py' -v
-python3 package.py --output /var/tmp/wti-ai-msg-0.2.1.zip
-sha256sum /var/tmp/wti-ai-msg-0.2.1.zip
+python3 package.py --output /var/tmp/wti-ai-msg-0.2.2.zip
+sha256sum /var/tmp/wti-ai-msg-0.2.2.zip
 ```
 
 The archive has an explicit allowlist and repeatable bytes within the same Python/zlib
 toolchain. It replaces the output only after validation; a failed build preserves any
 previous artifact. Its contents include
-the tests and packaging script; no parent checkout is required. CI runs just this
+the tests and packaging script; no parent checkout is required. On POSIX the output
+keeps the temporary file's private mode (normally `0600`), including when replacing
+an archive previously readable by other users. Existing mode/ACLs are not preserved.
+Build to an owner-controlled staging path, not a live shared download path; distribute
+through the approved upload/install surface. Shared-filesystem permissions are a
+separate owner decision, never automatically broadened by this builder.
+CI runs just this
 component and uploads the ZIP plus its checksum. CI does not install, publish a
 release, wake agents, or merge. For structural skill validation, use the upstream
 `skill-creator/scripts/quick_validate.py` on `skills/wti-ai-msg` when available.
@@ -108,6 +114,9 @@ from 0.2.0. Refresh old preflight files before using the new adapter. Saved-resu
 and native owner acceptance remain distinct from helper projections; see
 [recovery](skills/wti-ai-msg/references/recovery.md). Updating this source does not
 update an installed local or remote copy; compare versions and hashes separately.
+Version 0.2.2 adds the offending outbox path to schema/checksum diagnostics while
+preserving the original error and failing closed. It documents and checks the
+existing private archive-mode behavior without changing permission policy.
 See [design limits and deferred mechanisms](DESIGN.md).
 The issue/PR/operational-record split remains a proposal until a team adopts it.
 

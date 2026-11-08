@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import secrets
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -18,6 +19,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackageTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == "posix", "POSIX output-mode contract")
+    def test_new_and_replaced_archives_keep_private_temp_mode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "package.zip"
+            previous_umask = os.umask(0o022)
+            try:
+                self.build(ROOT, output)
+                self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o600)
+                output.unlink()
+                output.write_bytes(b"synthetic formerly shared archive")
+                self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o644)
+                self.build(ROOT, output)
+                self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o600)
+            finally:
+                os.umask(previous_umask)
+
     def test_postwrite_validation_failure_preserves_prior_archive_and_cleans_temp(self):
         spec = importlib.util.spec_from_file_location("package_test_impl", ROOT / "package.py")
         package = importlib.util.module_from_spec(spec)
