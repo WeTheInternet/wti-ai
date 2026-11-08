@@ -1,6 +1,7 @@
 """Exercise portable publication independently of the containing repository."""
 
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -10,12 +11,36 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackageTests(unittest.TestCase):
+    def test_postwrite_validation_failure_preserves_prior_archive_and_cleans_temp(self):
+        spec = importlib.util.spec_from_file_location("package_test_impl", ROOT / "package.py")
+        package = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(package)
+        for existing in (False, True):
+            for failure in ("integrity", "names"):
+                with self.subTest(existing=existing, failure=failure), tempfile.TemporaryDirectory() as tmp:
+                    output = Path(tmp) / "package.zip"
+                    if existing:
+                        output.write_bytes(b"previous validated artifact")
+                    original = package.require
+                    def reject(condition, explanation):
+                        if explanation == ("Archive integrity failure" if failure == "integrity" else "Archive contents mismatch"):
+                            raise ValueError("synthetic postwrite failure")
+                        return original(condition, explanation)
+                    with patch.object(sys, "argv", ["package.py", "--output", str(output)]), patch.object(package, "require", side_effect=reject):
+                        with self.assertRaisesRegex(ValueError, "postwrite failure"):
+                            package.main()
+                    self.assertEqual(output.exists(), existing)
+                    if existing:
+                        self.assertEqual(output.read_bytes(), b"previous validated artifact")
+                    self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), ["package.zip"] if existing else [])
+
     def build(self, root, output, success=True, optimized=False):
         result = subprocess.run(
             [sys.executable, *(["-O"] if optimized else []), str(root / "package.py"), "--output", str(output)],

@@ -18,22 +18,26 @@ the sender's own messages. Never clear `CODEX_THREAD_ID` to impersonate a sender
 ## Read, select, dispatch once
 
 1. At sender startup/resume or a requested handoff, scan only the named exchange.
-   At recipient startup/resume and safe boundaries, use `mailbox.py inbox`.
+   Use `mailbox.py reconcile` for incoming/outgoing/owned/observed work, including
+   terminal returns; `inbox` alone hides completed messages. See [recovery](recovery.md).
 2. Reconcile the current user instruction and request revision. For an eligible
    message, confirm the intended existing session, installed CLI path, target cwd,
-   current idle state and shared-file access. Read-only native session tools or
+   current observed state, shared-file access and separately verified queue-without-resume
+   compatibility. Read-only native session tools or
    System's supported host-aware reader can supply that observation. Do not
-   substitute a stale agent directory entry for current availability. Unknown,
-   offline, busy or active-writer targets stay deferred. Do not take over drivers.
+   substitute a stale directory entry or `notLoaded` for idle/offline evidence.
+   Unknown stays deferred. A known busy existing owner may receive queued input
+   through the verified non-resuming route; do not take over or interrupt it.
 3. Pass the exact sender, UUID and hash from scan to `once`. This submits ONE
-   `codex queue --thread <UUID> --message <notification> --resume` using argv,
+   `codex queue --thread <UUID> --message <notification>` using argv, WITHOUT `--resume`,
    the existing session's model and no `--remote`, config changes or credentials.
    This can consume quota by starting a turn. It requires authorization for the
    particular existing recipient; a skill does not grant that authority.
 4. Scan again when the recipient responds or at a later authorized reconciliation.
    Read its actual outbox; completed work remains recoverable even after lost
    notifications. Observe native activation independently if a supported reader is
-   available. File receipts demonstrate recipient processing but do not invent a
+   available. Inspect native return/owner evidence as well as helper fields.
+   File receipts demonstrate recipient processing but do not invent a
    native provider/turn receipt. The completion owner reviews and explicitly
    `accept`s; the dispatcher never does that automatically.
 
@@ -44,7 +48,7 @@ skill by path. No automatic scanning happens while nobody invokes the helper.
 ```bash
 python3 /ABS/skills/wti-ai-msg/scripts/dispatch.py --root EXCHANGE --actor SENDER scan
 python3 /ABS/skills/wti-ai-msg/scripts/dispatch.py --root EXCHANGE --actor SENDER once --message-id UUID --message-sha256 SHA256 --preflight-file /ABS/preflight.json --codex /ABS/installed-codex --cwd /ABS/existing-target-cwd --scope-current
-python3 /ABS/skills/wti-ai-msg/scripts/mailbox.py --root EXCHANGE --actor RECIPIENT inbox
+python3 /ABS/skills/wti-ai-msg/scripts/mailbox.py --root EXCHANGE --actor RECIPIENT reconcile
 python3 /ABS/skills/wti-ai-msg/scripts/mailbox.py --root EXCHANGE --actor OWNER status --sender SENDER --message-id UUID
 python3 /ABS/skills/wti-ai-msg/scripts/mailbox.py --root EXCHANGE --actor OWNER accept --sender SENDER --message-id UUID --text 'Verified exact result against the named criteria; evidence ...'
 ```
@@ -60,12 +64,15 @@ fields, with a real timezone timestamp no older than five minutes:
   "observed_at": "2026-11-08T16:00:00+00:00",
   "source": "supported thread reader actually used",
   "reference": "saved exact reader evidence; current route and scope checked",
-  "shared_exchange": "/var/tmp/gpt/exchanges/EXCHANGE"
+  "shared_exchange": "/var/tmp/gpt/exchanges/EXCHANGE",
+  "queue_without_resume_evidence": "exact installed-version/route compatibility evidence, independently checked"
 }
 ```
 
 `--scope-current` attests that the caller reconciled scope. The code cannot see
-conversations or enforce latest-user-instruction priority. A stale-read race can
+conversations, validate the operator's route assertion or enforce latest-user-instruction
+priority. A v0.2.0 preflight lacking `queue_without_resume_evidence` must be refreshed;
+do not copy a claim from this example. A stale-read race can
 still happen after preflight; recipient rechecks remain mandatory. The adapter
 holds its dispatch lock across the queue subprocess, not the recipient's eventual
 model/tools. It is not an execution lease or a guarantee of exactly-once effects.
@@ -80,9 +87,10 @@ Concurrent invocations fail or observe the retained intent. A saved provider rep
 has a separate event. Disk-full before intent prevents queue; after queue, intent
 still prevents a blind retry. Do not delete intent/lock/history to force another send.
 
-An explicit `Queued message ... for thread ...` reply records admission. Exit zero,
-empty stderr, or `--resume` alone proves neither activation nor ACK. Resume can fail
-while queue succeeds. An active-writer error or unknown reply preserves raw evidence
+An explicit `Queued message ... for thread ...` reply records admission. Exit zero
+or empty stderr proves neither activation nor ACK. Older `--resume` routes can fail
+to resume while queue succeeds. v0.2.1 does not request resume. An active-writer error
+or unknown reply preserves raw evidence (including timeout streams as base64)
 and requires reconciliation; absence of a receipt is NOT proof of non-admission.
 The command sends no cancellation or interruption to the target.
 
@@ -92,11 +100,11 @@ ACK, execution agreement, result and owner acceptance separately. Its `next_acti
 | Value | Meaning |
 | --- | --- |
 | eligible_for_preflight | No recorded send/ACK/result; scope still needs human/agent reconciliation |
-| deferred_busy / deferred_unknown | `once` preflight refused to submit; pending request unchanged |
+| deferred_unknown | `once` preflight could not establish current state; request unchanged |
 | reconcile_scope | Higher request revision exists; don't execute the old scope |
 | reconcile_delivery_no_resend | Some delivery/intent evidence exists; inspect target/provider first |
 | await_result | Recipient ACK exists; no repeat execution notification |
-| recover_saved_result | Read saved result and its actual outcome; complete only applicable owner checks |
+| recover_saved_result | Read saved result, delivery/native evidence and actual outcome; never redispatch work |
 | accepted | Owner acceptance already saved; no repeat work |
 
 There is deliberately no timed retry or force flag. For uncertain or admitted
@@ -106,6 +114,10 @@ after reconciliation, use one supported native call with the SAME logical ID and
 notification, recording your own evidence; never assign a new UUID to escape the
 guard. The basic adapter does not automate this exceptional recovery. A new scope
 gets a new message/revision only under current authority.
+For an already-completed request's return notification and late own accounting,
+follow [saved-result recovery](recovery.md#saved-result-return-after-a-blocked-notification).
+Do not interpret `recover_saved_result` or helper `unverified` as proof that a native
+completion-owner acceptance is absent.
 
 To attach a native activation observation, use `observe-activation --message-id UUID
 --evidence-file /ABS/activation.json` with the common `--root`/`--actor` arguments.

@@ -39,6 +39,21 @@ require this new receipt; `finish` continues to read/support the original workfl
 
 ## Reconcile before retrying
 
+Use `mailbox.py --root EXCHANGE --actor YOUR_ID reconcile` for a focused, read-only
+view of pending and terminal work where you are sender, recipient, completion owner
+or a recorded observer. It returns the original evidence and `next_actions`; it
+does not execute them, consume a record, subscribe to changes or establish native
+truth. Scan the explicitly enrolled exchanges, not every folder on the machine.
+For legacy helpers without this command, combine `inbox --all`, sender `scan` and
+the exact original sender/message `status`. Don't poll only one summary field.
+
+At each check, reconcile latest user instructions and revisions first. Inspect all
+new delivery observations and the source of any native receipt before choosing
+the smallest next action. Follow admitted work through result retrieval and the
+bounded return obligation; if waiting requires another turn, state who must act
+and what wake/check route exists. Unknown is not pending, offline or failed. A
+healthy process or `notLoaded` from one reader proves neither idle nor dead.
+
 Keep work/request identity, requirements revision, logical message UUID, submission
 attempt, native turn/session incarnation and optional diagnostic correlation distinct.
 The message key is sender + UUID. Retry exact bytes under that key; an intentional
@@ -71,6 +86,55 @@ exchange scan. The owner resolves it or approves quarantine after retaining byte
 and error; peers must not move/delete it silently. Disk-full/fsync errors remain
 explicit; after a post-rename failure, visibility may exist while durability is
 uncertain. A missed notification is repaired by scanning, not by assuming work lost.
+
+## Saved-result return after a blocked notification
+
+Recover the original completed result by sender/UUID/revision and result ID/hash.
+Returning its bytes or destination is a separate obligation from doing the work.
+An active-writer rejection on the return route neither loses that result nor
+authorizes repeating it, resuming elsewhere, interrupting or replacing the owner.
+
+Only after materially new relevant route evidence and current-scope reconciliation
+may a known-not-executed notification use an authorized alternate route. Verify the
+installed `codex queue --thread UUID --message NOTIFICATION` route **without
+`--resume`**, the exact existing local recipient and shared access. Preserve the
+original logical request/result identity in the notice; do not enqueue the original
+substantive task again. The notification asks the original sender to read the saved
+result. The foreground adapter handles only sender-owned fresh request notifications;
+it intentionally will not redispatch a completed request or act as its recipient.
+A bounded, separately verified native return call needs the actual caller's own
+intent/accounting records; never impersonate the original sender to use the adapter.
+
+Persist intent before the call. After an environment disconnect, missing accounting
+is not proof that the call never ran. Recover exact provider stdout/stderr/queue ID
+and target-turn evidence before another submission. If the call was admitted, write
+late accounting in YOUR outbox against the original identity and attempt, citing
+the actual event time separately from recording time. Do not resubmit to repair
+accounting. If the outcome cannot be recovered, hold it as uncertain. Resume
+warnings can coexist with admission in older routes; capture both streams.
+
+Read the original sender's native acknowledgment of the saved result if available:
+retain its actual author, source/turn/item locator, exact text/hash, original
+request/revision and result ID/hash. That return ACK is not the helper's request
+ACK: the original sender is not the addressed executor of its own request. The
+observer may write a delivery observation, never a peer ACK or result. Admission,
+activation and consumption are separate observations. A bounded destination return
+can be closed without claiming the research, implementation, review or merge done.
+
+## Native acceptance and helper projections
+
+`acceptance_state` describes only owner-authored helper events. A native completion
+owner may already have accepted in its own conversation/Page while that field is
+`unverified`. Review every relevant delivery observation and verify accessible
+native source evidence before saying acceptance is pending. Report both facts:
+native acceptance (directly read or explicitly attributed relay) and the helper
+projection. If the original source cannot be read, name the relay, locator and
+hash verification actually performed; do not claim independent native retrieval.
+Do not convert arbitrary JSON, a quote saying "accepted", broker success or an
+agent comment into user authorization or owner acceptance. Check the named owner,
+exact request/revision/hash, completed result and bounded criteria. The read-only
+reconciliation command deliberately exposes reports for review rather than treating
+their prose as authenticated state. Preserve superseded scopes and their evidence.
 
 ## Execution lifetime and user control
 

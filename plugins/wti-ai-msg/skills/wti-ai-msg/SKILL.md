@@ -20,6 +20,9 @@ it is not a silent migration. For pushed-code review, use
 [pushed review](references/pushed-review.md), preserving project review/merge gates.
 Use [recovery](references/recovery.md) to separate admission, activation, recipient
 execution acceptance and completion-owner acceptance, or when a notification is lost.
+For inbox checks and focused triage, use its reconciliation procedure: inspect
+relevant pending AND terminal work, all delivery observations and native receipts.
+A single helper status field is not the complete evidence record.
 
 For local foreground dispatch, read [local workflow](references/local-workflow.md).
 For a remote ChatGPT participant or private resource relay, read
@@ -93,7 +96,15 @@ or host-aware thread tools. Preserve original sender, UUID, revision, hash and
 recipient; attribute each hop to the actual relay. Only the recipient authors
 ACK/result. Reading a conversation or Library item does not imply send/write access.
 
-Enrolled agents check their inbox at turn start/resume and safe task boundaries.
+Enrolled agents reconcile their named exchanges at turn start/resume, on an inbox
+request and at safe task boundaries. Use `mailbox.py reconcile` for incoming,
+outgoing, completion-owned and observed work, including terminal results. With a
+retained older helper, use `inbox --all`, sender `scan` and exact-message `status`;
+read delivery reports as well as summary fields. Never use the new protocol helper
+to rewrite a legacy exchange. A sender asking for its saved return may have an
+empty normal inbox. Choose the smallest valid next action and follow admitted work
+through result/return evidence within the authorized turn; otherwise name the next
+owner and specific activation dependency. Do not imply continued monitoring.
 During explicitly requested coordination work, use bounded supported waits and
 recheck after notification. This toolkit installs no watcher, hook, schedule or
 service. The optional foreground `dispatch.py` can request a wake through a verified,
@@ -104,7 +115,9 @@ Stop an unavailable route after the concrete failure; retry after a relevant cha
 Give one bootstrap/fallback prompt with exact identities and outbox ownership.
 Avoid repeated user relays when an authorized desktop intermediary can carry them.
 Recover a saved result through exact-message status or `inbox --all` before retrying
-work. One execution computer may pause while offline. The outbox lock protects
+work. A native owner acceptance can coexist with helper `acceptance_state=unverified`;
+inspect the attributed source before reporting pending, and never forge a file
+acceptance to change that projection. One execution computer may pause while offline. The outbox lock protects
 publication only; never infer exclusion over a running tool or child process.
 
 ## Adoption and verification

@@ -66,5 +66,25 @@
   {
     "id": "active-writer",
     "prompt": "Use wti-ai-msg. Codex queue returned a provider message ID and a warning that the target already has an active writer. No observed target turn or ACK exists. Report each state and choose the next step without interruption, takeover or blind retry."
+  },
+  {
+    "id": "saved-return",
+    "prompt": "Use wti-ai-msg. A coordinator saved a completed result returning a research destination. Direct notification to the original CLI sender failed with active writer. A supported queue route without --resume has since been verified for that exact existing recipient, and the user authorized a return notice. The original request has not changed. Recover the return obligation and identify exactly what may be called complete."
+  },
+  {
+    "id": "disconnected-accounting",
+    "prompt": "Use wti-ai-msg. Your own outbox has a return-notification intent. The environment disconnected before accounting. A recovered provider transcript has queue ID Q1 and success; a native completed recipient turn quotes saved result R1/hash H1. No second queue invocation is authorized. Describe the evidence you inspect and the records you may write."
+  },
+  {
+    "id": "native-owner-projection",
+    "prompt": "Use wti-ai-msg. Normal inbox is empty. Exact terminal status reports acceptance_state=unverified. A delivery observation cites the named completion owner's native conversation/item and quotes acceptance of this exact revision/result. You can read the relay, but cannot access the original conversation here. Give an accurate status and next action."
+  },
+  {
+    "id": "focused-triage",
+    "prompt": "Use wti-ai-msg. The user says check inbox and follow through. Incoming pending view is empty. There are terminal outgoing requests, a saved result and new native consumption observations. Another reader says notLoaded/latest interrupted. No new monitor or agent is authorized. Inspect the relevant work and choose the smallest next action; distinguish unknown from pending and complete."
+  },
+  {
+    "id": "remote-update",
+    "prompt": "Use wti-ai-msg. Canonical source is package 0.2.1 at a verified pushed SHA. Local installed bytes match 0.2.0. Remote ChatGPT installation was previously reported working, but you cannot inspect its version. The user asks whether to reinstall, without authorizing installation. Give minimal concrete adoption steps and explain what is verified versus unknown."
   }
 ]

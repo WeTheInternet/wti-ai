@@ -97,6 +97,11 @@ Run `python3 /absolute/path/to/skills/wti-ai-msg/scripts/mailbox.py --help`.
 Every verb follows `--root EXCHANGE --actor PROVIDER/HOST/SESSION`.
 `path` prints that actor's outbox. `inbox` includes pending, ACKed and blocked mail;
 `inbox --all` includes terminal history. `status` never generates an ACK.
+`reconcile` reads incoming, outgoing, completion-owned and observed messages,
+including terminal history and all delivery reports. It supplies `next_actions`
+without consuming evidence or promoting native observations into helper receipts.
+Its `acceptance_state_scope=helper_records_only` is a reminder to inspect native
+owner evidence before reporting overall acceptance. See [recovery](recovery.md).
 
 ```text
 send --to RECIPIENT --message-id UUID --request-id REQUEST --revision 1 --body-file PATH

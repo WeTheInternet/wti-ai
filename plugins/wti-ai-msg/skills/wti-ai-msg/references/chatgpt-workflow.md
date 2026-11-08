@@ -70,6 +70,13 @@ transport that exact artifact with attributed provenance and verify independentl
 before considering any separately authorized import. Import is not implemented by
 this package and must not overwrite an existing peer record.
 
+When checking completion, inspect native owner acceptance and attributed delivery
+observations even for terminal messages. Report the native decision and helper
+projection separately; do not repeatedly call an accepted native result pending
+because the filesystem has no owner-authored acceptance. A return-read ACK from an
+original sender is native consumption evidence, not an ACK of its own outgoing
+request. [Recovery](recovery.md) defines the exact binding and late-accounting rules.
+
 ## Activation and adoption
 
 The user or an authorized coordinator manually activates the existing chat for now. Saving a Page,
@@ -84,6 +91,16 @@ ask the existing participant to read them. Record the actual version/hash receiv
 A local filesystem path alone is not that transfer. Permanent ChatGPT skill/plugin
 installation remains a separate supported-flow decision for System, after review;
 do not assume the local Codex skills folder registers a remote ChatGPT skill.
+
+Before an update, compare the remote installed package version and source/manifest
+hashes with the exact pushed commit or portable archive supplied for review. Local
+canonical source, local installation and remote installation are three independent
+states. If remote inspection is unavailable, report it unknown and ask System to
+check through its existing installation surface. If already matching, no reinstall
+is needed. If stale, use that surface's supported update flow when authorized;
+reinstall only if it offers no update path. Until then an existing participant can
+explicitly read the exact pushed skill/references for this bounded task. Do not
+invent a universal refresh command, replace a session or stop an active driver.
 
 For code review, use [pushed review](pushed-review.md): exact repository, issue/PR,
 base/head SHAs, requirements revision, tests and gaps; severity/file/line/reason/

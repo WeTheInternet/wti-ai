@@ -30,5 +30,6 @@ canonical skill is nested there; do not maintain a second copy under this router
 
 
 The component remains DRAFT and is not repository-certified. Maintained canonical
-source does not imply certification. Read its skill and the current user
-instructions before using it.
+source does not imply certification. This router does not define component semantics.
+Read the [canonical skill](../plugins/wti-ai-msg/skills/wti-ai-msg/SKILL.md) and the
+current user instructions before using it.

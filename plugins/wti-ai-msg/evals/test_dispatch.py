@@ -1,5 +1,6 @@
 """Synthetic queue adapter checks. No installed Codex invocation or live recipient."""
 import concurrent.futures
+import base64
 import datetime as dt
 import importlib.util
 import json
@@ -35,7 +36,8 @@ class DispatchEvals(unittest.TestCase):
         self.mid = str(uuid.uuid4())
         self.message = self.box.send(ALICE, BOB, self.mid, "synthetic-work", 1, "Echo fixture", ALICE)["event"]
         self.preflight = dict(recipient=BOB, state="idle", observed_at=dispatch.stamp(),
-                              source="synthetic reader", reference="fixture status", shared_exchange=str(self.root))
+                              source="synthetic reader", reference="fixture status", shared_exchange=str(self.root),
+                              queue_without_resume_evidence="synthetic compatible installed route; not a live test")
         self.calls = []
 
     def tearDown(self):
@@ -69,7 +71,8 @@ class DispatchEvals(unittest.TestCase):
         self.assertEqual(status["acceptance_state"], "unverified")
         args, options = self.calls[0]
         self.assertEqual(args[:4], [sys.executable, "queue", "--thread", BOB.split('/')[-1]])
-        self.assertEqual(args[-1], "--resume")
+        self.assertNotIn("--resume", args)
+        self.assertEqual(len(args), 6)
         self.assertNotIn("shell", options)
         self.assertIn(str(self.box.path(BOB)), args[5])
         self.assertIn(str(self.box.path(ALICE)), args[5])
@@ -115,8 +118,8 @@ class DispatchEvals(unittest.TestCase):
                 self.run_once(mid=mid, expected_hash=m["sha256"])
         self.assertEqual(len(self.calls), 2)
 
-    def test_busy_unknown_and_stale_preflight_never_call_queue(self):
-        for state in ("busy", "unknown"):
+    def test_unknown_and_stale_preflight_never_call_queue(self):
+        for state in ("unknown",):
             status = self.run_once(observation=dict(self.preflight, state=state))
             self.assertEqual(status["next_action"], "deferred_" + state)
         old = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=6)).isoformat()
@@ -124,6 +127,73 @@ class DispatchEvals(unittest.TestCase):
             self.run_once(observation=dict(self.preflight, observed_at=old))
         self.assertEqual(self.calls, [])
         self.assertEqual(self.box.status(self.message)["delivery_reports"], [])
+
+    def test_verified_busy_route_queues_without_resume_or_takeover(self):
+        status = self.run_once(observation=dict(self.preflight, state="busy"))
+        self.assertEqual(status["provider_admission"], "observed")
+        self.assertEqual(status["activation"], "unverified")
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.calls[0][0][:5], [sys.executable, "queue", "--thread", BOB.split('/')[-1], "--message"])
+        self.assertEqual(len(self.calls[0][0]), 6)
+
+    def test_missing_route_evidence_and_not_loaded_are_not_idle(self):
+        missing = dict(self.preflight)
+        missing.pop("queue_without_resume_evidence")
+        for observation in (missing, dict(self.preflight, queue_without_resume_evidence=""),
+                            dict(self.preflight, state="notLoaded")):
+            with self.subTest(observation=observation), self.assertRaises(mail.MailError):
+                self.run_once(observation=observation)
+        self.assertEqual(self.calls, [])
+
+    def test_timeout_preserves_provider_streams_losslessly_without_resend(self):
+        for output, error in ((b"admission evidence\xff", b"warning\xfe"), ("receipt text", "warning"), (None, None)):
+            mid = str(uuid.uuid4())
+            m = self.box.send(ALICE, BOB, mid, mid, 1, "fixture")["event"]
+            def timeout(args, **kwargs):
+                self.calls.append(args)
+                raise subprocess.TimeoutExpired(args, 20, output=output, stderr=error)
+            status = self.run_once(mid=mid, expected_hash=m["sha256"], runner=timeout)
+            observation = status["adapter_observations"][-1]
+            for name, value in (("stdout", output), ("stderr", error)):
+                if value is None:
+                    self.assertIsNone(observation[name + "_base64"])
+                else:
+                    self.assertEqual(base64.b64decode(observation[name + "_base64"]),
+                                     value if isinstance(value, bytes) else value.encode())
+            self.assertEqual(status["provider_admission"], "unverified")
+            self.run_once(mid=mid, expected_hash=m["sha256"])
+        self.assertEqual(len(self.calls), 3)
+
+    def test_binary_provider_receipt_retains_raw_bytes(self):
+        def bytes_reply(args, **kwargs):
+            result = self.runner(args, **kwargs)
+            result.stdout = result.stdout.encode()
+            result.stderr = b"diagnostic\xff"
+            return result
+        status = self.run_once(runner=bytes_reply)
+        self.assertEqual(status["provider_admission"], "observed")
+        self.assertEqual(base64.b64decode(status["adapter_observations"][-1]["stderr_base64"]), b"diagnostic\xff")
+
+    def test_disconnected_accounting_recovers_receipt_without_second_submission(self):
+        original = dispatch.record
+        def disconnect(box, actor, mid, attempt, stage, outcome, **data):
+            if stage == "admission":
+                raise OSError("synthetic environment disconnected before accounting")
+            return original(box, actor, mid, attempt, stage, outcome, **data)
+        with patch.object(dispatch, "record", side_effect=disconnect):
+            with self.assertRaises(OSError):
+                self.run_once()
+        status = self.run_once()
+        self.assertEqual(status["provider_admission"], "unverified")
+        intent = status["delivery_reports"][0]
+        attempt = intent["attempt_id"].removesuffix(":intent")
+        dispatch.record(self.box, ALICE, self.mid, attempt, "admission", "queued",
+                        provider_message_id=PROVIDER, source="recovered exact synthetic provider reply",
+                        note="late own accounting; original call not repeated")
+        status = self.run_once()
+        self.assertEqual(status["provider_admission"], "observed")
+        self.assertIsNone(status["ack"])
+        self.assertEqual(len(self.calls), 1)
 
     def test_wrong_recipient_hash_or_environment_refused(self):
         for changes in [dict(expected_hash="0" * 64), dict(observation=dict(self.preflight, recipient=CAROL)),

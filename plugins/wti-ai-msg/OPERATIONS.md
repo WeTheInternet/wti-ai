@@ -1,4 +1,4 @@
-# wti-ai-msg operations — package 0.2.0
+# wti-ai-msg operations — package 0.2.1
 
 Load `skills/wti-ai-msg/SKILL.md` by explicit path on each participating surface.
 Use the existing session and its exact identity, not a new agent. For permanent
@@ -10,7 +10,7 @@ role records remain the source of assignment/ownership truth. The mailbox is
 transport evidence only. Use existing request IDs/revisions in message envelopes.
 
 Sender: persist a UUID-bearing request; notify using a verified route; record its
-actual receipt. Recipient: check inbox, ACK the exact message, follow the latest
+actual receipt. Recipient: reconcile pending and terminal work, ACK the exact message, follow the latest
 user instruction, finish with evidence. System can bridge a message through its
 existing host-aware connector or private shared resources. The relay preserves
 identity/hash and cannot ACK or finish for the recipient.
@@ -22,7 +22,7 @@ authority proposal and pushed-review procedure for the proposed issue/PR/mail sp
 and exact-SHA review loop. The proposal does not migrate existing records.
 
 Recipient `accept-execution` follows read-ACK and is distinct from completion-owner
-`accept`. All readers in new exchanges must support `wti-ai-msg/0.1` (package 0.2.0).
+`accept`. All readers in new exchanges must support `wti-ai-msg/0.1` (package 0.2.x).
 Old `handoff-mail/0.1` records must be read with the retained old helper, without
 rewriting evidence or retrofitting acceptance. Upgrade both endpoints before
 starting new exchanges; a local installation does not update remote participants.
@@ -47,7 +47,12 @@ localhost URL on Codex's host is not a route into ChatGPT. Use connected GitHub 
 pushed code, a verified shared filesystem, or an authorized private resource/mail
 relay which carries the actual content and preserves attribution.
 
-Each actor checks inbox at start/resume and safe boundaries. No autonomous wake or
+Each actor uses `mailbox.py reconcile` at start/resume, inbox requests and safe
+boundaries. It includes outgoing and completed work plus delivery/native evidence;
+legacy helpers need `inbox --all`, sender `scan` and exact-message `status` instead.
+The projection's `unverified` does not erase a separately verified native acceptance.
+After a disconnected accounting write, reconcile provider/recipient evidence and
+append late own accounting without resubmitting. No autonomous wake or
 notification service is installed. Offline/busy mail persists; unattended delivery
 requires a separately verified/authorized mechanism. Never take over a driver.
 
@@ -110,3 +115,10 @@ unrelated skills or modify AGENTS/config to force discovery. For ChatGPT, System
 selects the currently supported private skill/plugin install flow after review;
 explicitly loading the transferred instructions suffices for the trial. There is
 no proposed service, monitor, credential or new agent installation.
+
+Version check: compare canonical package `plugin.json`/`provenance.json`, installed
+skill file hashes, and the remote installation's own version/hash evidence against
+the exact published commit. These are separate states. If remote version inspection
+is unavailable, report unknown; System checks its existing install surface. Use its
+supported update flow only when authorized, or explicitly load the pushed instructions
+for a bounded review. No generic MCP Refresh operation updates an imported skill.

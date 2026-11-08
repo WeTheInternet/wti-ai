@@ -40,6 +40,7 @@ jobs:
           python3 package.py --output wti-ai-msg.zip
           sha256sum wti-ai-msg.zip > wti-ai-msg.zip.sha256
       - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.13'
         with:
           name: wti-ai-msg-python-${{ matrix.python }}
           path: |

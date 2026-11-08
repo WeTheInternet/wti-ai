@@ -2,10 +2,13 @@
 """Build a deterministic portable package, excluding all live coordination data."""
 
 import argparse
+import contextlib
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
+import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
@@ -58,6 +61,7 @@ def main():
         actual = hashlib.sha256(payloads[f"skills/wti-ai-msg/references/{name}.md"]).hexdigest()
         require(actual == provenance[f"parent_{name}_sha256"], f"Parent {name} checksum mismatch")
     packaged = {(ROOT / relative).resolve() for relative in FILES}
+    # Only inline Markdown ](target) links are checked; this is not a Markdown parser.
     for relative, data in payloads.items():
         source = ROOT / relative
         if source.suffix == ".md":
@@ -65,15 +69,22 @@ def main():
                 if not re.match(r"[a-z]+://", target) and not target.startswith("#"):
                     resolved = (source.parent / target.split("#")[0]).resolve()
                     require(resolved in packaged, f"Unpackaged link: {relative}: {target}")
-    with zipfile.ZipFile(args.output, "w", zipfile.ZIP_DEFLATED) as archive:
-        for relative in sorted(FILES):
-            info = zipfile.ZipInfo(relative, (1980, 1, 1, 0, 0, 0))
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.external_attr = 0o100644 << 16
-            archive.writestr(info, payloads[relative])
-    with zipfile.ZipFile(args.output) as archive:
-        require(archive.testzip() is None, "Archive integrity failure")
-        require(sorted(archive.namelist()) == sorted(FILES), "Archive contents mismatch")
+    fd, temporary = tempfile.mkstemp(prefix=".wti-package-", dir=args.output.parent)
+    os.close(fd)
+    try:
+        with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
+            for relative in sorted(FILES):
+                info = zipfile.ZipInfo(relative, (1980, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = 0o100644 << 16
+                archive.writestr(info, payloads[relative])
+        with zipfile.ZipFile(temporary) as archive:
+            require(archive.testzip() is None, "Archive integrity failure")
+            require(sorted(archive.namelist()) == sorted(FILES), "Archive contents mismatch")
+        os.replace(temporary, args.output)
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(temporary)
     print(json.dumps({"archive": str(args.output), "sha256": hashlib.sha256(args.output.read_bytes()).hexdigest(),
                       "files": len(FILES)}, indent=2))
 

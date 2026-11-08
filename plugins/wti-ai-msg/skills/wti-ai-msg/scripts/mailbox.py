@@ -257,6 +257,13 @@ class Mailbox:
                     if event_payload(previous) != payload:
                         raise MailError("Idempotency conflict: event ID already binds different content")
                     return {"written": False, "path": str(path), "event": previous}
+            # Serialize the no-retrofit check with this recipient's result writer.
+            # Identical acceptance retries above remain valid after completion.
+            if event["kind"] == "execution_acceptance" and any(
+                    previous["kind"] == "result"
+                    and previous["message_sender"] == event["message_sender"]
+                    and previous["message_id"] == event["message_id"] for previous in old):
+                raise MailError("Cannot retrofit execution acceptance after a terminal result")
             event = dict(payload, created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                          sha256=digest(payload))
             validate_event(event)
@@ -360,6 +367,41 @@ class Mailbox:
                 "delivery_reports": [e for e in related if e["kind"] == "delivery"],
                 "work_state": result["outcome"] if result else "acknowledged" if ack else "pending"}
 
+    def reconcile(self, actor):
+        """Read all relevant work and evidence, without consuming it or inferring native truth."""
+        identity(actor)
+        snapshot = self.snapshot()
+        output = []
+        for message in snapshot.messages.values():
+            roles = [role for role, value in (("sender", message["actor"]),
+                     ("recipient", message["to"]), ("completion_owner", message.get("completion_owner")))
+                     if value == actor]
+            status = self.status(message, snapshot)
+            if not roles and not any(e["actor"] == actor for e in status["delivery_reports"]):
+                continue
+            actions = []
+            if status["requires_scope_reconciliation"]:
+                actions.append("reconcile_current_scope")
+            if status["delivery_reports"]:
+                actions.append("inspect_delivery_and_native_evidence")
+            if status["result"]:
+                actions.append("recover_saved_result_without_reexecution")
+                if not status["acceptance"] and message.get("completion_owner"):
+                    actions.append("reconcile_owner_evidence_before_reporting_acceptance")
+            elif "recipient" in roles:
+                actions.append("reconcile_scope_then_ack" if not status["ack"]
+                               else "reconcile_execution_and_follow_through")
+            elif status["ack"]:
+                actions.append("follow_existing_execution")
+            else:
+                actions.append("reconcile_delivery_no_resend" if status["delivery_reports"]
+                               else "verify_route_and_current_scope")
+            output.append(dict(status, actor_roles=roles or ["observer"], next_actions=actions,
+                               acceptance_state_scope="helper_records_only",
+                               native_evidence_state="requires_review" if status["delivery_reports"]
+                               else "not_observed_by_helper"))
+        return output
+
     def inbox(self, actor, include_closed=False):
         snapshot = self.snapshot()
         messages = [e for e in snapshot.messages.values() if e["to"] == actor]
@@ -373,6 +415,7 @@ def main(argv=None):
     parser.add_argument("--actor", required=True, help="Exact provider/host-label/session-id")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("path")
+    sub.add_parser("reconcile", help="Read pending AND terminal incoming/outgoing/owned work and all evidence")
     inbox = sub.add_parser("inbox")
     inbox.add_argument("--all", action="store_true")
     send = sub.add_parser("send")
@@ -401,6 +444,8 @@ def main(argv=None):
             result = {"outbox": str(box.path(actor))}
         elif args.command == "inbox":
             result = box.inbox(actor, args.all)
+        elif args.command == "reconcile":
+            result = box.reconcile(actor)
         elif args.command == "send":
             result = box.send(actor, args.to, args.message_id, args.request_id, args.revision,
                               safe_read(args.body_file), args.completion_owner)

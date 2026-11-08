@@ -46,6 +46,93 @@ class MailboxEvals(unittest.TestCase):
     def current(self):
         return self.box.status(self.box.message(ALICE, self.mid))
 
+    def test_acceptance_race_rechecks_locked_terminal_history(self):
+        self.send()
+        self.ack()
+        original = self.box.append
+        def intervening_result(actor, event):
+            if event["kind"] == "execution_acceptance":
+                self.finish()
+            return original(actor, event)
+        with patch.object(self.box, "append", side_effect=intervening_result):
+            with self.assertRaisesRegex(mail.MailError, "Cannot retrofit"):
+                self.box.receipt(BOB, ALICE, self.mid, "execution_acceptance", "Agree", "accepted")
+        self.assertEqual(self.current()["work_state"], "completed")
+        self.assertIsNone(self.current()["execution_acceptance"])
+
+    def test_identical_execution_acceptance_retry_after_result_remains_valid(self):
+        self.send()
+        self.ack()
+        first = self.box.receipt(BOB, ALICE, self.mid, "execution_acceptance", "Agree", "accepted")
+        self.finish()
+        before = self.box.path(BOB).read_bytes()
+        retry = self.box.receipt(BOB, ALICE, self.mid, "execution_acceptance", "Agree", "accepted")
+        self.assertFalse(retry["written"])
+        self.assertEqual(first["event"], retry["event"])
+        self.assertEqual(before, self.box.path(BOB).read_bytes())
+
+    def test_reconcile_saved_result_return_and_native_acceptance_without_impersonation(self):
+        self.box.send(ALICE, BOB, self.mid, "destination-return", 1,
+                      "Return existing research destination only; research remains separate", CAROL)
+        self.ack()
+        self.finish()
+        result = self.current()["result"]
+        # Disconnected accounting and late native observations are actor-owned data.
+        evidence = [
+            ("direct-denied", "blocked", {"stage":"return_route", "error":"active writer", "executed":False}),
+            ("queue-admission", "queued", {"stage":"admission", "provider_id":"fixture-queue", "resume_requested":False}),
+            ("native-consumption", "delivered", {"stage":"native_result_ack", "author":ALICE,
+              "source":"fixture native completed turn", "result_id":result["event_id"], "result_sha256":result["sha256"]}),
+            ("native-owner", "delivered", {"stage":"native_owner_acceptance", "author":CAROL,
+              "source":"fixture owner conversation/item", "scope":"destination-return only", "quote":"Accept this bounded return"})]
+        sender_before = self.box.path(ALICE).read_bytes()
+        for attempt, outcome, body in evidence:
+            self.box.receipt(BOB, ALICE, self.mid, "delivery", json.dumps(body), outcome, attempt)
+        before = {p.name:p.read_bytes() for p in self.root.iterdir()}
+        self.assertEqual(self.box.inbox(BOB), [])
+        for actor in (ALICE, BOB, CAROL):
+            status = self.box.reconcile(actor)[0]
+            self.assertEqual(status["result"], result)
+            self.assertEqual(len(status["delivery_reports"]), 4)
+            self.assertIn("recover_saved_result_without_reexecution", status["next_actions"])
+            self.assertIn("inspect_delivery_and_native_evidence", status["next_actions"])
+            self.assertEqual(status["acceptance_state"], "unverified")
+            self.assertEqual(status["acceptance_state_scope"], "helper_records_only")
+            self.assertEqual(status["native_evidence_state"], "requires_review")
+        self.assertEqual(before, {p.name:p.read_bytes() for p in self.root.iterdir()})
+        self.assertEqual(sender_before, self.box.path(ALICE).read_bytes())
+        with self.assertRaises(mail.MailError):
+            self.box.receipt(ALICE, ALICE, self.mid, "ack", "Return read ACK is not an ACK of my own request")
+        with self.assertRaises(mail.MailError):
+            self.box.receipt(BOB, ALICE, self.mid, "acceptance", "Cannot impersonate owner", "accepted")
+        self.assertFalse(self.box.path(CAROL).exists())
+
+    def test_reconcile_keeps_revision_and_unknown_owner_separate_from_saved_result(self):
+        self.send()
+        self.ack()
+        self.finish()
+        self.box.send(ALICE, BOB, str(uuid.uuid4()), "fixture-request", 2, "User changed scope")
+        status = next(s for s in self.box.reconcile(BOB) if s["message"]["message_id"] == self.mid)
+        self.assertEqual(status["next_actions"][0], "reconcile_current_scope")
+        self.assertIn("recover_saved_result_without_reexecution", status["next_actions"])
+        self.assertNotIn("reconcile_owner_evidence_before_reporting_acceptance", status["next_actions"])
+        self.assertEqual(status["message"]["revision"], 1)
+        self.assertEqual(status["native_evidence_state"], "not_observed_by_helper")
+
+    def test_reconcile_pending_and_terminal_cli_is_read_only_and_scoped(self):
+        self.send()
+        self.ack()
+        self.finish()
+        self.box.send(BOB, ALICE, str(uuid.uuid4()), "return", 1, "Read saved artifact")
+        self.box.send(CAROL, "test/fixture/other", str(uuid.uuid4()), "unrelated", 1, "unrelated")
+        before = {p.name:p.read_bytes() for p in self.root.iterdir()}
+        result = subprocess.run([sys.executable,str(SCRIPT),'--root',str(self.root),'--actor',ALICE,'reconcile'],
+                                capture_output=True,text=True,check=True)
+        statuses = json.loads(result.stdout)
+        self.assertEqual(len(statuses), 2)
+        self.assertEqual({s["work_state"] for s in statuses}, {"completed", "pending"})
+        self.assertEqual(before, {p.name:p.read_bytes() for p in self.root.iterdir()})
+
     def test_persist_ack_and_result_are_independent(self):
         self.send()
         self.assertEqual(self.current()["work_state"], "pending")

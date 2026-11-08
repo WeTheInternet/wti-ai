@@ -51,7 +51,9 @@ Invoke `$wti-ai-msg` for an authorized handoff. Read
 
 Helper execution requires Linux and Python 3.10+ (standard library only). Optional
 local wake requires a separately verified existing Codex CLI/session and permission
-to notify it. `codex queue --resume` admission is not evidence of activation.
+to notify it. The v0.2.1 adapter queues without `--resume` and requires explicit
+route evidence. Admission is not activation or consumption. For inbox checks use
+`mailbox.py reconcile`, including saved results and native evidence, not just pending mail.
 ChatGPT can use reachable instructions and native records without Python execution;
 exact-byte verification still requires an actual computation tool on that surface.
 A local install does not install a remote ChatGPT skill, grant file access, or wake
@@ -71,11 +73,13 @@ Run from this component directory, including after copying it out of `wti-ai`:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s evals -p 'test_*.py' -v
-python3 package.py --output /var/tmp/wti-ai-msg-0.2.0.zip
-sha256sum /var/tmp/wti-ai-msg-0.2.0.zip
+python3 package.py --output /var/tmp/wti-ai-msg-0.2.1.zip
+sha256sum /var/tmp/wti-ai-msg-0.2.1.zip
 ```
 
-The archive has an explicit allowlist and deterministic bytes. Its contents include
+The archive has an explicit allowlist and repeatable bytes within the same Python/zlib
+toolchain. It replaces the output only after validation; a failed build preserves any
+previous artifact. Its contents include
 the tests and packaging script; no parent checkout is required. CI runs just this
 component and uploads the ZIP plus its checksum. CI does not install, publish a
 release, wake agents, or merge. For structural skill validation, use the upstream
@@ -96,7 +100,14 @@ records remain immutable and require their retained old helper; do not rewrite
 IDs, checksums, ACKs or results. Keep the old install outside the discoverable skill
 root for rollback, and update remote installations separately. The pinned XApi
 parent contract remains unchanged. Prior live trials used the old namespace;
-0.2.0 mechanics tests do not establish a new live cross-boundary trial.
+mechanics tests do not establish a new live cross-boundary trial.
+Version 0.2.1 adds focused reconciliation across pending/terminal work, non-resuming
+queue dispatch with verified route evidence, lossless timeout output, and fixes
+execution-acceptance concurrency and archive publication. Wire semantics are unchanged
+from 0.2.0. Refresh old preflight files before using the new adapter. Saved-result return
+and native owner acceptance remain distinct from helper projections; see
+[recovery](skills/wti-ai-msg/references/recovery.md). Updating this source does not
+update an installed local or remote copy; compare versions and hashes separately.
 See [design limits and deferred mechanisms](DESIGN.md).
 The issue/PR/operational-record split remains a proposal until a team adopts it.
 

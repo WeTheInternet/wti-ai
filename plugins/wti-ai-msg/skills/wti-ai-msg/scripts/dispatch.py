@@ -2,6 +2,7 @@
 """Foreground local queue adapter. No service, timer, automatic retry or task execution."""
 
 import argparse
+import base64
 import datetime as dt
 import fcntl
 import hashlib
@@ -30,6 +31,14 @@ ADAPTER = "codex-local-queue/1"
 
 def stamp():
     return dt.datetime.now(dt.timezone.utc).isoformat()
+
+
+def captured(value):
+    """Keep exact provider bytes as well as a readable view, including on timeout."""
+    if value is None:
+        return None, None
+    raw = value if isinstance(value, bytes) else value.encode("utf-8")
+    return raw.decode("utf-8", errors="replace"), base64.b64encode(raw).decode("ascii")
 
 
 def local_thread(actor):
@@ -92,9 +101,10 @@ def record(box, actor, mid, attempt, stage, outcome, **data):
 
 
 def preflight(observation, recipient, root, now=None):
-    required = {"recipient", "state", "observed_at", "source", "reference", "shared_exchange"}
+    required = {"recipient", "state", "observed_at", "source", "reference", "shared_exchange",
+                "queue_without_resume_evidence"}
     if not isinstance(observation, dict) or set(observation) != required:
-        raise mail.MailError("Preflight needs exact recipient/state/observed_at/source/reference/shared_exchange fields")
+        raise mail.MailError("Preflight needs recipient/state/observed_at/source/reference/shared_exchange/queue_without_resume_evidence")
     if not all(isinstance(value, str) and value.strip() for value in observation.values()):
         raise mail.MailError("Preflight fields must be nonempty strings")
     if observation["recipient"] != recipient or observation["shared_exchange"] != str(root):
@@ -151,7 +161,7 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
             return status
         thread = local_thread(message["to"])
         state = preflight(observation, message["to"], box.root)
-        if state != "idle":
+        if state == "unknown":
             return dict(status, next_action="deferred_" + state, preflight=observation)
         executable, cwd = Path(executable), Path(cwd)
         if not executable.is_absolute() or not executable.is_file() or not os.access(executable, os.X_OK):
@@ -159,7 +169,7 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
         if not cwd.is_absolute() or not cwd.is_dir():
             raise mail.MailError("Provide the verified existing target working directory")
         prompt = wake_prompt(box, message)
-        command = [str(executable), "queue", "--thread", thread, "--message", prompt, "--resume"]
+        command = [str(executable), "queue", "--thread", thread, "--message", prompt]
         attempt = "queue-" + str(uuid.uuid4())
         # Recheck after preflight/path validation, immediately before journaling.
         # This narrows the stale-scope window; separate outboxes cannot fence it.
@@ -174,17 +184,23 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
         # cannot make a later invocation assume it is safe to enqueue again.
         record(box, actor, mid, attempt, "intent", "uncertain", command=command, cwd=str(cwd),
                prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest(), preflight=observation,
+               resume_requested=False,
                note="Intent persisted; submission/activation still unverified")
         try:
-            result = runner(command, cwd=str(cwd), capture_output=True, text=True, timeout=20)
+            result = runner(command, cwd=str(cwd), capture_output=True, text=False, timeout=20)
         except (OSError, subprocess.TimeoutExpired) as exc:
+            stdout, stdout_b64 = captured(getattr(exc, "stdout", None))
+            stderr, stderr_b64 = captured(getattr(exc, "stderr", None))
             record(box, actor, mid, attempt, "uncertain", "uncertain", error=str(exc),
+                   stdout=stdout, stderr=stderr, stdout_base64=stdout_b64, stderr_base64=stderr_b64,
                    note="Reconcile target/provider and saved results; never blind resend")
             return projection(box, box.message(actor, mid))
+        stdout, stdout_b64 = captured(result.stdout)
+        stderr, stderr_b64 = captured(result.stderr)
         # Exact documented-in-this-install receipt shape; unfamiliar success is
         # uncertain. Even a recognized receipt says nothing about turn activation.
         matches = re.findall(r"^Queued message ([0-9a-f-]{36}) for thread ([0-9a-f-]{36})\.$",
-                             result.stdout, re.M)
+                             stdout or "", re.M)
         admitted = len(matches) == 1 and matches[0][1] == thread
         if admitted:
             try:
@@ -193,9 +209,9 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
                 admitted = False
         stage, outcome = ("admission", "queued") if admitted else ("uncertain", "uncertain")
         record(box, actor, mid, attempt, stage, outcome, returncode=result.returncode,
-               stdout=result.stdout, stderr=result.stderr,
+               stdout=stdout, stderr=stderr, stdout_base64=stdout_b64, stderr_base64=stderr_b64,
                provider_message_id=matches[0][0] if admitted else None,
-               active_writer_reported="active writer" in (result.stdout + result.stderr).lower(),
+               active_writer_reported="active writer" in ((stdout or "") + (stderr or "")).lower(),
                note="Admission only; warnings/errors may include active-writer or resume failure; no retry")
         return projection(box, box.message(actor, mid))
 
