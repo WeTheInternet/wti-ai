@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import shutil
 import sys
 import tempfile
 import threading
@@ -13,7 +14,7 @@ import unittest
 from unittest.mock import patch
 import uuid
 
-SCRIPT = Path(__file__).resolve().parents[1] / "skills/handoff-mail/scripts/dispatch.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills/wti-ai-msg/scripts/dispatch.py"
 spec = importlib.util.spec_from_file_location("dispatch_impl", SCRIPT)
 dispatch = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(dispatch)
@@ -200,7 +201,8 @@ def crash(*args,**kwargs): os._exit(74)
 d.dispatch(box,actor,mid,sys.argv[5],json.loads(sys.argv[6]),sys.executable,sys.argv[2],True,runner=crash)
 '''
         child = subprocess.run([sys.executable, "-c", code, str(SCRIPT), str(self.root), ALICE, self.mid,
-                                self.message["sha256"], json.dumps(self.preflight)], capture_output=True, text=True)
+                                self.message["sha256"], json.dumps(self.preflight)], capture_output=True, text=True,
+                               env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
         self.assertEqual(child.returncode, 74, child.stderr)
         status = self.run_once()
         self.assertEqual(status["next_action"], "reconcile_delivery_no_resend")
@@ -254,6 +256,61 @@ d.dispatch(box,actor,mid,sys.argv[5],json.loads(sys.argv[6]),sys.executable,sys.
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout)[0]["next_action"], "eligible_for_preflight")
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
+
+    def test_revision_published_during_preflight_stops_before_intent(self):
+        original = dispatch.preflight
+        def changed(*args, **kwargs):
+            answer = original(*args, **kwargs)
+            self.box.send(ALICE, BOB, str(uuid.uuid4()), "synthetic-work", 2, "updated scope", ALICE)
+            return answer
+        with patch.object(dispatch, "preflight", side_effect=changed):
+            status = self.run_once()
+        self.assertEqual(status["next_action"], "reconcile_scope")
+        self.assertEqual(status["delivery_reports"], [])
+        self.assertEqual(self.calls, [])
+
+    def test_ack_during_preflight_stops_before_intent(self):
+        original = dispatch.preflight
+        def changed(*args, **kwargs):
+            answer = original(*args, **kwargs)
+            self.box.receipt(BOB, ALICE, self.mid, "ack", "Already read")
+            return answer
+        with patch.object(dispatch, "preflight", side_effect=changed):
+            status = self.run_once()
+        self.assertEqual(status["next_action"], "await_result")
+        self.assertEqual(status["delivery_reports"], [])
+        self.assertEqual(self.calls, [])
+
+    def test_scan_single_read_per_outbox_and_fresh_saved_result(self):
+        for i in range(30):
+            self.box.send(ALICE, BOB, str(uuid.uuid4()), f"request-{i}", 1, "fixture", ALICE)
+        with patch.object(mail, "decode", wraps=mail.decode) as decode:
+            self.assertEqual(len(dispatch.scan(self.box, ALICE)), 31)
+            self.assertEqual(decode.call_count, 1)
+        self.finish()
+        with patch.object(mail, "decode", wraps=mail.decode) as decode:
+            status = dispatch.scan(self.box, ALICE)
+            self.assertEqual(decode.call_count, 2)
+        original = next(s for s in status if s["message"]["message_id"] == self.mid)
+        self.assertEqual(original["next_action"], "recover_saved_result")
+
+    def test_scan_does_not_create_bytecode_with_default_python_settings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            scripts, exchange = root / "scripts", root / "exchange"
+            scripts.mkdir()
+            exchange.mkdir(mode=0o700)
+            for name in ("dispatch.py", "mailbox.py"):
+                shutil.copyfile(SCRIPT.parent / name, scripts / name)
+            before = {str(p.relative_to(root)): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+            env = dict(os.environ)
+            env.pop("PYTHONDONTWRITEBYTECODE", None)
+            result = subprocess.run([sys.executable, str(scripts / "dispatch.py"), "--root",
+                str(exchange), "--actor", ALICE, "scan"], env=env, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout), [])
+            self.assertFalse(list(root.rglob("__pycache__")))
+            self.assertEqual(before, {str(p.relative_to(root)): p.read_bytes() for p in root.rglob("*") if p.is_file()})
 
 
 if __name__ == "__main__":

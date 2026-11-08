@@ -2,6 +2,8 @@
 """Small, local, addressed mail ledger. No network, agent launch, or task execution."""
 
 import argparse
+from bisect import bisect_right
+from collections import defaultdict
 import contextlib
 import datetime
 import fcntl
@@ -15,7 +17,7 @@ import sys
 import tempfile
 import uuid
 
-PROTOCOL = "handoff-mail/0.1"
+PROTOCOL = "wti-ai-msg/0.1"
 MAX_BYTES = 1024 * 1024
 IDENTITY = re.compile(r"[a-zA-Z0-9.-]+/[a-zA-Z0-9.-]+/[a-zA-Z0-9.-]+\Z")
 KINDS = {"message", "delivery", "ack", "execution_acceptance", "result", "acceptance"}
@@ -128,7 +130,7 @@ def validate_event(event):
 
 def safe_read(path):
     fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-    with os.fdopen(fd, "r", encoding="utf-8") as stream:
+    with os.fdopen(fd, "r", encoding="utf-8", newline="") as stream:
         info = os.fstat(stream.fileno())
         if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES:
             raise MailError(f"Not a bounded regular mail file: {path}")
@@ -156,6 +158,40 @@ def decode(path):
         raise MailError(f"Invalid outbox: {path}: {exc}") from exc
 
 
+class Snapshot:
+    """One validated scan, indexed for a single command; never a cross-command cache.
+
+    Independent outboxes are not a transactional snapshot or an execution fence.
+    A mutating operation must reconcile again before its external effect.
+    """
+    def __init__(self, events):
+        self.messages = {}
+        self.receipts = defaultdict(list)
+        self.requests = defaultdict(list)
+        for event in events:
+            if event["kind"] == "message":
+                key = (event["actor"], event["message_id"])
+                if key in self.messages:
+                    raise MailError("Duplicate sender + message ID")
+                self.messages[key] = event
+                self.requests[self.request_key(event)].append(event)
+            else:
+                self.receipts[(event["message_sender"], event["message_id"])].append(event)
+        self.revisions = {}
+        for key, messages in self.requests.items():
+            messages.sort(key=lambda m: m["revision"])
+            self.revisions[key] = [m["revision"] for m in messages]
+
+    @staticmethod
+    def request_key(message):
+        return message["actor"], message["to"], message["request_id"]
+
+    def newer(self, message):
+        key = self.request_key(message)
+        start = bisect_right(self.revisions.get(key, []), message["revision"])
+        return self.requests.get(key, [])[start:]
+
+
 class Mailbox:
     def __init__(self, root):
         self.root = Path(os.path.abspath(root))
@@ -177,17 +213,19 @@ class Mailbox:
             result.extend(events)
         return result
 
-    def message(self, sender, message_id):
-        candidates = [e for e in self.events() if e["kind"] == "message" and
-                      e["actor"] == sender and e["message_id"] == message_id]
-        if len(candidates) != 1:
-            raise MailError("Expected exactly one persisted message for sender + message ID")
-        return candidates[0]
+    def snapshot(self):
+        return Snapshot(self.events())
 
-    def related(self, message):
-        events = [e for e in self.events() if e["kind"] != "message" and
-                  e.get("message_sender") == message["actor"] and
-                  e.get("message_id") == message["message_id"]]
+    def message(self, sender, message_id, snapshot=None):
+        snapshot = snapshot if snapshot is not None else self.snapshot()
+        message = snapshot.messages.get((sender, message_id))
+        if message is None:
+            raise MailError("Expected exactly one persisted message for sender + message ID")
+        return message
+
+    def related(self, message, snapshot=None):
+        snapshot = snapshot if snapshot is not None else self.snapshot()
+        events = snapshot.receipts.get((message["actor"], message["message_id"]), [])
         for event in events:
             if event.get("message_sha256") != message["sha256"]:
                 raise MailError("Receipt references different message bytes")
@@ -261,12 +299,13 @@ class Mailbox:
 
     def receipt(self, actor, sender, message_id, kind, body, outcome=None, attempt_id=None):
         identity(actor)
-        message = self.message(identity(sender), message_id)
+        snapshot = self.snapshot()
+        message = self.message(identity(sender), message_id, snapshot)
         if kind not in ("ack", "execution_acceptance", "result", "delivery", "acceptance"):
             raise MailError("Unknown receipt kind")
         if kind in ("ack", "execution_acceptance", "result") and message["to"] != actor:
             raise MailError("Only the addressed recipient may ACK, accept execution or finish this message")
-        related = self.related(message)
+        related = self.related(message, snapshot)
         if kind == "execution_acceptance":
             # A scope agreement is not an executor lock or a new authority grant.
             if not any(e["kind"] == "ack" for e in related):
@@ -298,8 +337,9 @@ class Mailbox:
                            revision=message["revision"], body=body, outcome=outcome,
                            attempt_id=attempt_id))
 
-    def status(self, message):
-        related = self.related(message)
+    def status(self, message, snapshot=None):
+        snapshot = snapshot if snapshot is not None else self.snapshot()
+        related = self.related(message, snapshot)
         ack = next((e for e in related if e["kind"] == "ack"), None)
         execution_acceptance = next((e for e in related if e["kind"] == "execution_acceptance"), None)
         result = next((e for e in related if e["kind"] == "result"), None)
@@ -310,10 +350,8 @@ class Mailbox:
             raise MailError("Execution acceptance exists without recipient ACK")
         if acceptance and (not result or result["outcome"] != "completed"):
             raise MailError("Acceptance exists without completed recipient result")
-        newer = [dict(message_id=e["message_id"], revision=e["revision"]) for e in self.events()
-                 if e["kind"] == "message" and e["actor"] == message["actor"] and
-                 e["to"] == message["to"] and e["request_id"] == message["request_id"] and
-                 e["revision"] > message["revision"]]
+        newer = [dict(message_id=e["message_id"], revision=e["revision"])
+                 for e in snapshot.newer(message)]
         return {"message": message, "storage": "persisted", "ack": ack, "result": result,
                 "execution_acceptance": execution_acceptance,
                 "execution_acceptance_state": "accepted" if execution_acceptance else "unverified",
@@ -323,8 +361,9 @@ class Mailbox:
                 "work_state": result["outcome"] if result else "acknowledged" if ack else "pending"}
 
     def inbox(self, actor, include_closed=False):
-        messages = [e for e in self.events() if e["kind"] == "message" and e["to"] == actor]
-        statuses = [self.status(m) for m in messages]
+        snapshot = self.snapshot()
+        messages = [e for e in snapshot.messages.values() if e["to"] == actor]
+        statuses = [self.status(m, snapshot) for m in messages]
         return [s for s in statuses if include_closed or not s["result"] or s["work_state"] == "blocked"]
 
 
@@ -366,7 +405,8 @@ def main(argv=None):
             result = box.send(actor, args.to, args.message_id, args.request_id, args.revision,
                               safe_read(args.body_file), args.completion_owner)
         elif args.command == "status":
-            result = box.status(box.message(args.sender, args.message_id))
+            snapshot = box.snapshot()
+            result = box.status(box.message(args.sender, args.message_id, snapshot), snapshot)
         else:
             result = box.receipt(actor, args.sender, args.message_id,
                                  {"finish": "result", "accept": "acceptance",

@@ -24,7 +24,11 @@ Do not place:
 - product feature requirements (use `docs/specs/`)
 - raw imports (use `docs/0_triage/`)
 
-The standalone [handoff-mail plugin](../plugins/agent-handoff-mail/README.md) lives
+The standalone [wti-ai-msg plugin](../plugins/wti-ai-msg/README.md) lives
 under `plugins/` so its archive and skill can be installed without the IDE. Its
 canonical skill is nested there; do not maintain a second copy under this router.
 
+
+The component remains DRAFT and is not repository-certified. Maintained canonical
+source does not imply certification. Read its skill and the current user
+instructions before using it.

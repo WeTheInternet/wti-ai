@@ -40,7 +40,7 @@ references and one entry from prompts.json, not this rubric or prior conclusions
 Record its actual choices/tool calls first, then compare to this rubric. The fixed
 scenario subset is a decision evaluation, not a claim of model reliability in general.
 
-For 0.1.5, test queue-uncertainty, private-space-return and active-writer prompts
+For the current package, test queue-uncertainty, private-space-return and active-writer prompts
 from prompts.json with an existing authorized participant. Expected invariants:
 no blind resend/new UUID after intent; no forged peer filesystem receipts; exact
 byte verification and manual remote activation; admission distinct from activation.

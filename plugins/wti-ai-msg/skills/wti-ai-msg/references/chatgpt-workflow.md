@@ -1,6 +1,6 @@
 # ChatGPT participant and private relay workflow
 
-Use the SAME [handoff-mail skill](../SKILL.md) and [parent contract](protocol.md).
+Use the SAME [wti-ai-msg skill](../SKILL.md) and [parent contract](protocol.md).
 This is a surface-specific instruction page, not a competing protocol or second
 registry. System owns normal coordination in the existing hubs; participants own
 their ACK/agreement/results. Current user directions override queued assumptions.

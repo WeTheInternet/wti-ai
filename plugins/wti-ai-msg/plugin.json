@@ -1,6 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "agent-handoff-mail",
-  "version": "0.1.6",
+  "name": "wti-ai-msg",
+  "version": "0.2.0",
   "description": "File-based addressed messages, ACKs and results for existing agents."
 }

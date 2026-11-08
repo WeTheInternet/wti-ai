@@ -1,6 +1,6 @@
 # License and provenance
 
-The handoff-mail implementation and new instructions use the repository's
+The wti-ai-msg implementation and new instructions use the repository's
 [Eclipse Public License 2.0](LICENSE).
 
 The preserved `references/protocol.md` and `references/templates.md` come from

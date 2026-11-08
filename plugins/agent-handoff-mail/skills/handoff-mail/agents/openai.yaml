@@ -1,4 +1,0 @@
-interface:
-  display_name: "Agent Mail"
-  short_description: "Exchange addressed messages, ACKs, and results"
-  default_prompt: "Use $handoff-mail to exchange a message with an existing agent and verify its ACK and result."

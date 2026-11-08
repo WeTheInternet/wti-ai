@@ -13,7 +13,7 @@ import unittest
 from unittest.mock import patch
 import uuid
 
-SCRIPT = Path(__file__).resolve().parents[1] / "skills/handoff-mail/scripts/mailbox.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills/wti-ai-msg/scripts/mailbox.py"
 spec = importlib.util.spec_from_file_location("mailbox_impl", SCRIPT)
 mail = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mail)
@@ -499,6 +499,53 @@ class MailboxEvals(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(sum(json.loads(r.stdout)["written"] for r in results), 1)
         self.assertEqual(len(self.box.inbox(BOB)), 1)
+
+    def test_cli_preserves_exact_crlf_body_and_rejects_converted_ledger(self):
+        body = self.root / "body.txt"
+        body.write_bytes(b"Line one\r\nLine two\r\n")
+        result = subprocess.run([sys.executable, str(SCRIPT), "--root", str(self.root),
+            "--actor", ALICE, "send", "--to", BOB, "--message-id", self.mid,
+            "--request-id", "crlf-fixture", "--revision", "1", "--body-file", str(body)],
+            capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.box.message(ALICE, self.mid)["body"].encode(), body.read_bytes())
+        outbox = self.box.path(ALICE)
+        converted = outbox.read_bytes().replace(b"\n", b"\r\n")
+        outbox.write_bytes(converted)
+        with self.assertRaises(mail.MailError):
+            self.box.inbox(BOB)
+        self.assertEqual(outbox.read_bytes(), converted)
+
+    def test_inbox_decodes_each_outbox_once_and_refreshes_next_command(self):
+        self.send()
+        for i in range(30):
+            self.box.send(ALICE, BOB, str(uuid.uuid4()), f"request-{i}", 1, "fixture")
+        with patch.object(mail, "decode", wraps=mail.decode) as decode:
+            first = self.box.inbox(BOB)
+            self.assertEqual(len(first), 31)
+            self.assertEqual(decode.call_count, 1)
+        self.ack()
+        newer_id = str(uuid.uuid4())
+        self.box.send(ALICE, BOB, newer_id, "fixture-request", 2, "new scope")
+        before = {p.name: p.read_bytes() for p in self.root.iterdir()}
+        with patch.object(mail, "decode", wraps=mail.decode) as decode:
+            second = self.box.inbox(BOB)
+            self.assertEqual(decode.call_count, 2)
+        old = next(s for s in second if s["message"]["message_id"] == self.mid)
+        self.assertIsNotNone(old["ack"])
+        self.assertEqual(old["newer_revisions"], [{"message_id": newer_id, "revision": 2}])
+        self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
+
+    def test_old_protocol_is_rejected_without_rewriting_history(self):
+        event = self.send()["event"]
+        event["protocol"] = "handoff-mail/0.1"
+        event["sha256"] = mail.digest(mail.event_payload(event))
+        path = self.box.path(ALICE)
+        path.write_text(mail.render(ALICE, [event]))
+        before = path.read_bytes()
+        with self.assertRaisesRegex(mail.MailError, "Unsupported protocol"):
+            self.box.events()
+        self.assertEqual(path.read_bytes(), before)
 
 
 if __name__ == "__main__":

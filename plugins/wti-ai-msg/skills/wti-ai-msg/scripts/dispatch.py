@@ -17,9 +17,14 @@ import uuid
 
 # Load the sibling helper explicitly, never Python's standard-library mailbox module.
 HELPER = Path(__file__).resolve().with_name("mailbox.py")
-spec = importlib.util.spec_from_file_location("handoff_mail", HELPER)
+spec = importlib.util.spec_from_file_location("wti_ai_msg", HELPER)
 mail = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(mail)
+_bytecode_setting = sys.dont_write_bytecode
+try:
+    sys.dont_write_bytecode = True
+    spec.loader.exec_module(mail)
+finally:
+    sys.dont_write_bytecode = _bytecode_setting
 ADAPTER = "codex-local-queue/1"
 
 
@@ -43,8 +48,8 @@ def actor_guard(actor):
         raise mail.MailError("Dispatcher must use its own local CODEX_THREAD_ID")
 
 
-def projection(box, message):
-    status = box.status(message)
+def projection(box, message, snapshot=None):
+    status = box.status(message, snapshot)
     reports = status["delivery_reports"]
     if status["result"]:
         action = "accepted" if status["acceptance"] else "recover_saved_result"
@@ -77,7 +82,8 @@ def projection(box, message):
 
 
 def scan(box, actor):
-    return [projection(box, m) for m in box.events() if m["kind"] == "message" and m["actor"] == actor]
+    snapshot = box.snapshot()
+    return [projection(box, m, snapshot) for m in snapshot.messages.values() if m["actor"] == actor]
 
 
 def record(box, actor, mid, attempt, stage, outcome, **data):
@@ -109,7 +115,7 @@ def wake_prompt(box, message):
     # This notification is only for an enrolled local recipient with demonstrated
     # shared-file access. It contains identity and a pointer, never shell commands.
     return (
-        f"Addressed handoff-mail notification. To: {message['to']}; from: {message['actor']}. "
+        f"Addressed wti-ai-msg notification. To: {message['to']}; from: {message['actor']}. "
         f"Message: {message['message_id']}; request: {message['request_id']}; revision: {message['revision']}; "
         f"payload SHA256: {message['sha256']}. "
         f"Use the existing helper {HELPER} and skill {HELPER.parent.parent / 'SKILL.md'}. "
@@ -136,10 +142,11 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
             fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
             raise mail.MailError("Another foreground dispatch is active; inspect after it finishes") from exc
-        message = box.message(actor, mid)
+        snapshot = box.snapshot()
+        message = box.message(actor, mid, snapshot)
         if message["sha256"] != expected_hash:
             raise mail.MailError("Message hash changed or incorrect selection; no queue call")
-        status = projection(box, message)
+        status = projection(box, message, snapshot)
         if status["next_action"] != "eligible_for_preflight":
             return status
         thread = local_thread(message["to"])
@@ -154,6 +161,15 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
         prompt = wake_prompt(box, message)
         command = [str(executable), "queue", "--thread", thread, "--message", prompt, "--resume"]
         attempt = "queue-" + str(uuid.uuid4())
+        # Recheck after preflight/path validation, immediately before journaling.
+        # This narrows the stale-scope window; separate outboxes cannot fence it.
+        snapshot = box.snapshot()
+        message = box.message(actor, mid, snapshot)
+        if message["sha256"] != expected_hash:
+            raise mail.MailError("Message hash changed before dispatch intent")
+        status = projection(box, message, snapshot)
+        if status["next_action"] != "eligible_for_preflight":
+            return status
         # Publish uncertainty BEFORE the external effect. Crash before/after queue
         # cannot make a later invocation assume it is safe to enqueue again.
         record(box, actor, mid, attempt, "intent", "uncertain", command=command, cwd=str(cwd),

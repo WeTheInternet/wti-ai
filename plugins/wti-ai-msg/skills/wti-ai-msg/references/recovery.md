@@ -29,9 +29,9 @@ provider evidence or synthesize activation. A later observation gets a new repor
 ID; never overwrite an earlier uncertain report. Unknown evidence stays unknown.
 Manual user forwarding is a real manual route, not a provider queue receipt.
 
-There was no pre-ACK claim transition in handoff-mail. `accept-execution` is additive
-in toolkit 0.1.4; all readers of an exchange must support it before it is used there.
-Older readers reject the new kind. Existing event meanings/bytes are unchanged.
+There is no pre-ACK claim transition in wti-ai-msg. `accept-execution` is a separate
+recipient agreement. All readers must support the current `wti-ai-msg/0.1` protocol.
+Old `handoff-mail/0.1` exchanges stay with their retained helper and original bytes.
 Legacy results need no retrofit; absent execution acceptance remains unverified.
 The helper rejects first-time execution acceptance after a terminal result, while
 allowing identical retries of an already saved acceptance. Trial contracts can
@@ -78,7 +78,11 @@ The `.lock` excludes concurrent **outbox publication only**. It ends before any 
 execution; it is not a lease, claim, fence or lifetime lock around a child process.
 Use the existing single active session/writer for mutable work. An active-writer
 denial, offline interval or timeout never authorizes takeover. Do not add a competing
-executor. If a future launcher is justified, it must prove exclusion over the actual
+executor. Discovery failure means unknown, not dead. Keep stable logical roles,
+work IDs, runtime session IDs and execution/dispatch attempts distinct. Cancellation
+or retry must identify the original request/revision and exact native turn; never
+interrupt whichever turn happens to be active. This helper has no cancellation API.
+If a future launcher is justified, it must prove exclusion over the actual
 surviving execution, including child/runtime ownership, before being adopted.
 
 Separate sender/recipient files do not atomically serialize user amendments against

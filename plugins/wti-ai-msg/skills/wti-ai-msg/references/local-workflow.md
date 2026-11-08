@@ -6,7 +6,10 @@ session, guess a remote endpoint, install a service or poll with a model. Canoni
 roles/assignments stay in the existing hubs. The operator supplies the route; this
 is not a new registry. Keep each logical message in ONE declared exchange.
 
-`dispatch.py` is an optional adapter around the unchanged v0.1.4 `mailbox.py`.
+`dispatch.py` is an optional adapter around `mailbox.py`; both use `wti-ai-msg/0.1`.
+A scan gives state-derived next actions without consuming any records. Each command
+reads a fresh exchange snapshot; dispatch rechecks immediately before recording
+intent. This is cooperative reconciliation, not an atomic scope/execution fence.
 It writes only its own sender's `delivery` records, and never writes peer ACKs,
 results or completion acceptance. A relay acting for another sender uses its own
 delivery record through `mailbox.py`; the dispatcher deliberately supports only
@@ -39,11 +42,11 @@ No daemon, timer, hook, skill install or permissions grant is required to load t
 skill by path. No automatic scanning happens while nobody invokes the helper.
 
 ```bash
-python3 /ABS/skills/handoff-mail/scripts/dispatch.py --root EXCHANGE --actor SENDER scan
-python3 /ABS/skills/handoff-mail/scripts/dispatch.py --root EXCHANGE --actor SENDER once --message-id UUID --message-sha256 SHA256 --preflight-file /ABS/preflight.json --codex /ABS/installed-codex --cwd /ABS/existing-target-cwd --scope-current
-python3 /ABS/skills/handoff-mail/scripts/mailbox.py --root EXCHANGE --actor RECIPIENT inbox
-python3 /ABS/skills/handoff-mail/scripts/mailbox.py --root EXCHANGE --actor OWNER status --sender SENDER --message-id UUID
-python3 /ABS/skills/handoff-mail/scripts/mailbox.py --root EXCHANGE --actor OWNER accept --sender SENDER --message-id UUID --text 'Verified exact result against the named criteria; evidence ...'
+python3 /ABS/skills/wti-ai-msg/scripts/dispatch.py --root EXCHANGE --actor SENDER scan
+python3 /ABS/skills/wti-ai-msg/scripts/dispatch.py --root EXCHANGE --actor SENDER once --message-id UUID --message-sha256 SHA256 --preflight-file /ABS/preflight.json --codex /ABS/installed-codex --cwd /ABS/existing-target-cwd --scope-current
+python3 /ABS/skills/wti-ai-msg/scripts/mailbox.py --root EXCHANGE --actor RECIPIENT inbox
+python3 /ABS/skills/wti-ai-msg/scripts/mailbox.py --root EXCHANGE --actor OWNER status --sender SENDER --message-id UUID
+python3 /ABS/skills/wti-ai-msg/scripts/mailbox.py --root EXCHANGE --actor OWNER accept --sender SENDER --message-id UUID --text 'Verified exact result against the named criteria; evidence ...'
 ```
 
 Preflight JSON lives outside the exchange (which contains only actor `*.md`

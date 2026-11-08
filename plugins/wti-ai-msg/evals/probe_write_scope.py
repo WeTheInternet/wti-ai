@@ -14,13 +14,23 @@ import tempfile
 import uuid
 
 HERE = Path(__file__).resolve().parent
-SCRIPT = HERE.parent / "skills/handoff-mail/scripts/mailbox.py"
+SCRIPT = HERE.parent / "skills/wti-ai-msg/scripts/mailbox.py"
 ALICE, BOB = "test/fixture/alice", "test/fixture/bob"
 
 
 def require(condition, explanation):
     if not condition:
         raise RuntimeError(explanation)
+
+
+def verify_replace_cleanup(rename_line, unlink_line, temporary, outbox):
+    """Check absolute syscall path arguments across Linux rename/unlink variants."""
+    rename = re.search(r"\brename(?:at2|at)?\((.*)\)\s+= 0$", rename_line)
+    unlink = re.search(r"\bunlink(?:at)?\((.*)\)\s+= -1 ENOENT\b", unlink_line)
+    require(rename is not None and re.findall(r'"([^"\n]*)"', rename.group(1)) ==
+            [str(temporary), str(outbox)], "Replace target mismatch")
+    require(unlink is not None and re.findall(r'"([^"\n]*)"', unlink.group(1)) ==
+            [str(temporary)], "Expected cleanup of this already-renamed temporary only")
 
 
 def main():
@@ -93,9 +103,7 @@ def main():
                 temp = temps[0]
                 temp_line = next(line for line in write_opens if str(temp) in line)
                 require("O_EXCL" in temp_line and "0600" in temp_line, "Temp is not exclusive/private")
-                require(f'rename("{temp}", "{own}") = 0' in renames[0], "Replace target mismatch")
-                require(f'unlink("{temp}")' in unlinks[0] and "ENOENT" in unlinks[0],
-                        "Expected cleanup of this already-renamed temporary only")
+                verify_replace_cleanup(renames[0], unlinks[0], temp, own)
                 for path in (temp, exchange):
                     require(any(f"<{path}>" in line and line.endswith("= 0") for line in syncs),
                             f"Missing successful fsync: {path}")

@@ -1,14 +1,14 @@
 ---
-name: handoff-mail
+name: wti-ai-msg
 description: Exchange addressed messages, ACKs and results between existing ChatGPT and CLI agents through a verified shared file exchange or supported connector. Use for cross-session coordination, busy/offline recipients, and local/durable routing failures. Can notify authorized existing local sessions through a foreground queue adapter; never creates agents or takes over user-driven sessions.
 ---
 
-# Addressed agent mail
+# wti-ai-msg
 
 Extend the existing XApi coordination contract 1.2 with a small file transport.
 Read [mail rules and commands](references/mail.md). The preserved
 [parent contract](references/protocol.md) supplies scope, revisions, evidence and
-completion ownership; consult it when creating or changing a task contract.
+completion ownership; read it for every handoff, including unchanged task contracts.
 Keep existing hubs, manifests and role records authoritative. This skill adds no
 assignment registry. The latest applicable direct user instruction wins over queued
 work and assumptions, within system and permission constraints. This is an agent
@@ -68,7 +68,7 @@ a user-controlled driver, or inject terminal keystrokes.
 3. The addressed recipient checks its inbox and writes its own `ack`, bound to
    sender, UUID and content hash. Another reader or relay cannot ACK on its behalf.
    ACK means read, not task approval or completion.
-   In an exchange whose readers support toolkit 0.1.4, the recipient can separately
+   In a `wti-ai-msg/0.1` exchange, the recipient can separately
    `accept-execution` after checking current scope. Existing `accept` continues to
    mean completion-owner acceptance. Neither receipt locks task execution.
 4. Check current user instructions, revision and prior receipts before acting.
@@ -115,4 +115,6 @@ provenance; choose roles and routes by actual capability and current user direct
 It does not require a coordinator called System, Drive, or a fixed planning/coding split.
 Structural checks and simulated actors do not prove live cross-host messaging.
 Keep live nonce evidence separate. Load this skill by explicit path for the trial;
-permanent installation uses the supported skill/plugin install flow for that surface. A ZIP is not installation. Do not restart active sessions for discovery.
+permanent installation uses the supported skill/plugin install flow for that surface. A ZIP is not installation. Standalone skills normally refresh automatically;
+if absent, save work before restarting. Plugin skills require a new chat/session.
+Do not interrupt an active driver merely to refresh discovery.

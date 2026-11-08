@@ -32,7 +32,7 @@ on drift. Do not label a mutable branch read an immutable snapshot.
 
 ACK the exact message. Compare current scope and PR base/head with the packet.
 Record execution agreement separately after that comparison, using `accept-execution`
-only in a 0.1.4-capable exchange or the reviewer's attributed native record otherwise.
+only in a `wti-ai-msg/0.1` exchange or the reviewer's attributed native record otherwise.
 If either SHA changed, preserve the old packet as stale and obtain a revised
 request/new message before claiming current-head review. Review criteria, affected
 code, meaningful callers/tests and concrete failure modes. Unavailable reads are

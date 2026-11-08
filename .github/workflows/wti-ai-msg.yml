@@ -1,17 +1,17 @@
-name: handoff-mail
+name: wti-ai-msg
 
 on:
   pull_request:
     paths:
-      - 'plugins/agent-handoff-mail/**'
+      - 'plugins/wti-ai-msg/**'
       - '.agents/plugins/marketplace.json'
-      - '.github/workflows/handoff-mail.yml'
+      - '.github/workflows/wti-ai-msg.yml'
   push:
-    branches: [main, handoff-mail-standalone]
+    branches: [main]
     paths:
-      - 'plugins/agent-handoff-mail/**'
+      - 'plugins/wti-ai-msg/**'
       - '.agents/plugins/marketplace.json'
-      - '.github/workflows/handoff-mail.yml'
+      - '.github/workflows/wti-ai-msg.yml'
   workflow_dispatch:
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
         python: ['3.10', '3.13']
     defaults:
       run:
-        working-directory: plugins/agent-handoff-mail
+        working-directory: plugins/wti-ai-msg
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -37,12 +37,12 @@ jobs:
         run: python3 -m unittest discover -s evals -p 'test_*.py' -v
       - name: Build standalone archive
         run: |
-          python3 package.py --output agent-handoff-mail.zip
-          sha256sum agent-handoff-mail.zip > agent-handoff-mail.zip.sha256
+          python3 package.py --output wti-ai-msg.zip
+          sha256sum wti-ai-msg.zip > wti-ai-msg.zip.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: agent-handoff-mail-python-${{ matrix.python }}
+          name: wti-ai-msg-python-${{ matrix.python }}
           path: |
-            plugins/agent-handoff-mail/agent-handoff-mail.zip
-            plugins/agent-handoff-mail/agent-handoff-mail.zip.sha256
+            plugins/wti-ai-msg/wti-ai-msg.zip
+            plugins/wti-ai-msg/wti-ai-msg.zip.sha256
           if-no-files-found: error

@@ -1,0 +1,4 @@
+interface:
+  display_name: "WTI AI Msg"
+  short_description: "Exchange addressed messages, ACKs, and results"
+  default_prompt: "Use $wti-ai-msg to exchange a message with an existing agent and verify its ACK and result."
