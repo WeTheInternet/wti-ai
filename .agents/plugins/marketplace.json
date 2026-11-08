@@ -1,0 +1,12 @@
+{
+  "name": "wti-tools",
+  "interface": {"displayName": "WTI Agent Tools"},
+  "plugins": [
+    {
+      "name": "agent-handoff-mail",
+      "source": {"source": "local", "path": "./plugins/agent-handoff-mail"},
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+name: handoff-mail
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/agent-handoff-mail/**'
+      - '.agents/plugins/marketplace.json'
+      - '.github/workflows/handoff-mail.yml'
+  push:
+    branches: [main, handoff-mail-standalone]
+    paths:
+      - 'plugins/agent-handoff-mail/**'
+      - '.agents/plugins/marketplace.json'
+      - '.github/workflows/handoff-mail.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable-package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.10', '3.13']
+    defaults:
+      run:
+        working-directory: plugins/agent-handoff-mail
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Mechanics and portable packaging evals
+        run: python3 -m unittest discover -s evals -p 'test_*.py' -v
+      - name: Build standalone archive
+        run: |
+          python3 package.py --output agent-handoff-mail.zip
+          sha256sum agent-handoff-mail.zip > agent-handoff-mail.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-handoff-mail-python-${{ matrix.python }}
+          path: |
+            plugins/agent-handoff-mail/agent-handoff-mail.zip
+            plugins/agent-handoff-mail/agent-handoff-mail.zip.sha256
+          if-no-files-found: error

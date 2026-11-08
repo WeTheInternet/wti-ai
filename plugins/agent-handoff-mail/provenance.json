@@ -1,0 +1,28 @@
+{
+  "parent_package": "agent-handoff-skills",
+  "parent_version": "0.3.0",
+  "parent_contract": "1.2",
+  "parent_owner": "XApi",
+  "parent_protocol_sha256": "f20d3ec285aa8e68772ddcdb0d74017aa775279040acaaa9fd2336fe60c7c91c",
+  "extension_version": "0.1.6",
+  "sources": [
+    {
+      "title": "Build skills",
+      "url": "https://learn.chatgpt.com/docs/build-skills"
+    },
+    {
+      "title": "Codex developer commands",
+      "url": "https://learn.chatgpt.com/docs/developer-commands"
+    },
+    {
+      "title": "Remote connections",
+      "url": "https://learn.chatgpt.com/docs/remote-connections"
+    },
+    {
+      "title": "Build plugins",
+      "url": "https://developers.openai.com/plugins/build/plugins"
+    }
+  ],
+  "checked_on": "2026-11-08",
+  "parent_templates_sha256": "e91aa33540870a631175288bc65633927ced9cce5d2ee2d13049ab939b1a4fcb"
+}
