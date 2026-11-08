@@ -69,6 +69,10 @@ not authentication. Nothing here authorizes merge or exactly-once external effec
 
 ## Validate and package in isolation
 
+If GitHub Actions or its artifacts are unavailable, follow the
+[manual CI fallback](OPERATIONS.md#manual-fallback-when-ci-is-unavailable) for
+standalone source setup, commands, expected results and evidence to report.
+
 Run from this component directory, including after copying it out of `wti-ai`:
 
 ```bash

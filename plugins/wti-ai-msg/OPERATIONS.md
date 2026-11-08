@@ -56,18 +56,50 @@ append late own accounting without resubmitting. No autonomous wake or
 notification service is installed. Offline/busy mail persists; unattended delivery
 requires a separately verified/authorized mechanism. Never take over a driver.
 
-Run mechanics evals from the extracted toolkit root:
+## Manual fallback when CI is unavailable
+
+The tests and builder run without GitHub Actions, the IDE, a Codex session or a
+package installation. Use Linux and Python 3.10+; the component uses only the
+standard library. This reproduces the workflow's test/build/checksum steps, not
+live agent delivery or an independent review.
+
+If CI artifacts are unavailable, download the repository's source ZIP at the exact
+reviewed PR head SHA from GitHub into a separate disposable directory, then enter
+its `plugins/wti-ai-msg` directory. Do not switch an active checkout. Alternatively,
+extract a previously verified portable package and enter its root. Record which
+commit/package you used: an older package does not verify the current PR head.
+A skill-only installation lacks the full `evals/` and `package.py`; use the complete
+component source or portable package. No CI artifact is required for the source route.
+
+From that writable component directory, run these commands, stopping if any fails:
 
 ```bash
+python3 --version
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s evals -p 'test_*.py' -v
+python3 package.py --output /var/tmp/wti-ai-msg-manual.zip
+sha256sum /var/tmp/wti-ai-msg-manual.zip
 ```
+
+Use an unused owner-controlled archive path if that output already exists. Tests
+must exit zero with `OK`; the builder must exit zero and report the same SHA-256
+as `sha256sum`. Record the exact source SHA/package hash, OS/Python version, commands,
+exit status/test summary, archive path/hash and anything skipped in the PR evidence.
+If source retrieval is also unavailable, use a verified local copy and state its
+revision rather than claiming current-head verification.
+
+CI tests Python 3.10 and 3.13. A successful run on one local interpreter proves only
+that environment; if both are already available, repeat with each interpreter to
+match the matrix. Do not install runtimes just to follow this fallback. Different
+Python/zlib versions can produce different archive hashes; compare rebuilds using
+the same toolchain. A local pass is evidence, not CI success or merge authorization.
 
 The tests use synthetic identities in temporary subdirectories of `evals/`, clean
 up their own fixtures, and contact no agents or networks. They do not establish
 cross-host delivery or reboot durability. `evals/scenarios.md` defines behavioral
 cases for separate model evaluation; retain private deployment evidence separately from this public package.
 
-On Linux with existing `strace`, trace synthetic create/replace/retry operations
+Optional diagnostics, not prerequisites for reproducing the current CI steps:
+on Linux with existing `strace`, trace synthetic create/replace/retry operations
 from the extracted toolkit root, choosing a new approved evidence directory:
 
 ```bash
@@ -77,7 +109,8 @@ python3 evals/probe_write_scope.py --output-dir APPROVED_EVIDENCE_DIRECTORY
 The probe checks the helper's write footprint and unchanged peer bytes, not the
 enforcement of any particular host sandbox or directory grant. It installs nothing.
 
-Run the upstream skill-creator `quick_validate.py` against `skills/wti-ai-msg`.
+If the upstream skill-creator `quick_validate.py` is already available, run it
+against `skills/wti-ai-msg`; otherwise record that optional check as unavailable.
 Build the portable archive with `python3 package.py --output PATH.zip`. Packaging
 excludes live identities, exchange contents and local review/handshake files.
 An archive is not installation and grants no tool, filesystem or account access.
