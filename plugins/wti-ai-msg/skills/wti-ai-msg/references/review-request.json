@@ -1,0 +1,23 @@
+{
+  "payload_type": "pushed-code-review",
+  "request_id": "existing-request-id",
+  "revision": 1,
+  "repository": "owner/repository",
+  "primary_issue_url": "https://github.com/owner/repository/issues/NUMBER",
+  "pull_request_url": "https://github.com/owner/repository/pull/NUMBER",
+  "base_sha": "REPLACE_WITH_VERIFIED_FULL_40_HEX_SHA",
+  "head_sha": "REPLACE_WITH_VERIFIED_FULL_40_HEX_SHA",
+  "observed_at": "REPLACE_WITH_ISO_8601_TIME",
+  "reviewer": "provider/host-label/verified-session-id",
+  "completion_owner": "provider/host-label/verified-session-id",
+  "environment": {"sender_surface": "REPLACE", "reviewer_surface": "REPLACE", "recipient_accessible_content": ["REPLACE_WITH_VERIFIED_ROUTE"], "read_write_notify_evidence": [], "reported_or_assumed_capabilities": [], "return_route": "REPLACE_OR_BLOCKED"},
+  "requirements": {"source": "existing-primary-issue-or-approved-private-owner", "observed_revision_or_hash": "REPLACE", "acceptance_criteria": ["REPLACE"]},
+  "assignment": {"source": "existing-hub-or-manifest", "revision": "REPLACE"},
+  "scope": {"objective": "REPLACE", "included": ["REPLACE"], "excluded": ["REPLACE"]},
+  "user_amendments": [],
+  "tests": [{"command_or_check": "REPLACE", "status": "passed|failed|not-run", "tested_sha": "REPLACE_OR_UNKNOWN", "evidence": "REPLACE", "reported_by": "REPLACE"}],
+  "known_gaps": ["REPLACE_WITH_GAPS_OR_EXPLICIT_NONE"],
+  "allowed_operations": ["read-pushed-code", "return-findings"],
+  "stop_condition": "Return bounded findings for the exact head, or identify missing evidence; do not merge.",
+  "expected_result": {"reviewed_base_sha": "exact-base", "reviewed_head_sha": "exact-head", "coverage": [], "findings": [], "remaining_gaps": []}
+}
