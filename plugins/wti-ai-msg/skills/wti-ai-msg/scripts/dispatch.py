@@ -239,7 +239,9 @@ def observe_activation(box, actor, mid, evidence):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", required=True)
+    default_root = os.environ.get("WTI_AI_MSG_DIR") or None
+    parser.add_argument("--root", default=default_root, required=default_root is None,
+                        help="Existing exchange; overrides WTI_AI_MSG_DIR")
     parser.add_argument("--actor", required=True)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("scan", help="Read only: pending work and saved results")

@@ -1,4 +1,4 @@
-# wti-ai-msg operations — package 0.2.2
+# wti-ai-msg operations — package 0.2.3
 
 Load `skills/wti-ai-msg/SKILL.md` by explicit path on each participating surface.
 Use the existing session and its exact identity, not a new agent. For permanent
@@ -11,7 +11,7 @@ transport evidence only. Use existing request IDs/revisions in message envelopes
 
 Sender: persist a UUID-bearing request; notify using a verified route; record its
 actual receipt. Recipient: reconcile pending and terminal work, ACK the exact message, follow the latest
-user instruction, finish with evidence. System can bridge a message through its
+user instruction, finish with evidence. An authorized coordinator can bridge a message through its
 existing host-aware connector or private shared resources. The relay preserves
 identity/hash and cannot ACK or finish for the recipient.
 
@@ -138,13 +138,13 @@ The [ChatGPT workflow](skills/wti-ai-msg/references/chatgpt-workflow.md) is the
 matching remote instruction set from this same canonical skill. Deliver its bytes
 through a verified private surface; local skill installation does not register it
 in ChatGPT. Remote receipt/result evidence retains its actual author and source.
-System must confirm the existing chat identity and private destination before a
+The participating agents must confirm the existing chat identity and private destination before a
 Space trial. Nothing here changes sharing or activates a remote session.
 
 For permanent local adoption only after approval, install/copy this reviewed
 `skills/wti-ai-msg` directory into the existing user skill root, checking for an
 existing version first and using the supported install workflow. Do not overwrite
-unrelated skills or modify AGENTS/config to force discovery. For ChatGPT, System
+unrelated skills or modify AGENTS/config to force discovery. For ChatGPT, its operator
 selects the currently supported private skill/plugin install flow after review;
 explicitly loading the transferred instructions suffices for the trial. There is
 no proposed service, monitor, credential or new agent installation.
@@ -152,6 +152,6 @@ no proposed service, monitor, credential or new agent installation.
 Version check: compare canonical package `plugin.json`/`provenance.json`, installed
 skill file hashes, and the remote installation's own version/hash evidence against
 the exact published commit. These are separate states. If remote version inspection
-is unavailable, report unknown; System checks its existing install surface. Use its
+is unavailable, report unknown; the remote participant checks its existing install surface. Use its
 supported update flow only when authorized, or explicitly load the pushed instructions
 for a bounded review. No generic MCP Refresh operation updates an imported skill.

@@ -8,7 +8,7 @@ this division for the project.
 | --- | --- |
 | Primary GitHub issue | Durable project objective, scope, criteria, approved decisions, open questions and links to implementation/review/focused design owners. Keep the primary issue stable; no duplicate on handoff. |
 | PR and review | Commit-specific implementation discussion, findings, CI and review evidence tied to exact base/head SHAs. |
-| Existing System hub/manifest and role records | Assignment owner, actor identity, request revision, dependencies and routing. Preserve sole-writer ownership; no competing assignment registry. |
+| Existing coordination hub/manifest and role records | Assignment owner, actor identity, request revision, dependencies and routing. Preserve sole-writer ownership; no competing assignment registry. |
 | Messages and actor outboxes | Immutable dispatch, delivery evidence, ACK, transient execution reports and results; not requirements authority. |
 | Named completion owner's acceptance | Acceptance of an exact request revision/result against criteria and required user gates. Link durable acceptance evidence from issue/PR where appropriate. |
 | Latest applicable direct user instruction | Scope, priority and cancellation authority within system/permission constraints. Reconcile stale records to it; agent comments do not create user authorization. |
@@ -16,12 +16,14 @@ this division for the project.
 XApi contract 1.2 already supplies request IDs/revisions, completion owners,
 manifests and evidence states. The issue is the proposed requirement anchor;
 the existing manifest remains assignment authority. Mail references both.
-Kukunochi already uses primary issues and focused durable docs: summarize decisions
-and link their owners rather than duplicate whole specifications.
+For projects using primary issues and focused durable design documents, summarize
+decisions in the issue and link their owning documents rather than duplicating
+whole specifications.
 
-Private financial/personal work retains its existing approved private records.
-Do not move it to GitHub by analogy. Existing finance hubs, ledgers and role
-ownership remain unchanged; any migration needs an explicit scoped decision.
+Any sensitive information, including financial or personal work, retains its
+existing approved private records. Do not move it to GitHub by analogy. Existing
+hubs, ledgers and role ownership remain unchanged; any migration needs an explicit
+scoped decision.
 
 Reconciliation:
 

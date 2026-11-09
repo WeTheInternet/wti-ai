@@ -3,6 +3,7 @@
 import concurrent.futures
 import errno
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -72,6 +73,63 @@ class MailboxEvals(unittest.TestCase):
                 self.assertIn(str(path), json.loads(result.stderr)["error"])
                 self.assertIn(detail, json.loads(result.stderr)["error"])
                 self.assertEqual(before, {p.name:p.read_bytes() for p in self.root.iterdir()})
+
+    def test_enumeration_denial_is_not_a_successful_empty_inbox(self):
+        self.send()
+        before = {p.name: p.read_bytes() for p in self.root.iterdir()}
+        # glob suppresses these failures on supported Python versions; directory
+        # enumeration must surface them regardless of listdir/scandir implementation.
+        denied = PermissionError(errno.EACCES, 'synthetic denied enumeration', str(self.root))
+        with patch.object(mail.os, 'scandir', side_effect=denied), \
+             patch.object(mail.os, 'listdir', side_effect=denied), \
+             patch('sys.stdout', new_callable=io.StringIO) as out, \
+             patch('sys.stderr', new_callable=io.StringIO) as err:
+            code = mail.main(['--root', str(self.root), '--actor', BOB, 'reconcile'])
+        self.assertEqual(code, 2)
+        self.assertEqual(out.getvalue(), '')
+        self.assertIn(str(self.root), json.loads(err.getvalue())['error'])
+        self.assertIn('Cannot enumerate', json.loads(err.getvalue())['error'])
+        self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
+
+    def test_orphan_receipts_fail_closed_then_recover_without_reexecution(self):
+        self.send()
+        self.ack()
+        self.finish()
+        sender = self.box.path(ALICE)
+        saved = sender.read_bytes()
+        sender.unlink()  # Simulated incomplete transfer, never a real exchange.
+        before = {p.name: p.read_bytes() for p in self.root.iterdir()}
+        for command in ('inbox', 'reconcile'):
+            result = subprocess.run([sys.executable, str(SCRIPT), '--root', str(self.root),
+                                     '--actor', BOB, command], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, '')
+            detail = json.loads(result.stderr)['error']
+            for value in ('Orphan receipt', self.box.path(BOB).name, ALICE, self.mid):
+                self.assertIn(value, detail)
+        self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
+        sender.write_bytes(saved)
+        self.assertEqual(self.box.reconcile(BOB)[0]['result']['body'], 'Synthetic result abc123.')
+        self.assertEqual(self.current()['work_state'], 'completed')
+
+    def test_environment_exchange_default_and_explicit_override(self):
+        self.send()
+        env = dict(os.environ, WTI_AI_MSG_DIR=str(self.root))
+        command = [sys.executable, str(SCRIPT), '--actor', BOB, 'inbox']
+        default = subprocess.run(command, env=env, capture_output=True, text=True)
+        self.assertEqual(default.returncode, 0, default.stderr)
+        self.assertEqual(json.loads(default.stdout)[0]['message']['message_id'], self.mid)
+        env['WTI_AI_MSG_DIR'] = str(self.root / 'unavailable')
+        explicit = subprocess.run(command[:2] + ['--root', str(self.root)] + command[2:],
+                                  env=env, capture_output=True, text=True)
+        self.assertEqual(explicit.returncode, 0, explicit.stderr)
+        denied = subprocess.run(command, env=env, capture_output=True, text=True)
+        self.assertEqual(denied.returncode, 2)
+        self.assertFalse((self.root / 'unavailable').exists())
+        env['WTI_AI_MSG_DIR'] = ''
+        missing = subprocess.run(command, env=env, capture_output=True, text=True)
+        self.assertEqual(missing.returncode, 2)
+        self.assertIn('--root', missing.stderr)
 
     def test_acceptance_race_rechecks_locked_terminal_history(self):
         self.send()

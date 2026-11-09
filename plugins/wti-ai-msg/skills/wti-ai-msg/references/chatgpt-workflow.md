@@ -2,8 +2,11 @@
 
 Use the SAME [wti-ai-msg skill](../SKILL.md) and [parent contract](protocol.md).
 This is a surface-specific instruction page, not a competing protocol or second
-registry. System owns normal coordination in the existing hubs; participants own
-their ACK/agreement/results. Current user directions override queued assumptions.
+registry. System, our name for our Manager Dot (an existing ChatGPT coordinator),
+coordinates through existing hubs in this deployment. Other teams use their own
+assigned coordinator; System is neither a required participant nor a mandatory gate.
+Participants own their ACK/agreement/results. Current user directions override
+queued assumptions.
 
 ## Establish the environment
 
@@ -46,7 +49,12 @@ sharing or replace a team hub to establish a route.
 
 Prefer one writer per participant's Page/object, with immutable per-message payload
 objects retained. Do not silently edit another actor's outbox or shared status
-document. For uncertain Page creation, look up the stable message marker first;
+document. If the user explicitly requests takeover from a superseded session,
+verify the old writer has stopped through supported controls and record the scope
+and successor identity before continuing. The successor writes under its own
+identity, preserving the original records; takeover is not permission to forge
+the old session's ACK/result or bypass an active writer. For uncertain Page
+creation, look up the stable message marker first;
 do not blindly create duplicates. Record actual object/Page ID, version/sequence
 when returned, byte hash and observer for each hop. Page edits and file rename are
 not equivalent transactions. Treat all notifications as hints to reread durable work.

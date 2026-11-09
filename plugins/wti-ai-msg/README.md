@@ -77,8 +77,8 @@ Run from this component directory, including after copying it out of `wti-ai`:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s evals -p 'test_*.py' -v
-python3 package.py --output /var/tmp/wti-ai-msg-0.2.2.zip
-sha256sum /var/tmp/wti-ai-msg-0.2.2.zip
+python3 package.py --output /var/tmp/wti-ai-msg-0.2.3.zip
+sha256sum /var/tmp/wti-ai-msg-0.2.3.zip
 ```
 
 The archive has an explicit allowlist and repeatable bytes within the same Python/zlib
@@ -121,6 +121,10 @@ update an installed local or remote copy; compare versions and hashes separately
 Version 0.2.2 adds the offending outbox path to schema/checksum diagnostics while
 preserving the original error and failing closed. It documents and checks the
 existing private archive-mode behavior without changing permission policy.
+Version 0.2.3 fails visibly on unreadable exchanges or receipts whose sender
+message is missing. Both helpers accept `WTI_AI_MSG_DIR` as an existing exchange
+default, overridden by `--root`. Guidance clarifies private references, local file
+footers versus remote prompts, receipt-check fallbacks and user-authorized succession.
 See [design limits and deferred mechanisms](DESIGN.md).
 The issue/PR/operational-record split remains a proposal until a team adopts it.
 

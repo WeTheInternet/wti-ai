@@ -24,7 +24,7 @@ the sender's own messages. Never clear `CODEX_THREAD_ID` to impersonate a sender
    message, confirm the intended existing session, installed CLI path, target cwd,
    current observed state, shared-file access and separately verified queue-without-resume
    compatibility. Read-only native session tools or
-   System's supported host-aware reader can supply that observation. Do not
+   an authorized coordinator's supported host-aware reader can supply that observation. Do not
    substitute a stale directory entry or `notLoaded` for idle/offline evidence.
    Unknown stays deferred. A known busy existing owner may receive queued input
    through the verified non-resuming route; do not take over or interrupt it.
@@ -44,6 +44,9 @@ the sender's own messages. Never clear `CODEX_THREAD_ID` to impersonate a sender
 Commands below are templates; use actual absolute paths and discovered identities.
 No daemon, timer, hook, skill install or permissions grant is required to load the
 skill by path. No automatic scanning happens while nobody invokes the helper.
+Both commands also accept `WTI_AI_MSG_DIR` as the existing exchange directory when
+`--root` is omitted. An explicit `--root` overrides it; neither form creates the
+directory, proves shared access or grants permissions.
 
 ```bash
 python3 /ABS/skills/wti-ai-msg/scripts/dispatch.py --root EXCHANGE --actor SENDER scan
@@ -93,6 +96,19 @@ to resume while queue succeeds. v0.2.1 does not request resume. An active-writer
 or unknown reply preserves raw evidence (including timeout streams as base64)
 and requires reconciliation; absence of a receipt is NOT proof of non-admission.
 The command sends no cancellation or interruption to the target.
+
+If receipt remains uncertain after reconciliation, tell the user plainly and offer
+one short prompt for the intended existing recipient. Fill every placeholder with
+the exact record and a recipient-accessible locator (not a sender-local path for
+remote chat):
+
+```text
+At a safe boundary, check message UUID from SENDER, request REQUEST rev REVISION, at REACHABLE_LOCATOR. Confirm whether you read it or already saved a result; return that result if present. Do not restart work or resend it.
+```
+
+This asks for receipt clarification, not another assignment or automatic retry.
+Keep the original ID/body and uncertainty until recipient evidence arrives. A
+user-relayed prompt is a fallback, not proof of delivery or permission to interrupt.
 
 `scan` exposes persistence, provider admission, activation observations, recipient
 ACK, execution agreement, result and owner acceptance separately. Its `next_action`:

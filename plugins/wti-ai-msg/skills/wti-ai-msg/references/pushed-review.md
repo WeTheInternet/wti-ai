@@ -60,7 +60,7 @@ relied on. Review completion is separate from implementation acceptance and merg
 
 ## Fix and re-review
 
-System routes findings to already authorized owners. Prefer connected GitHub for
+The assigned coordinator routes findings to already authorized owners. Prefer connected GitHub for
 safe remote edits when authorized; dispatch only local-only residuals to Codex.
 Review permission does not itself authorize edits, pushes or posted comments.
 Keep stable finding IDs and evidence links across the loop.

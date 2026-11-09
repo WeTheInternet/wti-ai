@@ -4,7 +4,7 @@
   "parent_contract": "1.2",
   "parent_owner": "XApi",
   "parent_protocol_sha256": "f20d3ec285aa8e68772ddcdb0d74017aa775279040acaaa9fd2336fe60c7c91c",
-  "extension_version": "0.2.2",
+  "extension_version": "0.2.3",
   "sources": [
     {
       "title": "Build skills",

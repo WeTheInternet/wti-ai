@@ -181,6 +181,13 @@ class Snapshot:
         for key, messages in self.requests.items():
             messages.sort(key=lambda m: m["revision"])
             self.revisions[key] = [m["revision"] for m in messages]
+        for (sender, message_id), receipts in self.receipts.items():
+            if (sender, message_id) not in self.messages:
+                receipt = receipts[0]
+                outbox = receipt["actor"].replace("/", "__") + ".md"
+                raise MailError(f"Orphan receipt {receipt['event_id']} in {outbox}: "
+                                f"missing message {sender} / {message_id}; "
+                                "recover the sender outbox and rescan; do not re-execute")
 
     @staticmethod
     def request_key(message):
@@ -206,8 +213,13 @@ class Mailbox:
         return self.root / (identity(actor).replace("/", "__") + ".md")
 
     def events(self):
+        """Fail closed on enumeration errors; an unreadable exchange is not empty."""
         result = []
-        for path in sorted(self.root.glob("*.md")):
+        try:
+            paths = sorted(path for path in self.root.iterdir() if path.name.endswith(".md"))
+        except OSError as exc:
+            raise MailError(f"Cannot enumerate exchange {self.root}: {exc}") from exc
+        for path in paths:
             # Exchange directories contain only actor outboxes, not instructions/docs.
             _, events = decode(path)
             result.extend(events)
@@ -411,7 +423,9 @@ class Mailbox:
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", required=True, type=Path)
+    default_root = os.environ.get("WTI_AI_MSG_DIR") or None
+    parser.add_argument("--root", default=default_root, required=default_root is None, type=Path,
+                        help="Existing exchange; overrides WTI_AI_MSG_DIR")
     parser.add_argument("--actor", required=True, help="Exact provider/host-label/session-id")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("path")

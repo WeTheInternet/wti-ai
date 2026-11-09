@@ -327,6 +327,35 @@ d.dispatch(box,actor,mid,sys.argv[5],json.loads(sys.argv[6]),sys.executable,sys.
         self.assertEqual(json.loads(result.stdout)[0]["next_action"], "eligible_for_preflight")
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
 
+    def test_scan_environment_default_and_explicit_override(self):
+        before = {p.name: p.read_bytes() for p in self.root.iterdir()}
+        command = [sys.executable, str(SCRIPT), '--actor', ALICE, 'scan']
+        env = dict(os.environ, WTI_AI_MSG_DIR=str(self.root))
+        result = subprocess.run(command, env=env, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)[0]['message']['message_id'], self.mid)
+        env['WTI_AI_MSG_DIR'] = str(self.root / 'missing')
+        result = subprocess.run(command[:2] + ['--root', str(self.root)] + command[2:],
+                                env=env, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        failed = subprocess.run(command, env=env, capture_output=True, text=True)
+        self.assertEqual(failed.returncode, 1)
+        self.assertFalse((self.root / 'missing').exists())
+        env['WTI_AI_MSG_DIR'] = ''
+        missing = subprocess.run(command, env=env, capture_output=True, text=True)
+        self.assertEqual(missing.returncode, 2)
+        self.assertIn('--root', missing.stderr)
+        self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
+
+    def test_orphan_receipt_blocks_scan_and_queue(self):
+        self.finish()
+        self.box.path(ALICE).unlink()
+        with self.assertRaisesRegex(mail.MailError, 'Orphan receipt'):
+            dispatch.scan(self.box, ALICE)
+        with self.assertRaisesRegex(mail.MailError, 'Orphan receipt'):
+            self.run_once()
+        self.assertEqual(self.calls, [])
+
     def test_revision_published_during_preflight_stops_before_intent(self):
         original = dispatch.preflight
         def changed(*args, **kwargs):

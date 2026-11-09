@@ -5,7 +5,11 @@ XApi owns the generic coordination package; this isolated trial edits no checkou
 
 ## Storage and identity
 
-Use an approved directory under `/var/tmp/gpt/exchanges/`. Instructions/evidence
+Use an approved directory under `/var/tmp/gpt/exchanges/` or another user-chosen
+local exchange directory. Both helpers use `WTI_AI_MSG_DIR` when `--root` is omitted;
+an explicit `--root` takes precedence. Empty/unset configuration requires `--root`.
+The directory must already exist and pass the same ownership/access checks; this
+setting neither creates it nor proves that peers can access it. Instructions/evidence
 live outside it; its `*.md` files are actor outboxes. Each actor alone writes
 `provider__host-label__session-id.md` and its advisory `.lock`. Outboxes are append-only
 event histories rendered as Markdown with JSON records. Peers read, never edit.
@@ -28,6 +32,11 @@ publication or decoding. UUIDs, identities, positive integer revisions, timestam
 hashes, recipient/result ownership and kind-specific outcomes are checked separately
 from checksums. A valid checksum never excuses a missing field. Receipt request ID
 and revision must match the referenced message; malformed records fail closed.
+An unreadable directory or a receipt whose sender message is missing also fails
+the scan, rather than returning an apparently empty inbox. Retain the evidence,
+recover access or the exact missing sender outbox, then rescan. Separate outbox
+reads are not a transaction: an incomplete transfer or concurrent publication may
+require another read, never deletion of a receipt or re-execution of the work.
 
 The mailbox helper has no network, credential, scheduler, agent launcher or payload execution.
 The separate optional [foreground adapter](local-workflow.md) can notify an authorized

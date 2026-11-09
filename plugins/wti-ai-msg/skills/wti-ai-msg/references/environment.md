@@ -16,9 +16,14 @@ route: each hop, actual writer/recipient, reachable content, return path
 wake: tested mechanism or pending until recipient's next active turn
 ```
 
-Avoid exposing credentials, account secrets or private personal/financial content
-in these notes. Capability is per session and account, not guaranteed by an agent's
-model, title or another agent's connector. Recheck after relevant changes.
+Never copy credentials, account secrets or sensitive content into coordination
+notes, prompts or public artifacts. Refer to the authorized file/resource URI where
+an intended participant may access it; the locator must not embed credentials,
+signed access tokens or secret values. Keep sensitive locators on an approved
+private surface and verify access separately. If the recipient cannot access the
+resource, report that boundary instead of pasting the secret into the handoff.
+Capability is per session and account, not guaranteed by an agent's model, title or
+another agent's connector. Recheck after relevant changes.
 
 ## Choose a route that carries the work
 
@@ -40,6 +45,15 @@ action is to open an inaccessible path. If no route exists, preserve the request
 as pending/blocked and name the exact missing read/write/notification capability.
 For a user relay, give a self-contained payload; for a supported intermediary,
 use the existing private Git/filesystem/mail route rather than inventing a service.
+
+For a human upload, separate the copy-paste prompt from the user's file instructions.
+The remote prompt refers to the attachment by filename and, when available, hash,
+or to its verified remote object/link. It must not ask the remote agent to open a
+sender-local path. At the end of the user-facing turn, list the full absolute local
+paths of referenced artifacts as plain text in a file footer, outside that prompt
+(before any required session-identity trailer). A clickable local link alone is
+insufficient for uploading. Include only paths appropriate for that user/surface;
+never put credentials or private locators in a public footer.
 
 ## Return path and ownership
 
