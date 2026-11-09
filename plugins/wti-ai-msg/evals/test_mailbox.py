@@ -74,6 +74,39 @@ class MailboxEvals(unittest.TestCase):
                 self.assertIn(detail, json.loads(result.stderr)["error"])
                 self.assertEqual(before, {p.name:p.read_bytes() for p in self.root.iterdir()})
 
+    def test_invalid_utf8_names_outbox_preserves_cause_bytes_and_privacy(self):
+        self.send()
+        self.box.send(CAROL, BOB, str(uuid.uuid4()), 'encoding-fixture', 1, 'valid fixture')
+        path = self.box.path(CAROL)
+        valid = path.read_bytes()
+        private = b'synthetic-private-marker-must-not-appear-in-diagnostics'
+        for invalid in (b'\xff', b'\xe2\x82'):
+            with self.subTest(invalid=invalid):
+                path.write_bytes(valid + private + invalid)
+                before = {p.name: p.read_bytes() for p in self.root.iterdir()}
+                with self.assertRaises(UnicodeDecodeError) as codec:
+                    mail.safe_read(path)
+                with self.assertRaises(mail.MailError) as error:
+                    self.box.reconcile(BOB)
+                self.assertIn(str(path), str(error.exception))
+                self.assertIn(str(codec.exception), str(error.exception))
+                self.assertIsInstance(error.exception.__cause__, UnicodeDecodeError)
+                self.assertEqual(error.exception.__cause__.object, codec.exception.object)
+                self.assertEqual(error.exception.__cause__.start, codec.exception.start)
+                self.assertEqual(error.exception.__cause__.reason, codec.exception.reason)
+                self.assertNotIn(private.decode(), str(error.exception))
+                for script, command, code in ((SCRIPT, 'reconcile', 2),
+                                               (SCRIPT.with_name('dispatch.py'), 'scan', 1)):
+                    result = subprocess.run([sys.executable, str(script), '--root', str(self.root),
+                                             '--actor', ALICE, command], capture_output=True, text=True)
+                    self.assertEqual(result.returncode, code)
+                    self.assertEqual(result.stdout, '')
+                    diagnostic = json.loads(result.stderr)['error']
+                    self.assertIn(str(path), diagnostic)
+                    self.assertIn(str(codec.exception), diagnostic)
+                    self.assertNotIn(private.decode(), result.stdout + result.stderr)
+                self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
+
     def test_enumeration_denial_is_not_a_successful_empty_inbox(self):
         self.send()
         before = {p.name: p.read_bytes() for p in self.root.iterdir()}

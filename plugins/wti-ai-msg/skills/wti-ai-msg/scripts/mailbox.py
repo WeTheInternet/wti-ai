@@ -138,9 +138,9 @@ def safe_read(path):
 
 
 def decode(path):
-    text = safe_read(path)
-    blocks = re.findall(r"```json\n(.*?)\n```\n\n", text, re.S)
     try:
+        text = safe_read(path)
+        blocks = re.findall(r"```json\n(.*?)\n```\n\n", text, re.S)
         actor = identity(text.splitlines()[0].removeprefix("# Agent outbox: "))
         events = [json.loads(block) for block in blocks]
         seen = set()

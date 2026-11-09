@@ -77,8 +77,8 @@ Run from this component directory, including after copying it out of `wti-ai`:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s evals -p 'test_*.py' -v
-python3 package.py --output /var/tmp/wti-ai-msg-0.2.4.zip
-sha256sum /var/tmp/wti-ai-msg-0.2.4.zip
+python3 package.py --output /var/tmp/wti-ai-msg-0.2.5.zip
+sha256sum /var/tmp/wti-ai-msg-0.2.5.zip
 ```
 
 The archive has an explicit allowlist and repeatable bytes within the same Python/zlib
@@ -128,6 +128,8 @@ footers versus remote prompts, receipt-check fallbacks and user-authorized succe
 Version 0.2.4 identifies the outbox and event for cross-record receipt errors. If
 queue-response accounting fails, JSON stderr retains exact recovery inputs and
 provider streams for late own accounting without another queue submission.
+Version 0.2.5 includes the offending outbox path in invalid UTF-8 errors while
+preserving the original codec diagnostic/cause and leaving file bytes unchanged.
 See [design limits and deferred mechanisms](DESIGN.md).
 The issue/PR/operational-record split remains a proposal until a team adopts it.
 
