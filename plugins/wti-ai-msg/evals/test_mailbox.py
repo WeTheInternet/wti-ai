@@ -77,11 +77,10 @@ class MailboxEvals(unittest.TestCase):
     def test_enumeration_denial_is_not_a_successful_empty_inbox(self):
         self.send()
         before = {p.name: p.read_bytes() for p in self.root.iterdir()}
-        # glob suppresses these failures on supported Python versions; directory
-        # enumeration must surface them regardless of listdir/scandir implementation.
+        # Inject at pathlib's public boundary: older Python versions cache OS
+        # accessors, so patching os.listdir/scandir may not reach Path.iterdir.
         denied = PermissionError(errno.EACCES, 'synthetic denied enumeration', str(self.root))
-        with patch.object(mail.os, 'scandir', side_effect=denied), \
-             patch.object(mail.os, 'listdir', side_effect=denied), \
+        with patch.object(mail.Path, 'iterdir', side_effect=denied), \
              patch('sys.stdout', new_callable=io.StringIO) as out, \
              patch('sys.stderr', new_callable=io.StringIO) as err:
             code = mail.main(['--root', str(self.root), '--actor', BOB, 'reconcile'])
