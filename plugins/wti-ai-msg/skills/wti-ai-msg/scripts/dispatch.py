@@ -29,6 +29,14 @@ finally:
 ADAPTER = "codex-local-queue/1"
 
 
+class ResponseRecordError(mail.MailError):
+    """Preserve a provider response when durable accounting cannot be confirmed."""
+
+    def __init__(self, cause, evidence):
+        super().__init__(f"Delivery accounting unconfirmed: {cause}; retain recovery_evidence and reconcile; no resend")
+        self.evidence = evidence
+
+
 def stamp():
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
@@ -98,6 +106,20 @@ def scan(box, actor):
 def record(box, actor, mid, attempt, stage, outcome, **data):
     body = json.dumps(dict(adapter=ADAPTER, stage=stage, **data), sort_keys=True, ensure_ascii=False)
     return box.receipt(actor, actor, mid, "delivery", body, outcome, f"{attempt}:{stage}")
+
+
+def record_response(box, message, attempt, stage, outcome, **data):
+    """Return exact late-accounting inputs on failure; never retry the external call."""
+    try:
+        return record(box, message["actor"], message["message_id"], attempt, stage, outcome, **data)
+    except (mail.MailError, OSError, ValueError) as exc:
+        evidence = dict(actor=message["actor"], message_sender=message["actor"],
+                        message_id=message["message_id"], message_sha256=message["sha256"],
+                        request_id=message["request_id"], revision=message["revision"],
+                        recipient=message["to"], attempt_id=f"{attempt}:{stage}", outcome=outcome,
+                        storage="unverified", body=json.dumps(dict(adapter=ADAPTER, stage=stage, **data),
+                                                              sort_keys=True, ensure_ascii=False))
+        raise ResponseRecordError(exc, evidence) from exc
 
 
 def preflight(observation, recipient, root, now=None):
@@ -191,7 +213,7 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
         except (OSError, subprocess.TimeoutExpired) as exc:
             stdout, stdout_b64 = captured(getattr(exc, "stdout", None))
             stderr, stderr_b64 = captured(getattr(exc, "stderr", None))
-            record(box, actor, mid, attempt, "uncertain", "uncertain", error=str(exc),
+            record_response(box, message, attempt, "uncertain", "uncertain", error=str(exc),
                    stdout=stdout, stderr=stderr, stdout_base64=stdout_b64, stderr_base64=stderr_b64,
                    note="Reconcile target/provider and saved results; never blind resend")
             return projection(box, box.message(actor, mid))
@@ -208,7 +230,7 @@ def dispatch(box, actor, mid, expected_hash, observation, executable, cwd, scope
             except mail.MailError:
                 admitted = False
         stage, outcome = ("admission", "queued") if admitted else ("uncertain", "uncertain")
-        record(box, actor, mid, attempt, stage, outcome, returncode=result.returncode,
+        record_response(box, message, attempt, stage, outcome, returncode=result.returncode,
                stdout=stdout, stderr=stderr, stdout_base64=stdout_b64, stderr_base64=stderr_b64,
                provider_message_id=matches[0][0] if admitted else None,
                active_writer_reported="active writer" in ((stdout or "") + (stderr or "")).lower(),
@@ -267,7 +289,10 @@ def main():
                               json.loads(mail.safe_read(args.preflight_file)), args.codex, args.cwd, args.scope_current)
         print(json.dumps(output, indent=2, ensure_ascii=False))
     except (mail.MailError, OSError, ValueError) as exc:
-        print(json.dumps({"error": str(exc), "action": "stop_and_reconcile"}), file=sys.stderr)
+        error = {"error": str(exc), "action": "stop_and_reconcile"}
+        if isinstance(exc, ResponseRecordError):
+            error["recovery_evidence"] = exc.evidence
+        print(json.dumps(error, ensure_ascii=False), file=sys.stderr)
         return 1
     return 0
 

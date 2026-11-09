@@ -111,6 +111,30 @@ class MailboxEvals(unittest.TestCase):
         self.assertEqual(self.box.reconcile(BOB)[0]['result']['body'], 'Synthetic result abc123.')
         self.assertEqual(self.current()['work_state'], 'completed')
 
+    def test_cross_record_failures_locate_receipt_without_exposing_body(self):
+        self.send()
+        self.ack()
+        self.finish()
+        path = self.box.path(BOB)
+        _, events = mail.decode(path)
+        for fault in ('hash', 'revision', 'missing_ack'):
+            with self.subTest(fault=fault):
+                damaged = [dict(e) for e in events]
+                if fault == 'missing_ack':
+                    damaged = [e for e in damaged if e['kind'] != 'ack']
+                else:
+                    damaged[0]['message_sha256' if fault == 'hash' else 'revision'] = '0'*64 if fault == 'hash' else 9
+                damaged[0]['body'] = 'synthetic-private-body-do-not-log'
+                damaged[0]['sha256'] = mail.digest(mail.event_payload(damaged[0]))
+                path.write_text(mail.render(BOB, damaged))
+                before = path.read_bytes()
+                with self.assertRaises(mail.MailError) as error:
+                    self.box.reconcile(ALICE)
+                self.assertIn(str(path), str(error.exception))
+                self.assertIn(damaged[0]['event_id'], str(error.exception))
+                self.assertNotIn(damaged[0]['body'], str(error.exception))
+                self.assertEqual(path.read_bytes(), before)
+
     def test_environment_exchange_default_and_explicit_override(self):
         self.send()
         env = dict(os.environ, WTI_AI_MSG_DIR=str(self.root))

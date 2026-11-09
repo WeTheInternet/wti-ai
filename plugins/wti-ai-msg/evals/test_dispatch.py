@@ -3,6 +3,7 @@ import concurrent.futures
 import base64
 import datetime as dt
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -181,8 +182,9 @@ class DispatchEvals(unittest.TestCase):
                 raise OSError("synthetic environment disconnected before accounting")
             return original(box, actor, mid, attempt, stage, outcome, **data)
         with patch.object(dispatch, "record", side_effect=disconnect):
-            with self.assertRaises(OSError):
+            with self.assertRaisesRegex(dispatch.ResponseRecordError, "disconnected") as error:
                 self.run_once()
+        self.assertEqual(json.loads(error.exception.evidence['body'])['provider_message_id'], PROVIDER)
         status = self.run_once()
         self.assertEqual(status["provider_admission"], "unverified")
         intent = status["delivery_reports"][0]
@@ -293,10 +295,49 @@ d.dispatch(box,actor,mid,sys.argv[5],json.loads(sys.argv[6]),sys.executable,sys.
             self.failure.start()
             return answer
         try:
-            with self.assertRaises(OSError):
+            with self.assertRaises(dispatch.ResponseRecordError) as error:
                 self.run_once(runner=submit_then_fail_storage)
         finally:
             self.failure.stop()
+        evidence = error.exception.evidence
+        response = json.loads(evidence['body'])
+        self.assertEqual(response['provider_message_id'], PROVIDER)
+        self.assertEqual(evidence['message_sha256'], self.message['sha256'])
+        self.assertEqual(evidence['recipient'], BOB)
+        self.assertEqual(evidence['storage'], 'unverified')
+        self.assertTrue(evidence['attempt_id'].endswith(':admission'))
+        # CLI callers get the same recovery inputs, not only the storage error.
+        with patch.object(sys, 'argv', [str(SCRIPT), '--root', str(self.root), '--actor', ALICE, 'scan']), \
+             patch.object(dispatch, 'scan', side_effect=error.exception), \
+             patch('sys.stderr', new_callable=io.StringIO) as stderr:
+            self.assertEqual(dispatch.main(), 1)
+        self.assertEqual(json.loads(stderr.getvalue())['recovery_evidence'], evidence)
+        # Reconcile first; once storage works, append only the missing accounting.
+        self.box.receipt(ALICE, ALICE, self.mid, 'delivery', evidence['body'],
+                         evidence['outcome'], evidence['attempt_id'])
+        self.run_once()
+        self.assertEqual(len(self.calls), 1)
+
+    def test_timeout_and_accounting_failure_retain_exact_attempt_and_streams(self):
+        raw = b'provider output with invalid utf8 \xff'
+        def timeout(args, **kwargs):
+            self.calls.append((args, kwargs))
+            self.failure = patch.object(mail.os, 'fsync', side_effect=OSError('synthetic full disk'))
+            self.failure.start()
+            raise subprocess.TimeoutExpired(args, 20, output=raw, stderr=b'warning\r\n')
+        try:
+            with self.assertRaises(dispatch.ResponseRecordError) as error:
+                self.run_once(runner=timeout)
+        finally:
+            self.failure.stop()
+        evidence = error.exception.evidence
+        response = json.loads(evidence['body'])
+        self.assertEqual(base64.b64decode(response['stdout_base64']), raw)
+        self.assertEqual(base64.b64decode(response['stderr_base64']), b'warning\r\n')
+        self.assertEqual(evidence['message_id'], self.mid)
+        intent = self.box.status(self.message)['delivery_reports'][0]
+        self.assertEqual(evidence['attempt_id'], intent['attempt_id'].replace(':intent', ':uncertain'))
+        self.assertEqual(evidence['outcome'], 'uncertain')
         self.run_once()
         self.assertEqual(len(self.calls), 1)
 

@@ -90,6 +90,17 @@ Concurrent invocations fail or observe the retained intent. A saved provider rep
 has a separate event. Disk-full before intent prevents queue; after queue, intent
 still prevents a blind retry. Do not delete intent/lock/history to force another send.
 
+If saving a provider reply fails, the command exits nonzero and includes
+`recovery_evidence` in its JSON stderr: exact actor/message/hash, request revision,
+recipient, original attempt ID, outcome and delivery body with lossless provider
+streams. Preserve that output privately. `storage: unverified` means accounting
+may be absent or may have been replaced before a later fsync failed. Read the
+existing outbox first. Once storage is available, the original sender may append
+only the missing delivery record using that same attempt ID/body; an identical
+retry is idempotent. Do not rerun queue, create a new message or fabricate receipt.
+The fallback itself is not durable unless the caller retains it; a process/host
+failure can still leave only the original intent for reconciliation.
+
 An explicit `Queued message ... for thread ...` reply records admission. Exit zero
 or empty stderr proves neither activation nor ACK. Older `--resume` routes can fail
 to resume while queue succeeds. v0.2.1 does not request resume. An active-writer error

@@ -235,18 +235,23 @@ class Mailbox:
             raise MailError("Expected exactly one persisted message for sender + message ID")
         return message
 
+    def receipt_error(self, event, reason):
+        """Locate cross-record failures without printing potentially private bodies."""
+        return MailError(f"Invalid receipt in {self.path(event['actor'])}, "
+                         f"event {event['event_id']}: {reason}")
+
     def related(self, message, snapshot=None):
         snapshot = snapshot if snapshot is not None else self.snapshot()
         events = snapshot.receipts.get((message["actor"], message["message_id"]), [])
         for event in events:
             if event.get("message_sha256") != message["sha256"]:
-                raise MailError("Receipt references different message bytes")
+                raise self.receipt_error(event, "Receipt references different message bytes")
             if event["request_id"] != message["request_id"] or event["revision"] != message["revision"]:
-                raise MailError("Receipt references a different request ID/revision")
+                raise self.receipt_error(event, "Receipt references a different request ID/revision")
             if event["kind"] in ("ack", "execution_acceptance", "result") and event["actor"] != message["to"]:
-                raise MailError("Receipt was not authored by the addressed recipient")
+                raise self.receipt_error(event, "Receipt was not authored by the addressed recipient")
             if event["kind"] == "acceptance" and event["actor"] != message.get("completion_owner"):
-                raise MailError("Acceptance was not authored by the named completion owner")
+                raise self.receipt_error(event, "Acceptance was not authored by the named completion owner")
         return events
 
     def append(self, actor, event):
@@ -364,11 +369,11 @@ class Mailbox:
         result = next((e for e in related if e["kind"] == "result"), None)
         acceptance = next((e for e in related if e["kind"] == "acceptance"), None)
         if result and not ack:
-            raise MailError("Result exists without recipient ACK")
+            raise self.receipt_error(result, "Result exists without recipient ACK")
         if execution_acceptance and not ack:
-            raise MailError("Execution acceptance exists without recipient ACK")
+            raise self.receipt_error(execution_acceptance, "Execution acceptance exists without recipient ACK")
         if acceptance and (not result or result["outcome"] != "completed"):
-            raise MailError("Acceptance exists without completed recipient result")
+            raise self.receipt_error(acceptance, "Acceptance exists without completed recipient result")
         newer = [dict(message_id=e["message_id"], revision=e["revision"])
                  for e in snapshot.newer(message)]
         return {"message": message, "storage": "persisted", "ack": ack, "result": result,
