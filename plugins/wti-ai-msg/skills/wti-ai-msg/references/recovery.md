@@ -54,6 +54,16 @@ bounded return obligation; if waiting requires another turn, state who must act
 and what wake/check route exists. Unknown is not pending, offline or failed. A
 healthy process or `notLoaded` from one reader proves neither idle nor dead.
 
+When an automated handoff step fails or its outcome becomes uncertain, promptly
+notify the user through the current authorized user-facing channel. Name the
+failed step, exact request and revision, last confirmed state and next action.
+Reconcile the existing evidence before any retry. If delivery remains uncertain
+and the current instruction permits a receipt check, offer the user a short
+copy-paste prompt for the intended recipient using the
+[receipt-check template](local-workflow.md#recovery-and-evidence). Honor a hold or
+status-only instruction by reporting the evidence to the user without contacting
+the recipient.
+
 Keep work/request identity, requirements revision, logical message UUID, submission
 attempt, native turn/session incarnation and optional diagnostic correlation distinct.
 The message key is sender + UUID. Retry exact bytes under that key; an intentional
