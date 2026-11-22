@@ -1,0 +1,6 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "wti-ai-msg",
+  "version": "0.2.5",
+  "description": "File-based addressed messages, ACKs and results for existing agents."
+}

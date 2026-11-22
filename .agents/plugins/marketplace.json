@@ -1,0 +1,12 @@
+{
+  "name": "wti-tools",
+  "interface": {"displayName": "WTI Agent Tools"},
+  "plugins": [
+    {
+      "name": "wti-ai-msg",
+      "source": {"source": "local", "path": "./plugins/wti-ai-msg"},
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Productivity"
+    }
+  ]
+}
