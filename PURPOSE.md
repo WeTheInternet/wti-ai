@@ -34,7 +34,7 @@ Read as little as possible to complete the task. Prefer `PURPOSE.md` routers ove
 
 - `ai/`
   - Implementation/tooling spikes and runtime assets.
-  - `ai/agents/infra` is the legacy duplicate; current IDE agent work belongs in `ide/agents/infra`.
+  - `ai/agents/infra` is a superseded Infra agent implementation; current IDE agent work belongs in `ide/agents/infra`.
   - Not a documentation authority hub.
 
 - `.prompts/`

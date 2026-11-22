@@ -25,7 +25,7 @@ triggers:
 - If a `repos/theia/**` directory exists in this repo, it is for IDE-performance purposes (workspace excludes) and for source lookup only.
   - Do not reference `repos/theia` in code/config/scripts.
   - Only inspect/modify it when the user explicitly requests.
-- Active WTI agent implementations live in `ide/agents/**`; the app is `ide/apps/wti-ide`. `ai/agents/infra` is the legacy duplicate.
+- Active WTI agent implementations live in `ide/agents/**`; the app is `ide/apps/wti-ide`. `ai/agents/infra` is a superseded Infra agent implementation.
 
 The older boundary markers remain in [ai/agents/WTI-ROLES.md](../../ai/agents/WTI-ROLES.md); use `AGENTS.md` for current runtime routing. These notes do not expand task authorization.
 
