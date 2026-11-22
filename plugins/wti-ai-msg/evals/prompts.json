@@ -72,6 +72,10 @@
     "prompt": "Use wti-ai-msg. A prior foreground dispatcher persisted intent, then exited before saving the queue response. The recipient has no ACK yet. Another run finds the same message. Recover the next action without blind resends or a new UUID."
   },
   {
+    "id": "timeout-idle-status-only",
+    "prompt": "Use wti-ai-msg with read-only synthetic evidence. Sender S wrote request R revision 2, message M/hash H to recipient T. The optional wake timed out after possible queue admission. Later a reader reports T idle. The user says check status only, do not message T, and hold revision 2 execution. At the first check you find a T-authored ACK for R/revision 1 and a T-authored ACK for a different UUID. At the next check a T-authored ACK arrives bound to S, T, R/revision 2 and M/hash H. There is no provider admission, native turn, execution agreement or result evidence. Give the status and action at each check. Separately, suppose the user lifts the hold and asks for a re-ping while the exact ACK is still missing. What would you do if a verified exact-recipient route could safely deduplicate the reminder, and what would you report if no such route were available?"
+  },
+  {
     "id": "private-space-return",
     "prompt": "Use wti-ai-msg as System in an existing ChatGPT conversation. You can read a private Page but cannot run the local helper or access /var/tmp/gpt. The sender requests a nonce round trip. Explain your own ACK/result and return path, exact-byte verification, and what local-helper state the relay must not fabricate."
   },

@@ -108,8 +108,29 @@ or unknown reply preserves raw evidence (including timeout streams as base64)
 and requires reconciliation; absence of a receipt is NOT proof of non-admission.
 The command sends no cancellation or interruption to the target.
 
-If receipt remains uncertain after reconciliation, tell the user plainly and offer
-one short prompt for the intended existing recipient. Fill every placeholder with
+After a timeout, promptly report uncertainty. Keep the original request ID,
+revision, message UUID/hash and uncertain attempt. Reconcile independently of
+the send call with read-only `reconcile` / exact-message `status` and any already
+accessible provider or recipient evidence. A later idle observation leaves the
+attempt uncertain. The durable request remains available for the recipient to
+read at a safe boundary even if the optional wake is unverified.
+
+Report written mail, provider queue admission, a native turn starting, read-ACK,
+execution acceptance and completion separately. Use recipient-authored evidence
+bound to the original sender, recipient, request ID/revision and message UUID/hash
+for read, acceptance or completion as applicable. Older revisions, other UUIDs
+and observer reports leave those stages unverified for this message. A late
+exact ACK establishes reading while the original attempt, queue admission and
+activation retain their own evidence.
+
+Follow the latest direct user instruction before taking any action. For
+status-only, hold or “do not message” instructions, report from read-only
+evidence and skip queueing, waking and receipt prompts or relays. An ACK for
+superseded scope remains evidence of reading that revision.
+
+If receipt remains uncertain and current instructions permit a receipt query,
+tell the user plainly and offer one short prompt for the intended existing
+recipient. Fill every placeholder with
 the exact record and a recipient-accessible locator (not a sender-local path for
 remote chat):
 
@@ -136,10 +157,14 @@ ACK, execution agreement, result and owner acceptance separately. Its `next_acti
 
 There is deliberately no timed retry or force flag. For uncertain or admitted
 submissions, inspect the exact target/message ID, provider evidence and saved
-results. If still unknown, keep held. If a future resend is explicitly authorized
-after reconciliation, use one supported native call with the SAME logical ID and
-notification, recording your own evidence; never assign a new UUID to escape the
-guard. The basic adapter does not automate this exceptional recovery. A new scope
+results. If a notification is still needed and the user authorizes a re-ping,
+use one verified route to the exact recipient that supports safe deduplication
+of the notification. Reference the same mailbox UUID/hash and request ID/revision
+and record the retry as a separate attempt while retaining the original uncertainty.
+Send only a reminder to check the durable mail. Idle status alone cannot justify
+a replay. If safe re-notification is unavailable, report the blocked retry and
+the remaining uncertainty. The
+foreground adapter does not automate this exceptional recovery. A new scope
 gets a new message/revision only under current authority.
 For an already-completed request's return notification and late own accounting,
 follow [saved-result recovery](recovery.md#saved-result-return-after-a-blocked-notification).

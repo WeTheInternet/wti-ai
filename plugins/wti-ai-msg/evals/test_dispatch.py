@@ -86,12 +86,49 @@ class DispatchEvals(unittest.TestCase):
         self.assertEqual(self.box.path(ALICE).read_bytes(), before)
 
     def test_timeout_is_uncertain_and_never_blindly_retried(self):
+        stale = self.message
+        self.mid = str(uuid.uuid4())
+        self.message = self.box.send(
+            ALICE, BOB, self.mid, stale["request_id"], 2, "Current fixture", ALICE
+        )["event"]
+        other_id = str(uuid.uuid4())
+        self.box.send(ALICE, BOB, other_id, "other-work", 2, "Unrelated fixture")
+
         def timeout(args, **kwargs):
-            self.calls.append(args)
+            self.runner(args, **kwargs)  # Fake transport admits, then loses its reply.
             raise subprocess.TimeoutExpired(args, 20)
+
+        def reconcile():
+            rows = mail.Mailbox(self.root).reconcile(ALICE)
+            return next(row for row in rows if row["message"]["message_id"] == self.mid)
+
         status = self.run_once(runner=timeout)
+        reports = status["delivery_reports"]
+        self.assertEqual([event["outcome"] for event in reports], ["uncertain", "uncertain"])
+        intent, uncertain = reports
+        self.assertEqual(intent["attempt_id"].removesuffix(":intent") + ":uncertain",
+                         uncertain["attempt_id"])
         self.assertEqual(status["provider_admission"], "unverified")
-        self.run_once()
+        self.box.receipt(BOB, ALICE, stale["message_id"], "ack", "Read previous revision")
+        self.box.receipt(BOB, ALICE, other_id, "ack", "Read unrelated message")
+        reconciled = reconcile()
+        self.assertIsNone(reconciled["ack"])
+        self.assertEqual(reconciled["delivery_reports"], reports)
+
+        idle = dict(self.preflight, observed_at=dispatch.stamp(), reference="later idle observation")
+        status = self.run_once(observation=idle)
+        self.assertEqual(status["next_action"], "reconcile_delivery_no_resend")
+        self.assertEqual(len(self.calls), 1)
+
+        exact = self.box.receipt(BOB, ALICE, self.mid, "ack", "Read current revision")["event"]
+        status = dispatch.projection(self.box, self.message)
+        self.assertEqual(reconcile()["ack"], exact)
+        self.assertEqual(status["work_state"], "acknowledged")
+        self.assertEqual(status["delivery_reports"], reports)
+        self.assertEqual(status["provider_admission"], "unverified")
+        self.assertEqual(status["activation"], "unverified")
+        self.assertIsNone(status["execution_acceptance"])
+        self.assertIsNone(status["result"])
         self.assertEqual(len(self.calls), 1)
 
     def test_resume_warning_with_receipt_keeps_admission_separate(self):
