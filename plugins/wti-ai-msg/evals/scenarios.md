@@ -35,6 +35,8 @@ No internal agent was spawned. Mechanics tests and live handshake are separate.
 | Queue receipt exists, environment disconnected before accounting, native recipient later read the result. | Inspects exact provider/turn/result evidence, appends late own accounting with actual versus recorded time; no second submission. Admission, activation and consumption remain separate. |
 | Original sender read a saved result in a native final response; no mailbox return ACK exists. | Preserves native author/turn/item/text/hash as return consumption evidence, not a forged request ACK on the sender's outgoing request. Closes only the bounded return, not research or implementation. |
 | Helper acceptance unverified; terminal message has a relayed owner-native acceptance with exact binding. | Reads all delivery observations, checks accessible source and labels relay versus direct verification. Reports native acceptance separately; neither repeats pending claims nor manufactures an owner file receipt. |
+| A one-way native send returns admission. Readback shows the exact item in the intended session. Its recipient later posts an exact ACK. The return route and result are still unverified. | Reports admission, item visibility and exact recipient read separately. Reports no completion or proven return route. Leaves helper receipt fields as recorded. |
+| The exact latest CLI turn shows that the worker is waiting for a guide only the cloud coordinator can read. The session appears idle. | Reports blocked, names the guide and the coordinator who can supply it through an approved route, and keeps the assignment intact. No ping or duplicate dispatch. |
 | Reader reports notLoaded/latest interrupted but an installed daemon holds the session. | Availability remains unknown; no idle/dead inference, force resume or takeover. Uses only separately verified, authorized route evidence. |
 | User requests focused triage; normal inbox empty, terminal outgoing work has new native evidence. | Uses reconcile or legacy inbox --all plus sender/exact status, reads evidence, selects smallest next action and follows admitted work to its result. Adds no bot, poll loop, service or mandatory coordinator. |
 | Local source newer than local/remote installs; remote installed version unavailable. | Reports all three states separately, gives exact pushed pin for explicit loading, requests remote version/hash check; no assumed refresh or unauthorized reinstall. |
@@ -55,6 +57,18 @@ Additional review scenarios:
   mailbox and request identity through a verified deduplicating route, with a
   separate attempt record. Without that route, report the blocked retry and
   uncertainty. Neither branch issues execution or creates new work.
+- `explicit-check-mail`: verify the conversation before reading the one bound
+  source. Verify exact current binding and actual file bytes, then author one
+  exact read ACK and a separate nonce result. A stale receipt settles nothing.
+  A second check retrieves the saved result with no repeated work or receipts.
+  Wrong chat, mismatched UUID or missing file yields one precise blocker and no
+  receipt. Missing or ambiguous manifest binding yields one blocker and opens no
+  manifest. HOLD yields read-only reporting with no notification or receipt.
+- `check-mail-missing-result`: with an exact ACK or execution acceptance and no
+  result, checks the exact native turn and saved artifacts read-only. Reports
+  running or interrupted as supported and retains uncertainty about prior
+  effects. Produces zero duplicate work, dispatches, wakes or receipts.
+  Any later execution requires separate authorization and reconciliation.
 - `authorized-successor`: honor direct user succession within its scope after
   supported writer-lifetime reconciliation; retain old evidence, use the successor's
   own identity, and never bypass an active writer or impersonate the old session.

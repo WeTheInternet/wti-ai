@@ -97,6 +97,34 @@ and error; peers must not move/delete it silently. Disk-full/fsync errors remain
 explicit; after a post-rename failure, visibility may exist while durability is
 uncertain. A missed notification is repaired by scanning, not by assuming work lost.
 
+## Check the task before asking for a ping
+
+Bind the exact actor and assignment using the current task record. Read the
+supported native status and latest relevant turn, then check the request ID,
+revision, message UUID/hash and any exact recipient receipts or saved result.
+Keep session activity separate from task state:
+
+| State | Evidence and next step |
+| --- | --- |
+| Done | An exact recipient-authored completed result exists. Recover it and follow the authorized return path. |
+| Blocked | The latest relevant evidence identifies missing input, access or capability. Name who can supply it, where it is needed, and what the local and cloud participants can each access. |
+| Held | A current instruction pauses the work. Report status only. |
+| Interrupted | Native evidence identifies the interrupted turn or operation. Check saved results and possible effects before recovery. |
+| Queued, read unverified | The provider admitted the exact notification. A matching recipient read ACK is still unverified. |
+| Unknown or unreachable | The supported reader could not establish state. Name the failed lookup and the last confirmed evidence. |
+
+For a one-way native send, use an authorized read-only route to inspect the
+destination's exact item or turn. Record the hop, observer and message binding.
+An item readback establishes visibility at that hop. A recipient-authored ACK
+establishes reading. A recipient-authored completed result establishes completion.
+Verify the return route separately.
+
+Take only an already authorized step. If a worker is waiting for a cloud-only
+input, identify who can supply it through an existing approved route. Ask the
+user for a ping only when activation is the remaining dependency and the ping
+is authorized. Idle status or an active-writer refusal gives no authority to
+wake, resend, take over, or duplicate the assignment.
+
 ## Saved-result return after a blocked notification
 
 Recover the original completed result by sender/UUID/revision and result ID/hash.
