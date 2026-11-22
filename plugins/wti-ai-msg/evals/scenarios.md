@@ -62,7 +62,13 @@ Additional review scenarios:
   exact read ACK and a separate nonce result. A stale receipt settles nothing.
   A second check retrieves the saved result with no repeated work or receipts.
   Wrong chat, mismatched UUID or missing file yields one precise blocker and no
-  receipt. HOLD yields read-only reporting with no notification or receipt.
+  receipt. Missing or ambiguous manifest binding yields one blocker and opens no
+  manifest. HOLD yields read-only reporting with no notification or receipt.
+- `check-mail-missing-result`: with an exact ACK or execution acceptance and no
+  result, checks the exact native turn and saved artifacts read-only. Reports
+  running or interrupted as supported and retains uncertainty about prior
+  effects. Produces zero duplicate work, dispatches, wakes or receipts.
+  Any later execution requires separate authorization and reconciliation.
 - `authorized-successor`: honor direct user succession within its scope after
   supported writer-lifetime reconciliation; retain old evidence, use the successor's
   own identity, and never bypass an active writer or impersonate the old session.

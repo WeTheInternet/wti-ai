@@ -77,7 +77,11 @@
   },
   {
     "id": "explicit-check-mail",
-    "prompt": "Use wti-ai-msg with synthetic tools only. In ChatGPT, the user selects the skill and says check mail. The intended conversation has one approved private manifest. It points to a current pending nonce request R revision 2 and one file with a known byte count and SHA-256. A stale revision 1 receipt is visible in the same source. Explain and enact the check against the fake tools, then repeat it after a valid saved result. Independently replay from the initial state with each change: the current conversation is the wrong recipient, the current UUID disagrees with the envelope, the file is unavailable, or the user directly says HOLD."
+    "prompt": "Use wti-ai-msg with synthetic tools only. In ChatGPT, the user selects the skill and says check mail. The intended conversation has one approved private manifest. It points to a current pending nonce request R revision 2 and one file with a known byte count and SHA-256. A stale revision 1 receipt is visible in the same source. Explain and enact the check against the fake tools, then repeat it after a valid saved result. Independently replay from the initial state with each change: the current conversation is the wrong recipient, the current UUID disagrees with the envelope, the file is unavailable, no private manifest is bound, two plausible private manifests remain, or the user directly says HOLD."
+  },
+  {
+    "id": "check-mail-missing-result",
+    "prompt": "Use wti-ai-msg with fake tools only. The user selects the skill and says check mail again for the current addressed request. In the first fixture, the exact recipient read ACK exists, the matching native turn is still running, and neither the mailbox nor saved artifacts contain a result. In the second fixture, the exact execution acceptance also exists, the latest matching turn was interrupted after a tool may have taken effect, and no result is saved. For each fixture, use the fake tools to report what is known and what action you take."
   },
   {
     "id": "private-space-return",

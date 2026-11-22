@@ -96,11 +96,19 @@ artifact references with byte counts and SHA-256 hashes.
 1. Apply the latest direct user instruction first. For HOLD, status-only or
    no-send, report existing evidence without publishing receipts or contacting a
    participant. Verify the conversation and binding before opening the manifest.
+   If no approved manifest is bound or multiple plausible manifests remain,
+   report one binding blocker and open none.
 2. Inspect only the bound source's current record addressed to this recipient.
    Match the original sender, recipient, request ID/revision, message UUID and
    envelope payload hash. Check existing recipient-authored receipts for that
-   record. If it is settled, return the saved result or its location. If no
-   current pending record exists, report that and stop. Skip superseded records.
+   record. If it is settled, return the saved result or its location. If an exact
+   read ACK or execution acceptance exists without a result, reconcile the
+   exact native turn and saved artifacts. Recover a matching saved result if
+   found. Otherwise report the known state, including whether the turn is
+   running, interrupted, or unverified, and stop. Any later execution requires
+   separate authorization and reconciliation of in-flight or possible prior
+   effects. If no current pending record exists, report that and stop. Skip
+   superseded records.
 3. Read the exact pending envelope and any required artifacts through the bound
    route. Compute byte counts and SHA-256 from the bytes you retrieve. Keep blob
    hashes distinct from the envelope payload hash. If identity, access, binding
@@ -111,8 +119,9 @@ artifact references with byte counts and SHA-256 hashes.
    ACK or result. An ACK records reading. Author a separate result only once the
    authorized work has an observed outcome.
 
-The check runs in the active conversation. It grants no access, execution
-authority or wake capability.
+The check runs in the active conversation. It grants no access or execution
+authority. An absent or uncertain outcome gives no reason to dispatch, wake,
+or replay work during a check.
 
 ## Activation and adoption
 
