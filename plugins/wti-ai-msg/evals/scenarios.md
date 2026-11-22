@@ -57,6 +57,12 @@ Additional review scenarios:
   mailbox and request identity through a verified deduplicating route, with a
   separate attempt record. Without that route, report the blocked retry and
   uncertainty. Neither branch issues execution or creates new work.
+- `explicit-check-mail`: verify the conversation before reading the one bound
+  source. Verify exact current binding and actual file bytes, then author one
+  exact read ACK and a separate nonce result. A stale receipt settles nothing.
+  A second check retrieves the saved result with no repeated work or receipts.
+  Wrong chat, mismatched UUID or missing file yields one precise blocker and no
+  receipt. HOLD yields read-only reporting with no notification or receipt.
 - `authorized-successor`: honor direct user succession within its scope after
   supported writer-lifetime reconciliation; retain old evidence, use the successor's
   own identity, and never bypass an active writer or impersonate the old session.

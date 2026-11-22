@@ -28,6 +28,12 @@ For local foreground dispatch, read [local workflow](references/local-workflow.m
 For a remote ChatGPT participant or private resource relay, read
 [ChatGPT workflow](references/chatgpt-workflow.md). Both use this same contract.
 
+With this skill selected, `check mail` requests one bounded reconciliation. In
+ChatGPT, follow [Check mail](references/chatgpt-workflow.md#check-mail-in-an-existing-conversation)
+for the bound conversation. In local Codex, run the read-only `reconcile` procedure
+for the enrolled exchange and report the evidence. Apply current user instructions
+before any further action.
+
 ## Discover the actual route
 
 Read the [environment preflight](references/environment.md). Record what each

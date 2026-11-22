@@ -85,6 +85,35 @@ because the filesystem has no owner-authored acceptance. A return-read ACK from 
 original sender is native consumption evidence, not an ACK of its own outgoing
 request. [Recovery](recovery.md) defines the exact binding and late-accounting rules.
 
+## Check mail in an existing conversation
+
+With this skill selected, send `check mail` for one bounded check. Before the
+first use, bind this exact conversation and recipient identity to one approved
+private manifest or equivalent existing route, its authorized staging actor, and
+a native return location. The staging actor supplies the original envelope and
+artifact references with byte counts and SHA-256 hashes.
+
+1. Apply the latest direct user instruction first. For HOLD, status-only or
+   no-send, report existing evidence without publishing receipts or contacting a
+   participant. Verify the conversation and binding before opening the manifest.
+2. Inspect only the bound source's current record addressed to this recipient.
+   Match the original sender, recipient, request ID/revision, message UUID and
+   envelope payload hash. Check existing recipient-authored receipts for that
+   record. If it is settled, return the saved result or its location. If no
+   current pending record exists, report that and stop. Skip superseded records.
+3. Read the exact pending envelope and any required artifacts through the bound
+   route. Compute byte counts and SHA-256 from the bytes you retrieve. Keep blob
+   hashes distinct from the envelope payload hash. If identity, access, binding
+   or required bytes cannot be verified, report one precise blocker. Keep the
+   request at its source.
+4. Use the [native receipt rules](#receipts-when-the-local-helper-is-unavailable)
+   for the exact record. Preserve earlier receipts and reuse an existing exact
+   ACK or result. An ACK records reading. Author a separate result only once the
+   authorized work has an observed outcome.
+
+The check runs in the active conversation. It grants no access, execution
+authority or wake capability.
+
 ## Activation and adoption
 
 The user or an authorized coordinator manually activates the existing chat for now. Saving a Page,
