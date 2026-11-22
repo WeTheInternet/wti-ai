@@ -11,15 +11,15 @@
   ],
   "packageManager": "pnpm@9.15.5",
   "dependencies": {
-    "@theia/ai-chat": "1.68.2",
-    "@theia/ai-core": "1.68.2",
-    "@theia/core": "1.68.2",
-    "@theia/workspace": "1.68.2",
-    "@theia/filesystem": "1.68.2"
+    "@theia/ai-chat": "1.72.3",
+    "@theia/ai-core": "1.72.3",
+    "@theia/core": "1.72.3",
+    "@theia/filesystem": "1.72.3",
+    "@theia/workspace": "1.72.3"
   },
   "devDependencies": {
-    "@theia/cli": "1.68.2",
-    "typescript": "^5.9.0"
+    "@theia/cli": "1.72.3",
+    "typescript": "^5.9.3"
   },
   "theiaExtensions": [
     {

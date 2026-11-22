@@ -1,0 +1,1576 @@
+options {
+    STATIC = false;
+
+    JAVA_UNICODE_ESCAPE=false;
+
+    DEBUG_PARSER=false;
+    DEBUG_LOOKAHEAD=false;
+    DEBUG_TOKEN_MANAGER=false;
+
+    MULTI=true;
+    NODE_PREFIX="Wti";
+    NODE_USES_PARSER=true;
+    //gives access to tokens in our visitors
+    NODE_SCOPE_HOOK=true;
+    VISITOR=true;
+    SUPPORT_CLASS_VISIBILITY_PUBLIC=true;
+
+    VISITOR_METHOD_NAME_INCLUDES_TYPE_NAME=true;
+    VISITOR_RETURN_TYPE="<T> de.mocra.cy.shared.ast.VisitorContext <T>";
+    VISITOR_DATA_TYPE="de.mocra.cy.shared.ast.VisitorContext <T>";
+
+    BUILD_NODE_FILES=true;
+//
+//          <jdkVersion>1.8</jdkVersion>
+//          <grammarEncoding>utf-8</grammarEncoding>
+//          <keepLineColumn>true</keepLineColumn>
+//
+//          <outputDirectory>${generated.output}</outputDirectory>
+//          <detail>true</detail>
+
+  // TODO enable this and adapt to the updated output format
+//  JAVA_TEMPLATE_TYPE = "modern";
+}
+
+PARSER_BEGIN(WtiAst)
+package de.mocra.cy.shared.ast;
+
+import java.util.Stack;
+import java.io.IOException;
+import xapi.fu.Mutable;
+import xapi.fu.In1;
+import xapi.fu.In2Out1;
+import xapi.fu.itr.ChainBuilder;
+import xapi.annotation.gwt.GwtIncompatible;
+
+public class WtiAst {
+
+    private boolean deferNestedBlocks;
+    private In2Out1<FormatState, String, FormatState> formatProcessor = new In2Out1<FormatState, String, FormatState>() {
+      public FormatState io(FormatState i1, String i2) {
+        return i1.parseToken(i2);
+      }
+    };
+    private final Mutable<FormatState> globalState = new Mutable<FormatState>(new FormatState());
+
+    @GwtIncompatible
+    public static void main(String[] args) throws Exception {
+        final WtiAst ast;
+        if (args.length == 0) {
+            ast = new WtiAst(System.in);
+        } else {
+            ast = new WtiAst(new java.io.StringReader(args[0]));
+        }
+        ast.ContentAst();
+    }
+
+    public WtiAst deferNestedBlocks() {
+      deferNestedBlocks = true;
+      return this;
+    }
+
+    public WtiAst parseNestedBlocks() {
+      deferNestedBlocks = false;
+      return this;
+    }
+
+    private void setState(int state) {
+      if (state != token_source.curLexState) {
+        Token root = new Token(), last=root;
+        root.next = null;
+
+        // First, we build a list of tokens to push back, in backwards order
+        while (token.next != null) {
+          Token t = token;
+          // Find the token whose token.next is the last in the chain
+          while (t.next != null && t.next.next != null)
+            t = t.next;
+
+          // put it at the end of the new chain
+          last.next = t.next;
+          last = t.next;
+
+          // If there are special tokens, these go before the regular tokens,
+          // so we want to push them back onto the input stream in the order
+          // we find them along the specialToken chain.
+
+          if (t.next.specialToken != null) {
+            Token tt=t.next.specialToken;
+            while (tt != null) {
+              last.next = tt;
+              last = tt;
+              tt.next = null;
+              tt = tt.specialToken;
+            }
+          }
+          t.next = null;
+        };
+
+        while (root.next != null) {
+          token_source.backup(root.next.image.length());
+          root.next = root.next.next;
+        }
+        jj_ntk = -1;
+        token_source.SwitchTo(state);
+      }
+    }
+
+    private void ToState(int state) {
+      token_source.SwitchTo(state);
+    }
+
+    void jjtreeOpenNodeScope(Node n){
+
+    }
+
+    void jjtreeCloseNodeScope(Node n){
+
+    }
+
+    Mutable newFormat() {
+      return new Mutable(newState());
+    }
+
+    FormatState newState() {
+      FormatState global = globalState.out1();
+      return new FormatState().addOverride(global.getFormatting());
+    }
+
+
+  char peekNext() {
+    return peekNext(true);
+  }
+
+  boolean isEmptyLine() {
+    if (token.next != null) {
+      if (token.kind != WHITESPACE) {
+        return token.kind == EOL;
+      }
+    }
+    int backup = 1;
+    char c;
+    try {
+        while ( Character.isWhitespace(c = jj_input_stream.readChar() ) ) {
+          if (c == '\n' || c == '\r') {
+            return true;
+          }
+          backup++;
+        }
+        return false;
+    } catch(IOException e) {
+      // Hit EOF while parsing...
+      return true;
+    } finally {
+        jj_input_stream.backup(backup);
+    }
+  }
+
+  boolean eatEmptyLines() {
+    int backup = 1, lastGood = -1;
+    char c;
+    try {
+        while ( Character.isWhitespace(c = jj_input_stream.readChar() ) ) {
+          if (c == '\n' || c == '\r') {
+            lastGood = backup;
+          }
+          backup++;
+        }
+    } catch(IOException e) {
+      // Hit EOF while parsing...
+
+    } finally {
+        if (lastGood != -1) {
+          backup = lastGood;
+        }
+        jj_input_stream.backup(backup);
+    }
+    return lastGood != -1;
+  }
+
+  boolean isCodeContent() {
+    if (token.next != null) {
+      return token.kind != EOL;
+    }
+    int backup = 1;
+    char c;
+    try {
+        while ( Character.isWhitespace(c = jj_input_stream.readChar() ) ) {
+          if (c == '\n' || c == '\r') {
+            return true;
+          }
+          backup++;
+        }
+        return false;
+    } catch(IOException e) {
+      // Hit EOF while parsing...
+      return true;
+    } finally {
+        jj_input_stream.backup(backup);
+    }
+  }
+
+  char peekNext(boolean eatWhitespace) {
+    int backup = 0;
+    char c = 0;
+    if (token.next != null) {
+      // If there is already a token, then we need to check it first.
+      // No backup is added for inspecting a token image.
+      String img = token.next.image;
+      if (eatWhitespace) {
+        while (c < img.length() && Character.isWhitespace(img.charAt(c))) {
+          c++;
+        }
+      }
+      if (c < img.length() ) {
+        return img.charAt(c);
+      }
+    }
+    try {
+      if (eatWhitespace) {
+        backup += eatWhitespace(false);
+      }
+      c = jj_input_stream.readChar();
+      backup ++;
+    } catch (IOException e) {
+      // Hit EOF while peeking...
+    } finally {
+      jj_input_stream.backup(backup);
+    }
+    return c;
+  }
+
+  int eatWhitespace(boolean peek) {
+    int backup = 0;
+    int amt = 0;
+    char c = 0;
+
+    try {
+      c = jj_input_stream.readChar();
+      backup = 1;
+
+      while (Character.isWhitespace(c)) {
+          backup ++;
+          amt ++;
+          c = jj_input_stream.readChar();
+      }
+      if (!peek) {
+        jj_input_stream.backup(1);
+      }
+    } catch (IOException e) {
+      // Hit EOF while peeking...
+      return amt;
+    } finally {
+        if (peek) {
+            jj_input_stream.backup(backup);
+        }
+    }
+    return amt;
+  }
+
+  private boolean isPunctuationUntilWhitespace() throws IOException {
+    int backup = 0;
+    try {
+      while(true) {
+        char next = jj_input_stream.readChar();
+        backup ++;
+        if (Character.isWhitespace(next)) {
+          return true;
+        }
+        if (!isPunctuation(next)) {
+          return false;
+        }
+      }
+    } finally {
+      jj_input_stream.backup(backup);
+    }
+  }
+  private boolean isDotTerminal() {
+    int backup = 0;
+    try {
+        char next = jj_input_stream.readChar();
+        backup ++;
+        if ('.' == next) {
+          // TODO: copy jj_input_stream.isEmpty() from xapi
+          try {
+            jj_input_stream.readChar();
+            backup++;
+          } catch (IOException e) {
+            // we will eat these chars, and just match the <EOF>
+            backup = 0;
+            return true;
+          }
+        }
+        return false;
+    } catch (IOException e) {
+      // hit plain EOF.  return false
+      return false;
+    } finally {
+      jj_input_stream.backup(backup);
+    }
+  }
+  private void pushText(Mutable format, String content) {
+    WtiTextAst txt = new WtiTextAst(this, JJTTEXTAST);
+    txt.setText(content);
+    Node previous = jjtree.peekNode();
+    FormatState before = (FormatState) format.out1();
+    format.process(formatProcessor, content);
+    FormatState after = (FormatState) format.out1();
+    txt.setFormatting(before, after);
+    if (previous instanceof WtiRowAst) {
+      // If the previous item before an end format is seen,
+      // we stick ourselves onto the end of the existing row
+      WtiRowAst parent = (WtiRowAst)previous;
+      txt.jjtSetParent(parent);
+      parent.jjtAddChild(txt, parent.jjtGetNumChildren());
+    } else {
+      // If previous stack item was not a row,
+      // then just push the item on the stack for whoever is collecting ast.
+      jjtree.pushNode(txt);
+    }
+  }
+
+  private boolean isPunctuation(char c) {
+    switch(c) {
+      case '.':
+      case ',':
+      case ';':
+      case ':':
+      case '!':
+      case '?':
+      case '\'':
+      case '"':
+        // TODO I18N
+        return true;
+      default:
+        return false;
+    }
+  }
+
+    private boolean looksLikeLink() {
+      return peekNext() == '[';
+    }
+
+
+    private boolean isOpenArrow() {
+      int backup = 0;
+      try {
+            switch (peekNext()) {
+              case '-':
+                  backup = eatWhitespace(false);
+                  char next = jj_input_stream.readChar();
+                  next = jj_input_stream.readChar();
+                  backup++;
+                  if (next == '>') {
+                      backup += eatWhitespace(false);
+                      next = jj_input_stream.readChar();
+                      backup++;
+                      if (next == '{') {
+                          backup = 1;
+                          return true;
+                      }
+                  }
+                  return false;
+              case '<':
+                  backup = eatWhitespace(false);
+                  next = jj_input_stream.readChar();
+                  next = jj_input_stream.readChar();
+                  backup++;
+                  if (next == '-') {
+                      backup += eatWhitespace(false);
+                      next = jj_input_stream.readChar();
+                      backup++;
+                      if (next == '{') {
+                          backup = 1;
+                          return true;
+                      }
+                  }
+                  return false;
+
+              default:
+                  return false;
+          }
+
+      } catch (IOException e) {
+          // hit plain EOF.  return false
+          return false;
+      } finally {
+          jj_input_stream.backup(backup);
+      }
+    }
+
+}
+
+PARSER_END(WtiAst)
+
+TOKEN_MGR_DECLS : {
+    Stack stateStack = new Stack();
+    boolean first;
+
+  void backup(int n) { input_stream.backup(n); }
+
+  void putBack(Token token, StringBuilder image, int amt) {
+      input_stream.backup(amt);
+      assert image.length() - amt >= 0;
+      image.setLength(image.length()-amt);
+      token.image = image.toString();
+  }
+}
+
+// Universal tokens (present in all modes)
+<DEFAULT, QuoteMode>
+TOKEN:
+{
+   < #NEWLINE: ("\n"|"\r"|"\r\n") >
+|  < WHITESPACE: (" " | "\t")+ >
+}
+
+// Define some whitespace and universally recognized punctuation tokens
+TOKEN:
+{
+// TODO include weird alternate encodings for space
+   < EOL:
+      (<WHITESPACE>)?
+      <NEWLINE>
+      (<WHITESPACE>)?
+      ( ~[ "\n", "\r" ] )
+   >
+   {
+     input_stream.backup(1);
+     char lastChar = image.charAt(image.length() - 1);
+     switch (lastChar) {
+         case '*':
+         case '#':
+             switch (image.charAt(image.length() - 2)) {
+                 case ' ':
+                 case '\t':
+                     input_stream.backup(1);
+             }
+
+     }
+   }
+|   < #HASH: "#" >
+|   < #STAR: "*" >
+| < #ORDERED_LIST: <WHITESPACE> ( <HASH> )+ <WHITESPACE> >
+| < #UNORDERED_LIST: <WHITESPACE> ( <STAR> )+ <WHITESPACE> >
+|  < #FORMAT_CHARS_EXCEPT_STAR: "_" | "+" | "-" | "~" | "=" >
+|  < #FORMAT_CHARS: ( <STAR> | <FORMAT_CHARS_EXCEPT_STAR> )+ >
+//  Whitespace is important to FORMAT_CHARS meaning,
+// so a token comprised of only format chars, bounded by spaces,
+// will (currently) be ignored.  In the future we may implement guessing,
+// whereby we eat orphan tokens,
+// try to close a format state,
+// if failing, open a format state.
+|  < FORMAT_ORPHANS: ( " " <FORMAT_CHARS_EXCEPT_STAR> " " ) >
+|  < SECTION_BREAK: (
+        ( <WHITESPACE> )?
+        ( <NEWLINE> )
+        (
+            ( <WHITESPACE> )?
+            ( <NEWLINE> )
+        )+
+ ) >
+// Code definition placed early to help it get matched quickly.
+// Other regex might misinterpret a token like "`- "
+// (italic closing format on a  ` char)
+| < CODE: (
+  // For code tokens, we match all contents into a single EOF-friendly token
+  "`"
+  (
+    "\\`"
+    | ~[ "\r", "\n", "`" ]
+    | (
+        // We want to eat new lines
+        ( <NEWLINE> )
+        (<WHITESPACE>)?
+        // As long as they are followed by non-newline,
+        // non-terminating characters
+        ~[ "\r", "\n", "`"]
+        // (we handle newlines and terminal ` below)
+    )
+  )*
+  (
+    // Standard terminal (well-formatted token)
+    "`"
+    | (
+      // A `floating close token
+      // `
+      //
+      // As shown above
+      <NEWLINE>
+      (<WHITESPACE>)?
+      "`"
+    )
+  // Closing chars optional, as a double-newline or <EOF> ends all token state;
+  // If you forget to close a codequote, it will eat the rest of that section.
+  // (stripping whitespace off the end).
+  )?
+
+  ) >
+//| < EMBED: (
+//  // For code tokens, we match all contents into a single EOF-friendly token
+//  "<"
+//  (
+//    "\\>"
+//    | ~[ "\r", "\n", ">" ]
+//    | (
+//        // We want to eat new lines
+//        ( <NEWLINE> )
+//        (<WHITESPACE>)?
+//        // As long as they are followed by non-newline,
+//        // non-terminating characters
+//        ~[ "\r", "\n", ">"]
+//        // (we handle newlines and terminal ` below)
+//    )
+//  )*
+//  (
+//    // Standard terminal (well-formatted token)
+//    ">"
+//    | (
+//      // A >floating close token
+//      // >
+//      //
+//      // As shown above
+//      <NEWLINE>
+//      (<WHITESPACE>)?
+//      ">"
+//    )
+//  // Closing chars optional, as a double-newline or <EOF> ends all token state;
+//  // If you forget to close a codequote, it will eat the rest of that section.
+//  // (stripping whitespace off the end).
+//  )?
+//
+//  ) >
+
+|  < QUOTE: "\"" >
+// We put the opening quote back so we can match it again in QuoteMode state
+{ putBack(matchedToken, image, 1); }
+: QuoteMode
+
+  // START_FORMAT is only used at the beginning of a section of content.
+|   < START_FORMAT:
+        <FORMAT_CHARS>
+        ~[ " ", "\t", "\r", "\n", "*", "_", "+", "-", "~", "=" ]
+    > {
+      // after grabbing opening format state,
+      // put back whatever it was that wasn't whitespace
+        putBack(matchedToken, image, 1);
+    }
+
+  // CONTINUE_FORMAT is used *after* the beginning of a section of content.
+  // where we require whitspace preceding a format char, followed by a "real" token
+|   < CONTINUE_FORMAT:
+        <WHITESPACE>
+        <FORMAT_CHARS>
+        ~[ " ", "\t", "\r", "\n", "*", "_", "+", "-", "~", "=" ]
+    >
+    // Put back the non-whitespace char we ate
+    { putBack(matchedToken, image, 1); }
+
+//punct
+|   < #LBRACE: "{" >
+|   < #BSLASH: "\\" >
+|   < #RBRACE: "}" >
+|   < #COLON: ":" >
+|   < #FSLASH: "/" >
+// # and * handled earlier
+|   < #AT: "@" >
+|   < #DOLLAR: "$" >
+|   < #DOT: "." >
+|   < #COMMA: "," >
+|   < #SEMI: ";" >
+|   < #QUESTION: "?" >
+|   < #EXCLAIM: "!" >
+|   < #APOS: "'" >
+
+// ratings
+|   < #RATING_DIGIT: ["0"-"5"] >
+|   < UPVOTE: "+" (<RATING_DIGIT>) >
+|   < DOWNVOTE: "-" (<RATING_DIGIT>) >
+// A rating is: " +1:", minus the quotes.
+// So, a +/1#, and a colon or exclamation point
+|   < RATING: ( <UPVOTE> | <DOWNVOTE> ) ( <COLON> | <EXCLAIM>) >
+
+// link structures
+|   < URL_START: "[[" >
+|   < URL_END: "]]" >
+|   < EXTERNAL_LINK: ( ["a"-"z"] )+ <COLON> <FSLASH> <FSLASH> ( ~[ " ", "\t", "\n", "\r" ] ) + >
+
+//idents
+    // Tokens suitable for ids.  \ is allowed only in case there is end-user values and we want to escape unicode
+|   < ID:
+    ["A"-"Z","a"-"z", "0"-"9", "\\"]
+    (["A"-"Z","a"-"z","0"-"9", ".", "\\" ])*
+    >
+// Boring chars; text we can eat en-masse
+// We do this hideous bit below to capture "everything that isn't command / punctuation
+// This gives us unicode and whatnot for free.
+|   < #BORING:
+    // everything except:
+    ~[
+            "\n", "\r",
+            // sync this line with WHITESPACE above.
+            " ", "\t",
+            // keep these lines synced with the ones in PUNCTUATION below
+            // (and mutually exclusive with anything included...)
+            // it's a pain, but we can't use token definitions in ~[ ... ]
+//            "%", "&", "|", "^" | "$"
+//          "'",
+            // . is definitely not boring. Used in ID and ...
+            ".",
+            // TODO implement stop-letters
+//            "?", "!", ";", ":", ",",
+
+            // " ` used in quotes.
+            "\"", "`",
+            // references and tags
+            "@","#",
+
+            // FORMAT_CHARS
+            "*", "_",
+            "-", "+",
+            "=", "~",
+
+            // Control flow, links, etc
+            "(",")",
+            "[", "]",
+            "{", "}",
+            "<", ">",
+            "/", "\\"
+] >
+|   < ELLIPSIS: "..." >
+|   < DOT_NOT_ELLIPSIS: "." (".")? ~["."]  >
+    { putBack(matchedToken, image, 1);}
+|  < PHRASE:
+    ( ( <BSLASH> <RBRACE> ) | <BORING> ) +
+    (
+      ( <BORING> | <FORMAT_CHARS> ) *
+      ( <BORING> )+
+    ) ?
+    >
+    |   < END_FORMAT:
+            // This "keeps" a char from the formatted text;
+            // we will retrieve this char when using <END_FORMAT> in AST definitions,
+            ~[ " ", "\t", "\r", "\n" ]
+            // we perform matching validation against FORMAT_CHARS while parsing
+            <FORMAT_CHARS>
+            ( <WHITESPACE> | <NEWLINE> | <EOL> )
+        > {
+        int restore = 0, pos = image.length();
+        if (image.indexOf("\n") != -1 || image.indexOf("\r") != -1) {
+          // An EOL naturally eats one extra char,
+          // so we put that back before doing our whitespace test.
+          pos--;
+          restore++;
+        }
+        while (pos-->0) {
+          if (Character.isWhitespace(image.charAt(pos))) {
+            restore++;
+          } else {
+            break;
+          }
+        }
+        putBack(matchedToken, image, restore);
+        assert image.indexOf("\n") == -1 : "Bad END_FORMAT stream restore";
+    }
+|  < #PUNCTUATION_TOKEN:
+            // keep these lines synced with the ones in #BORING above
+            "/" |
+            "$" |
+            "%" |
+            "^" |
+            "&" |
+            "|" |
+            "#" |
+               // Not allowed: any of <FORMAT_CHARS> above
+//            "+" | "-" |
+//            "*" | "_" |
+//            "=" | "~"
+
+               // Not allowed: any opening parentheticals
+//             "(" | "{" | "[" | "<" |
+               // Not allowed: closing rbrace must never be ignored
+//              "}" |
+               // allowed (only relevant if opening tag is used) :
+            ">" | ")" | "]" |
+             "'" |
+            // . is special.  We use it for ellipsis ...
+            // and as a non-start character of <ID>
+            // "." |
+             // TODO control flow chars
+            "!" | ";" | ":" | "," |
+             "?"
+     >
+|   < PUNCTUATION:
+      (<PUNCTUATION_TOKEN> )+
+    >
+|   <UNMATCHED:
+       "\\" | "/" |
+       "[" | "(" | "{" | "<" |
+       "@" | "#"
+    >
+
+// Links
+|  < LINK :
+"[" (
+     ~["[", "]", "\r", "\n"]
+     | (
+        <NEWLINE>
+        (<WHITESPACE>)?
+        ~["[", "]", "\r", "\n"]
+     )
+     | "\\]" | "\\["
+ )+
+"]"
+>
+| < #NOTE :
+"(" (
+     ~["(", ")", "\r", "\n"]
+     | (
+        <NEWLINE>
+        (<WHITESPACE>)?
+        ~["(", ")", "\r", "\n"]
+     )
+     | "\\)" | "\\("
+ )+
+")">
+| < LINK_FULL : <LINK> <NOTE> >
+
+| < #ARROW: (
+    (<WHITESPACE>)?
+    (
+    ("<" ("-" | "+")) // <-  or <+
+    |
+    (("-" | "+") ">") // -> or +>
+    )
+    (<WHITESPACE>)?
+) >
+              // [Text to click] -> {
+| < EXTEND_LINK:
+        ( <LINK> <ARROW> <LBRACE> ) >
+| < NOTE_LINK:
+       ( <NOTE> <ARROW> <LBRACE> ) >
+| < END_BLOCK_BODY: ( <NEWLINE> ) * ( <WHITESPACE>)? "}" >
+
+| < REFERENCE: <AT> <ID> >
+| < QUALIFIED_REFERENCE: <REFERENCE> ( <WHITESPACE> )? <COLON> ( <WHITESPACE> )? >
+}
+
+
+<QuoteMode>
+TOKEN:{
+ < EMPTY_QUOTES: "\"\"" ~["\""] >
+ { putBack(matchedToken, image, 1); }
+ : DEFAULT
+| < #EATABLE_NEWLINE:
+        // We want to eat new lines
+        // As long as they are followed by non-newline,
+        // non-terminating " characters
+        (<WHITESPACE>)?
+        ( <NEWLINE> )
+        (<WHITESPACE>)?
+        // Only eat newlines if next line
+        // has a non-newline, non-whitespace, non-quote value.
+        // We handle a hanging terminal in <QUOTED>
+        // "
+        //
+        // ^^ Example of hanging terminal
+        ~[ "\r", "\n", "\""]
+  >
+| < #QUOTE_TERMINATOR:
+    // Standard terminal (well-formatted token)
+    "\""
+    | (
+      // A "floating close token
+      // "
+      //
+      // As shown above
+      <NEWLINE>
+      (<WHITESPACE>)?
+      "\""
+    )
+>
+
+| < QUOTED:
+  // For code tokens, we match all contents into a single EOF-friendly token
+  "\""
+  (
+    "\\\""
+    | (
+            // We want to eat new lines
+            // As long as they are followed by non-newline,
+            // non-terminating " characters
+            <NEWLINE>
+            (<WHITESPACE>)?
+            // Only eat newlines if next line
+            // has a non-newline, non-whitespace, non-quote value.
+            // We handle a hanging terminal in <QUOTED>
+            // "
+            //
+            // ^^ Example of hanging terminal
+            ~[ "\r", "\n", "\"", " ", "\t"]
+    | ~[ "\r", "\n", "\"" ]
+
+    )
+  )+
+  (     "\""
+//        | (
+//          // A "floating close token
+//          // "
+//          //
+//          // As shown above
+//          <NEWLINE>
+//          (<WHITESPACE>)?
+//          "\""
+//        )
+         )?
+
+  > : DEFAULT
+
+| < TRIPLE_QUOTES:
+  "\"\"\""
+  (
+      ~["\""]
+      | ( "\"" ~["\""] )
+      | ("\"\"" ~["\""] )
+  )*
+  ( "\"\"\"" )?
+  >
+  : DEFAULT
+}
+
+// The actual AST nodes defined below
+
+WtiBulletAst BulletAst(Mutable format) :
+{ StringBuilder b = new StringBuilder(); }
+{
+<BulletItem:
+  <ORDERED_LIST> | <UNORDERED_LIST>
+> {
+      format.process(formatProcessor, token.image);
+      jjtThis.setBulletLevel(token.image.trim());
+    }
+    {
+      return jjtThis;
+    }
+}
+
+WtiContentAst ContentAst() :
+{
+  int startPos = jj_input_stream.bufpos;
+  boolean greedy;
+}
+{
+    // always eat leading junk
+    ( <EOL> | <SECTION_BREAK> ) *
+    ( // We allow a [link] to start a content block, to define the internal, linkable id
+//          LOOKAHEAD( { looksLikeLink() } )
+          (
+                LinkAst(newFormat()) {
+                   WtiLinkAst link = (WtiLinkAst)jjtree.popNode();
+                   if (isOpenArrow()) {
+                     BlockAst();
+                     WtiBlockAst block = (WtiBlockAst)jjtree.popNode();
+                     WtiNestedAst toUse = new WtiNestedAst(this, JJTNESTEDAST);
+                     toUse.setIdentifier(link.getIdentifier());
+                     for (WtiSectionAst child : block.getSections()
+                        .reversed()) {
+                             jjtree.pushNode(child);
+                     }
+                   }
+                   jjtThis.setPermalink(link);
+                }
+                ( <WHITESPACE> )?
+                // Check for a(n optional) title.  Allows the use of """ multi quotes for multiline.
+                ( FirstRowAst(newFormat()) {
+                    jjtThis.setTitle((WtiRowAst)jjtree.popNode());
+                } )?
+                ( <EOL> | <SECTION_BREAK> )?
+              )
+    )?
+
+      // Eats all leading whitespace and newlines, except the whitespace of a non-empty line.
+      {
+        // only eat empty lines if the input stream is still pristine (may have started with a token)
+        greedy = startPos == jj_input_stream.bufpos;
+        if (greedy) {
+          eatEmptyLines();
+        }
+      }
+      (
+        [ <EOL> ]
+        SectionAst(greedy) ( <SECTION_BREAK> ( <WHITESPACE> )? )*
+      )*
+    [ <SECTION_BREAK> ] <EOF>
+    { return jjtThis; }
+}
+
+WtiSectionAst SectionAst(boolean greedy):
+{
+  Node title;
+  WtiRowAst last = null;
+  Mutable format = newFormat();
+}
+{
+
+    {
+      if (greedy && eatEmptyLines()) {
+        format.process(formatProcessor, " ");
+      }
+    }
+    (
+        // Check the first line of section for a [linkId]
+//        LOOKAHEAD( { looksLikeLink() } )
+        (
+          (
+            CommandAst(format) [ <WHITESPACE> ] [<EOL>] [ <SECTION_BREAK> ]
+            ( last = FirstRowAst(format) )?
+          )
+          | NestedAst(newFormat()) // Nested content always resets formats
+          | (
+              LinkAst(format) {
+                 jjtThis.setPermalink((WtiLinkAst)jjtree.popNode());
+              }
+              ( <WHITESPACE> )?
+              // Check for a title.  Allows the use of """ multi quotes for multiline.
+              (
+                FirstRowAst(format) {
+                  jjtThis.setTitle((WtiRowAst)jjtree.popNode());
+                }
+              ) ?
+              // When an id is specified, we allow zero or more rows in the section
+              ( last = FirstRowAst(format) )?
+          )
+       )
+       // If a link id is not specified, then we require at least one line.
+       | last = FirstRowAst(format)
+   )
+   // After either of those conditions are true,
+   // gobble up lines that are not the first rows.
+   ( last = RowAst(format) )*
+
+{
+ if (last != null) {
+   last.maybeTrim();
+ }
+ return jjtThis;
+}
+}
+
+WtiFoldAst FoldAst():
+{}
+{
+  (
+    <ELLIPSIS>
+    [ <EOL> | <EOF> ]
+  )
+  { return jjtThis; }
+}
+
+void RowEnd(Mutable format) #void:
+{}
+{
+<SectionTerminal:
+  <FORMAT_CHARS>
+> {
+  Node peeked;
+  try {
+    peeked = jjtree.peekNode();
+  } catch (TokenMgrError e) {
+    if (e.getMessage().contains("EOF")) {
+      return;
+    }
+    throw e;
+  }
+  if (peeked instanceof WtiFormatAst) {
+    WtiFormatAst ast = (WtiFormatAst)peeked;
+    ast.terminateFormat();
+    // getFormatting().parseToken(token.image+" ");
+    // ast.spyToken(token.image)
+  } else {
+    // If there was no format item as previous node on stack,
+    // lets just add one.
+    FormatState myStart = (FormatState)format.out1();
+    format.process(formatProcessor, token.image + " ");
+    WtiFormatAst fmt = new WtiFormatAst(this, JJTFORMATAST);
+    fmt.setFormatting(myStart, (FormatState)format.out1());
+    jjtree.openNodeScope(fmt);
+    jjtree.closeNodeScope(fmt, true);
+  }
+
+  return;
+}
+}
+
+void DotTerminal(Mutable format) #void:
+{
+}
+{
+LOOKAHEAD({ isDotTerminal() })
+( <EOF> )
+ {
+    pushText(format, ".");
+    return;
+  }
+}
+
+WtiRowAst FirstRowAst(Mutable format) #RowAst:
+{}
+{
+  ( BulletAst(format) )?
+  (
+      FirstWordAst(format, true)
+      (
+        ( <EOL> )
+        |
+        (
+          ( ManyWords(format, true) ) ?
+          ( RowEnd(format) )?
+          ( <EOL> )?
+          (
+            [ "\n" ]
+            <EOF>
+          )?
+        )
+      )
+  )
+  {
+    FormatState s = (FormatState)format.out1();
+    s = s.parseToken("\n");
+    format.in(s);
+    return jjtThis;
+  }
+}
+
+void ManyWords(Mutable format, boolean first) #void:
+{}
+{
+
+   DotTerminal(format)
+|(
+    WordAst(format, first)
+    ( ManyWords(format, first) )?
+)
+}
+
+WtiRowAst RowAst(Mutable format):
+{
+boolean first = true;
+}
+{
+  ( BulletAst(format) )?
+  (
+    FoldAst()
+    | (
+      FirstWordAst(format, false)
+      ( ManyWords(format, false) )?
+    )
+  )
+  ( RowEnd(format) )?
+  ( <EOL> )?
+  ( ["\n" ] <EOF> )?
+  {
+    FormatState s = (FormatState)format.out1();
+    // Whether we encounter a newline, or run out of chars,
+    // we still want to feed our formatter a newline...
+    s = s.parseToken("\n");
+    format.in(s);
+    return jjtThis;
+  }
+}
+
+void FirstWordAst(Mutable format, boolean first) #void:
+{ }
+{
+    CodeAst(format)
+    | CommandAst(format)
+    | StartFormatAst(format)
+    | FormatAst(format)
+    | EndFormatAst(format)
+    | WordPartAst(format, true)
+}
+
+void WordAst(Mutable format, boolean firstRow) #void:
+{ }
+{
+      CodeAst(format)
+    | CommandAst(format)
+    | FormatAst(format)
+    | EndFormatAst(format)
+    | WordPartAst(format, false)
+
+}
+
+void WordPartAst(Mutable format, boolean firstInRow) #void:
+{ } {
+    // In order to gulp up unmatched special chars, check structural things first
+    QualifiedReferenceAst(format)
+|   SimpleReferenceAst(format)
+|   QuotableAst(format)
+|   CommandAst(format)
+|   NestedAst(format)
+|   LinkAst(format)
+//|   EmbedAst(format)
+|   TextAst(format, firstInRow)
+|   BulletAst(format) {
+    jjtree.popNode();
+    pushText(format, token.image);
+    // consider pushing whitespace and * or # token separately
+}
+|   RowEnd(format)
+
+}
+//
+//WtiEmbedAst EmbedAst(Mutable format):
+//{
+//    String ident = "";
+//}{
+//   <EMBED> { jjtThis.setIdent(token.image); }
+//   { return jjtThis; }
+//}
+
+WtiNestedAst NestedAst(Mutable format):
+{
+  FormatState myEnd, myStart = myEnd = (FormatState)format.out1();
+}
+{
+    (
+      ( <EXTEND_LINK> ) {
+          String[] parts = token.image.trim().substring(1).split("[\\]]");
+          jjtThis.setIdentifier(parts[0]);
+          jjtThis.setSmall(!parts[1].startsWith("->"));
+          jjtThis.setInline(false);
+          myEnd = myEnd.parseToken(parts[0]);
+      }
+      |
+      ( <NOTE_LINK> ) {
+                String[] parts = token.image.trim().substring(1).split("[\\)]");
+                jjtThis.setIdentifier(parts[0]);
+                jjtThis.setSmall(!parts[1].startsWith("->"));
+                jjtThis.setInline(true);
+                myEnd = myEnd.parseToken(parts[0]);
+            }
+    )
+    BlockAst()
+    {
+      jjtThis.setFormatting(myStart, myEnd);
+      format.in(myEnd);
+      jjtThis.finished();
+    }{
+      return jjtThis;
+    }
+}
+
+WtiBlockAst BlockAst() :
+{
+    NodeWithBlock block;
+}
+{
+  [ <EOL> { jjtThis.setStartsWithNewline(true); }
+  | <SECTION_BREAK> { jjtThis.setStartsWithNewline(true); } ]
+  ( SectionAst(true) ( <SECTION_BREAK> | <WHITESPACE> )* ) *
+   ( <END_BLOCK_BODY> | ( ( <WHITESPACE> ) * <EOF> ) )
+  {return jjtThis;}
+}
+
+WtiTextAst TextAst(Mutable format, boolean first):
+{
+  StringBuilder b = new StringBuilder();
+  FormatState myEnd, myStart = myEnd = (FormatState)format.out1();
+}
+{
+  (
+    (
+      <PHRASE> {
+        b.append(token.image);
+        myEnd = myEnd.parseToken(token.image);
+      }
+      | <ID> {
+        b.append(token.image);
+        myEnd = myEnd.parseToken(token.image);
+      }
+      | <PUNCTUATION> {
+        b.append(token.image);
+        // Be sure to let format parser see any whitespace.
+        myEnd = myEnd.parseToken(token.image);
+      }
+      | <ELLIPSIS> {
+        b.append(token.image);
+        // Be sure to let format parser see any whitespace.
+        myEnd = myEnd.parseToken(token.image);
+      }
+      | <UNMATCHED> {
+        b.append(token.image);
+        // Be sure to let format parser see any whitespace.
+        myEnd = myEnd.parseToken(token.image);
+      }
+      | <DOT_NOT_ELLIPSIS> {
+        b.append(token.image);
+        // Be sure to let format parser see any whitespace.
+        myEnd = myEnd.parseToken(token.image);
+      }
+      | <FORMAT_ORPHANS> {
+        b.append(token.image);
+        // Be sure to let format parser see any whitespace.
+        myEnd = myEnd.parseToken(token.image);
+      }
+      | <WHITESPACE> {
+        b.append(token.image);
+        // Be sure to let format parser see any whitespace.
+        myEnd = myEnd.parseToken(token.image);
+      }
+    )
+  )
+  {
+    String txt = b.toString();
+    if (first) {
+      while (!txt.isEmpty()) {
+        char c = txt.charAt(0);
+        if (Character.isWhitespace(c) && c != '\n' && c != '\r') {
+          txt = txt.substring(1);
+        } else {
+          break;
+        }
+      }
+    }
+    jjtThis.setText(txt);
+    jjtThis.setFormatting(myStart, myEnd);
+    format.in(myEnd);
+    return jjtThis;
+  }
+}
+
+WtiTextAst UnmatchedText(Mutable format) #TextAst :
+{
+  FormatState myEnd, myStart = myEnd = (FormatState)format.out1();
+}
+{
+  (
+    <UNMATCHED>
+  )
+  {
+    jjtThis.setText(token.image);
+
+    myEnd = myEnd.parseToken(token.image);
+    jjtThis.setFormatting(myStart, myEnd);
+    format.in(myEnd);
+
+    return jjtThis;
+  }
+}
+
+
+WtiQuotedAst MultiquoteAst(Mutable format) #QuotedAst:
+{
+  // A multi-quote block gets its own format state,
+  // which cannot extend beyond the contents selected.
+  FormatState myEnd, myStart = myEnd = newState();
+}{
+
+  <TRIPLE_QUOTES> {
+    jjtThis.setText(token.image);
+    myEnd = myEnd.parseToken(token.image);
+    jjtThis.setFormatting(myStart, myEnd);
+    jjtThis.setTripleQuoted(true);
+  }
+
+  {
+    return jjtThis;
+  }
+}
+
+WtiQuotedAst QuotedAst(Mutable format):
+{
+  FormatState myEnd, myStart = myEnd = newState();
+}{
+  <QUOTED> {
+      String val = token.image.substring(1,
+        token.image.length()
+        -(token.image.endsWith("\"") ? 1 : 0)
+      );
+      jjtThis.setText(val);
+      jjtThis.setFormatting(myStart, myEnd.parseToken(val));
+      return jjtThis;
+  }
+}
+
+WtiTextAst EmptyQuotes(Mutable format) #TextAst:
+{
+  FormatState myEnd, myStart = myEnd = newState();
+}{
+  <EMPTY_QUOTES> {
+      jjtThis.setText(token.image);
+      jjtThis.setFormatting(myStart, myEnd.parseToken(token.image));
+      return jjtThis;
+  }
+}
+
+void QuotableAst(Mutable format) #void:
+{
+  FormatState myEnd, myStart = myEnd = newState();
+}{
+  <QUOTE>
+  (
+    MultiquoteAst(format)
+    | QuotedAst(format)
+    | EmptyQuotes(format)
+  )
+}
+
+WtiFormatAst StartFormatAst(Mutable format) #FormatAst:
+{
+    RenderableNode word;
+    FormatState myStart = (FormatState)format.out1();
+}{
+   (
+     (
+      <RowTerminal:
+        <FORMAT_CHARS>
+      >
+      ) {
+        format.process(formatProcessor, token.image + " ");
+     }
+      <EOF>
+     |
+     (
+      <START_FORMAT> {
+        format.process(formatProcessor, " " + token.image);
+      }
+     )
+   )
+   {
+    jjtThis.setFormatting(myStart, (FormatState)format.out1());
+    return jjtThis;
+   }
+}
+
+void EndFormatAst(Mutable format) #void:
+{
+    FormatState myStart = (FormatState)format.out1();
+}
+{
+    <END_FORMAT> {
+        // An END_FORMAT is complicated.
+        // to handle EOF / End Of Content issues,
+        // we have to match larger tokens,
+        // peek ahead to see if there are more chars,
+        // and whether this is a valid format ending.
+        boolean isValid, isEOF = false;
+        try {
+//          isValid = TODO.isPunctuationUntilWhitespace();
+          isValid = isPunctuationUntilWhitespace();
+        } catch (IOException e) {
+          // TODO ensure a buffered input stream / make parser somehow async
+          // Hit EOF; send an extra whitespace to keep format algo happy
+          isValid = isEOF = true;
+        }
+        int putBack = token.image.length();
+        String suffix = "";
+        if (isValid) {
+          // if the token is valid, we will need to
+          // put back some chars,
+          // then construct TextAst
+          // and push it onto the stack
+
+          // if the token is invalid (all format chars and whitespace),
+          // we put back everything, dumping everything into TextAst
+          int chars = putBack;
+          char prev = '\n';
+          boolean sawNonWs = false;
+          while (chars --> 0) {
+            char n = token.image.charAt(chars);
+            if (FormatChars.isFormatChar(prev, n)) {
+                putBack--;
+                prev = n;
+                sawNonWs = true;
+            } else if (Character.isWhitespace(n)) {
+                if (sawNonWs) {
+                    break;
+                }
+                suffix = n + suffix;
+            } else {
+                break;
+            }
+          }
+        }
+
+        if (putBack > 0) {
+          // Build a prefix TextAst and push onto stack.
+          jj_input_stream.backup(putBack);
+          String content = token.image.substring(0, putBack);
+//          token.image = token.image.substring(putBack);
+          pushText(format, content);
+        }
+        if (isValid) {
+            WtiFormatAst end = null;
+            // ok. we have a valid, whitespace-suffixed end format
+            end = new WtiFormatAst(this, JJTFORMATAST);
+
+            format.process(formatProcessor, token.image);
+    //        if (isEOF) {
+              format.process(formatProcessor, " ");
+    //        }
+            end.setFormatting(myStart, (FormatState)format.out1());
+            jjtree.pushNode(end);
+        }
+
+        if (suffix.length() > 0) {
+            pushText(format, suffix);
+        }
+
+        return;
+      }
+}
+
+WtiFormatAst FormatAst(Mutable format):
+{
+    FormatState myStart = (FormatState)format.out1();
+}{
+   <CONTINUE_FORMAT> {
+      format.process(formatProcessor, token.image);
+      jjtThis.setFormatting(myStart, (FormatState)format.out1());
+      jjtThis.spyToken(token.image);
+      return jjtThis;
+   }
+}
+
+
+WtiLinkAst LinkAst(Mutable format) :
+{
+
+  FormatState myEnd, myStart = myEnd = (FormatState)format.out1();
+}
+{
+  ( // Matches [link](id)
+  <LINK_FULL> {
+      String ident = token.image.substring(1, token.image.length()-1);
+      String[] bits = ident.split("[\\]][\\(]");
+      jjtThis.setIdentifier(bits[1]); // id comes after the text itself
+      jjtThis.setTitle(bits[0]);
+      myEnd = myEnd.parseToken(bits[0]);
+
+  } // Matches [link]
+  | <LINK> {
+    String ident = token.image.substring(1, token.image.length()-1);
+    // sets ident and title; if there is a different ident, it will be specified in the (suffix)
+    jjtThis.setIdentifier(ident);
+    jjtThis.setTitle(ident);
+    myEnd = myEnd.parseToken(ident);
+  }
+  | <EXTERNAL_LINK> {
+    String ident = token.image;
+    // sets ident and title; if there is a different ident, it will be specified in the (suffix)
+    jjtThis.setIdentifier(ident);
+    jjtThis.setTitle(ident);
+    jjtThis.setExternal(true);
+    myEnd = myEnd.parseToken(ident);
+
+  }
+  )
+
+  {
+    jjtThis.setFormatting(myStart, myEnd);
+    format.in(myEnd);
+    return jjtThis;
+  }
+}
+
+WtiReferenceAst QualifiedReferenceAst(Mutable format) #ReferenceAst:
+{
+  String last;
+}
+{
+  <QUALIFIED_REFERENCE> {
+        last = token.image.trim();
+        jjtThis.setIdentifier(last.substring(1, last.length()-1).trim());
+     }
+(
+     ( LinkAst(format) (<WHITESPACE>)? )?
+     ( QuotableAst(format) ) ?
+)
+  {
+    jjtThis.setFormatting((FormatState)format.out1());
+    return jjtThis;
+  }
+}
+
+WtiReferenceAst SimpleReferenceAst(Mutable format) #ReferenceAst:
+{ }
+{
+  <REFERENCE> {
+      jjtThis.setIdentifier(token.image.substring(1));
+      jjtThis.setFormatting((FormatState)format.out1());
+  }{
+      return jjtThis;
+  }
+}
+
+TOKEN:
+{ <START_COMMAND: <FSLASH> <ID> > : CommandCollectMode
+}
+
+<CommandCollectMode>
+TOKEN:
+{ < END_COMMAND: ( <FSLASH> (<NEWLINE>)? ) | <NEWLINE> > : DEFAULT
+| < #ARG_CHAR: ~[" ", "\t", "\r", "\n", "/" ] >
+| < IGNORE: <WHITESPACE> >
+| < ARG: (<ARG_CHAR>)+ >
+}
+
+WtiCommandAst CommandAst(Mutable format) :
+{}
+{
+ <START_COMMAND> {
+    String cmd = token.image.substring(1);
+    jjtThis.setIdentifier(cmd);
+    int alignment = -1;
+    switch (cmd) {
+      case "center":
+        alignment = FormatChars.CENTER.ordinal();
+        break;
+      case "left":
+        alignment = FormatChars.LEFT.ordinal();
+        break;
+      case "right":
+        alignment = FormatChars.RIGHT.ordinal();
+        break;
+      case "justify":
+        alignment = FormatChars.JUSTIFY.ordinal();
+        break;
+    }
+    if (alignment != -1) {
+      // we want to set global state of alignment to true,
+      // and clear the other two properties...
+      FormatState global = globalState.out1();
+      int[] fmt = new int[FormatChars.values().length];
+      // we use -1 to clear potentially set state
+      fmt[FormatChars.CENTER.ordinal()] = -1;
+      fmt[FormatChars.LEFT.ordinal()] = -1;
+      fmt[FormatChars.RIGHT.ordinal()] = -1;
+      fmt[FormatChars.JUSTIFY.ordinal()] = -1;
+      fmt[alignment] = 1;
+
+      // cumulatively set state
+      global.addOverride(fmt, true);
+      ((FormatState)format.out1()).addOverride(fmt, true);
+    }
+ }
+ ( ( <ARG> {
+    jjtThis.addArgument(token.image);
+ } | <IGNORE> ) ) *
+ ( <END_COMMAND> | <EOF> )
+ { return jjtThis; }
+}
+
+WtiCodeAst CodeAst(Mutable format) :
+{ StringBuilder b = new StringBuilder(); }
+{
+    <CODE> {
+      format.process(formatProcessor, token.image);
+      String t = token.image.substring(1);
+      if (t.endsWith("`")) {
+        t = t.substring(0, t.length()-1);
+      }
+      jjtThis.setCode(t);
+      return jjtThis;
+    }
+}

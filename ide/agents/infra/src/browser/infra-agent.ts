@@ -8,6 +8,7 @@ import {
     AbstractStreamParsingChatAgent,
     ChatMode,
     ChatModel,
+    ChatRequestModel,
     MutableChatRequestModel,
     lastProgressMessage,
     QuestionResponseContentImpl,
@@ -18,6 +19,75 @@ import { BasePromptFragment, LanguageModelRequirement, LanguageModelMessage } fr
 import { injectable, inject } from '@theia/core/shared/inversify';
 import { nls } from '@theia/core';
 import { GodmodeService } from './godmode-service';
+
+function getRequestText(request: MutableChatRequestModel | ChatRequestModel): string {
+    const anyReq = request as any;
+    if (typeof anyReq.text === 'string') {
+        return anyReq.text;
+    }
+    if (typeof anyReq.message === 'string') {
+        return anyReq.message;
+    }
+    if (anyReq.message && typeof anyReq.message.text === 'string') {
+        return anyReq.message.text;
+    }
+    if (anyReq.message && typeof anyReq.message.content === 'string') {
+        return anyReq.message.content;
+    }
+    if (typeof anyReq.prompt === 'string') {
+        return anyReq.prompt;
+    }
+    if (anyReq.request && typeof anyReq.request.text === 'string') {
+        return anyReq.request.text;
+    }
+    return '';
+}
+
+function isBroadScopeIntent(text: string): boolean {
+    const t = text.toLowerCase();
+    const keywords = [
+        'refactor',
+        'cleanup',
+        'clean up',
+        'bigger change',
+        'bigger changes',
+        'overhaul',
+        're-architect',
+        'rearchitect',
+        'sweep',
+        'as much as you want',
+        'as much as you like',
+        'as much as you please',
+        'large change',
+        'large changes',
+        'do it properly'
+    ];
+
+    return keywords.some(k => t.includes(k));
+}
+
+function hasBroadScopeConfirmation(text: string): boolean {
+    const t = text.toLowerCase();
+    const confirmations = [
+        'yes, broad changes ok',
+        'yes broad changes ok',
+        'broad changes ok',
+        'broader changes ok',
+        'i approve broader changes',
+        'i approve broad changes',
+        'go ahead with refactor',
+        'go ahead and refactor',
+        'go ahead, refactor',
+        'ok to refactor',
+        'do the refactor',
+        'okay to refactor',
+        'you can refactor',
+        'feel free to refactor',
+        'i approve broader changes'
+    ];
+
+    return confirmations.some(c => t.includes(c));
+}
 
 
 /**
@@ -48,6 +118,9 @@ Hard rules:
 - You MAY suggest commands, but label them as suggestions.
 - If workspace/file tools are available, you MUST use them (or delegate to Coder to use them) to inspect files. Only ask the user to paste file contents if tools are unavailable, access is denied, or the file is outside the workspace.
 - Prefer minimal, scoped changes and avoid drive-by refactors.
+- Default scope is CONSERVATIVE per request.
+- If the user's latest request implies broad-scope work (e.g., "refactor", "cleanup", "overhaul"), you MUST ask for confirmation using at least one <question> block before delegating.
+- If the user's latest request explicitly confirms broader changes (e.g., "yes, broad changes ok", "go ahead with refactor"), you may proceed without asking.
 - If requirements are ambiguous and no question is asked, choose a reasonable assumption and state it.
 
 Evidence first:
@@ -112,7 +185,7 @@ Prompt:
 \`\`\`
 
 After the ops block:
-- If you need a user decision or clarification, ask ONE question using the exact <question>...</question> format.
+- If you need a user decision or clarification, ask at least one question using the exact <question>...</question> format.
 - Otherwise, follow the mode behavior and delegate.
 
 Delegation rules:
@@ -237,6 +310,21 @@ export class InfraAgent extends AbstractStreamParsingChatAgent {
     protected override async getMessages(model: ChatModel): Promise<LanguageModelMessage[]> {
         const messages = await super.getMessages(model, true);
 
+        const requests = model.getRequests();
+        const last = requests[requests.length - 1];
+
+        const lastUserText = last ? getRequestText(last).trim() : '';
+        const broadIntent = isBroadScopeIntent(lastUserText);
+        const broadConfirmed = hasBroadScopeConfirmation(lastUserText);
+
+        const scopeMessage: LanguageModelMessage = {
+            type: 'text',
+            actor: 'system',
+            text: broadIntent
+                ? `Scope: EXPANSIVE (per-request)${broadConfirmed ? ' (confirmed)' : ' (needs confirmation)'}.`
+                : 'Scope: CONSERVATIVE.'
+        };
+
         const godmode = this.godmodeService?.isEnabled() === true;
         const godmodeMessage: LanguageModelMessage = {
             type: 'text',
@@ -244,27 +332,50 @@ export class InfraAgent extends AbstractStreamParsingChatAgent {
             text: `Godmode: ${godmode ? 'ON' : 'OFF'} (scope: browser session).`
         };
 
-        const requests = model.getRequests();
-        const last = requests[requests.length - 1];
         if (!last) {
-            return [...messages, godmodeMessage];
+            return [...messages, scopeMessage, godmodeMessage];
         }
 
         // If the response is still open and already has content, we are in "continue after answer" flow.
         if (!last.response.isComplete && (last.response.response?.content?.length ?? 0) > 0) {
             return [
                 ...messages,
+                scopeMessage,
                 godmodeMessage,
                 {
                     type: 'text',
                     actor: 'user',
                     text:
-                        "Continue from the previous step. If the user answered the last question, incorporate that answer. " +
+                        'Continue from the previous step. If the user answered the last question, incorporate that answer. ' +
                         'Then either delegate using ~{delegateToAgent} or ask at most one more question if absolutely necessary.'
                 }
             ];
         }
 
-        return [...messages, godmodeMessage];
+        if (broadIntent && !broadConfirmed) {
+            return [
+                ...messages,
+                scopeMessage,
+                godmodeMessage,
+                {
+                    type: 'text',
+                    actor: 'user',
+                    text:
+                        '<question>\n' +
+                        JSON.stringify(
+                            {
+                                question:
+                                    'This request sounds like it may require broader-than-usual changes (refactor/cleanup). Should I proceed with broader changes for this request?',
+                                options: [{ text: 'Yes, broad changes ok' }, { text: 'No, keep it minimal' }]
+                            },
+                            undefined,
+                            2
+                        ) +
+                        '\n</question>'
+                }
+            ];
+        }
+
+        return [...messages, scopeMessage, godmodeMessage];
     }
 }

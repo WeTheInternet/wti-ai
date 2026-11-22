@@ -19,12 +19,19 @@ import {
     GodmodeSlashCommandContribution
 } from './godmode-slash-command-contribution';
 import { FrontendApplicationContribution } from '@theia/core/lib/browser/frontend-application-contribution';
+import { ScopeService } from './scope-service';
+import { ScopeCommandContribution } from './scope-command-contribution';
+import { ScopeSlashCommandContribution } from './scope-slash-command-contribution';
 
 export default new ContainerModule(bind => {
     bind(GodmodeService).toSelf().inSingletonScope();
+    bind(ScopeService).toSelf().inSingletonScope();
 
     bind(GodmodeCommandContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(GodmodeCommandContribution);
+
+    bind(ScopeCommandContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toService(ScopeCommandContribution);
 
     bind(ChatSlashCommandRegistry).toSelf().inSingletonScope();
 
@@ -33,6 +40,10 @@ export default new ContainerModule(bind => {
     bind(GodmodeSlashCommandContribution).toSelf().inSingletonScope();
     bind(ChatSlashCommandHandler).toService(GodmodeSlashCommandContribution);
     bind(FrontendApplicationContribution).toService(GodmodeSlashCommandContribution);
+
+    bind(ScopeSlashCommandContribution).toSelf().inSingletonScope();
+    bind(ChatSlashCommandHandler).toService(ScopeSlashCommandContribution);
+    bind(FrontendApplicationContribution).toService(ScopeSlashCommandContribution);
 
 
     bind(InfraAgent).toSelf().inSingletonScope();

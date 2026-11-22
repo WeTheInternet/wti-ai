@@ -1,6 +1,6 @@
 # @wti/wti-ide
 
-Browser-based Theia IDE application (standalone) built from npm-published `@theia/*@1.68.2`.
+Browser-based Theia IDE application (standalone) built from npm-published `@theia/*@1.72.3`.
 
 ## Run
 

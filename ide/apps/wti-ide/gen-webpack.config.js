@@ -10,7 +10,7 @@ const resolvePackagePath = require('resolve-package-path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const { MonacoWebpackPlugin } = require('@theia/native-webpack-plugin/lib/monaco-webpack-plugins.js');
+const { MonacoWebpackPlugin } = require('@theia/bundle-plugin');
 
 const outputPath = path.resolve(__dirname, 'lib', 'frontend');
 const { mode, staticCompression }  = yargs.option('mode', {
@@ -42,6 +42,12 @@ const plugins = [
                 from: path.join(resolvePackagePath('@theia/plugin-ext-vscode', __dirname), '..', 'lib', 'node', 'context', 'plugin-vscode-init-fe.js'),
                 to: path.resolve(__dirname, 'lib', 'frontend', 'context', 'plugin-vscode-init-fe.js')
             }
+            ,
+            {
+                // copy shell integration scripts
+                from: path.join(resolvePackagePath('@theia/terminal', __dirname), '..', 'src', 'node', 'shell-integrations'),
+                to: path.resolve(__dirname, 'lib', 'backend', 'shell-integrations')
+            }
         ]
     }),
     new webpack.ProvidePlugin({
@@ -61,7 +67,7 @@ module.exports = [{
     devtool: 'source-map',
     entry: {
         bundle: path.resolve(__dirname, 'src-gen/frontend/index.js'),
-        'editor.worker': '@theia/monaco-editor-core/esm/vs/editor/editor.worker.js'
+        'plugin-worker': '@theia/plugin-ext/lib/hosted/browser/worker/worker-main.js',
     },
     output: {
         filename: '[name].js',
@@ -75,24 +81,7 @@ module.exports = [{
         rules: [
             {
                 test: /\.css$/,
-                exclude: /materialcolors\.css$|\.useable\.css$/,
                 use: ['style-loader', 'css-loader']
-            },
-            {
-                test: /materialcolors\.css$|\.useable\.css$/,
-                use: [
-                    {
-                        loader: 'style-loader',
-                        options: {
-                            esModule: false,
-                            injectType: 'lazySingletonStyleTag',
-                            attributes: {
-                                id: 'theia-theme'
-                            }
-                        }
-                    },
-                    'css-loader'
-                ]
             },
             {
                 test: /\.(ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
@@ -168,6 +157,15 @@ module.exports = [{
             'os': false,
             'timers': false
         },
+        alias: {
+            // Replace Monaco's nls module with Theia's localization-aware version.
+            // ESM exports are immutable so we cannot override localize/localize2 at runtime.
+            // Using the resolved absolute path ensures that both external imports
+            // (e.g. '@theia/monaco-editor-core/esm/vs/nls') and internal relative
+            // imports within Monaco (e.g. '../nls.js') are redirected.
+            [path.join(resolvePackagePath('@theia/monaco-editor-core', __dirname), '..', 'esm', 'vs', 'nls.js')]:
+                path.join(resolvePackagePath('@theia/monaco', __dirname), '..', 'lib', 'browser', 'monaco-nls.js')
+        },
         extensions: ['.js']
     },
     stats: {
@@ -179,6 +177,33 @@ module.exports = [{
         /Failed to parse source map/,
         {
             // Monaco uses 'require' in a non-standard way
+            module: /@theia\/monaco-editor-core/,
+            message: /require function is used in a way in which dependencies cannot be statically extracted/
+        }
+    ]
+},
+{
+    // The Monaco editor worker must be built separately without the NLS alias.
+    // The NLS alias redirects to monaco-nls.ts which imports from @theia/core,
+    // and those modules are not available in the web worker context.
+    mode,
+    devtool: 'source-map',
+    entry: {
+        'editor.worker': '@theia/monaco-editor-core/esm/vs/editor/common/services/editorWebWorkerMain.js'
+    },
+    output: {
+        filename: '[name].js',
+        path: outputPath,
+        devtoolModuleFilenameTemplate: 'webpack:///[resource-path]?[loaders]',
+        globalObject: 'self'
+    },
+    target: 'webworker',
+    cache: staticCompression,
+    resolve: {
+        extensions: ['.js']
+    },
+    ignoreWarnings: [
+        {
             module: /@theia\/monaco-editor-core/,
             message: /require function is used in a way in which dependencies cannot be statically extracted/
         }
@@ -228,6 +253,15 @@ module.exports = [{
             'process': false,
             'os': false,
             'timers': false
+        },
+        alias: {
+            // Replace Monaco's nls module with Theia's localization-aware version.
+            // ESM exports are immutable so we cannot override localize/localize2 at runtime.
+            // Using the resolved absolute path ensures that both external imports
+            // (e.g. '@theia/monaco-editor-core/esm/vs/nls') and internal relative
+            // imports within Monaco (e.g. '../nls.js') are redirected.
+            [path.join(resolvePackagePath('@theia/monaco-editor-core', __dirname), '..', 'esm', 'vs', 'nls.js')]:
+                path.join(resolvePackagePath('@theia/monaco', __dirname), '..', 'lib', 'browser', 'monaco-nls.js')
         },
         extensions: ['.js']
     },

@@ -7,8 +7,7 @@ const path = require('path');
 const yargs = require('yargs');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const NativeWebpackPlugin = require('@theia/native-webpack-plugin');
-const { MonacoWebpackPlugin } = require('@theia/native-webpack-plugin/lib/monaco-webpack-plugins.js');
+const { NativeWebpackPlugin, MonacoWebpackPlugin } = require('@theia/bundle-plugin');
 
 const { mode } = yargs.option('mode', {
     description: "Mode to use",
@@ -24,7 +23,6 @@ for (const [entryPointName, entryPointPath] of Object.entries({
     'backend-init-theia': '@theia/plugin-ext/lib/hosted/node/scanners/backend-init-theia',
     'parcel-watcher': '@theia/filesystem/lib/node/parcel-watcher',
     'plugin-vscode-init': '@theia/plugin-ext-vscode/lib/node/plugin-vscode-init',
-    
     
 })) {
     commonJsLibraries[entryPointName] = {
@@ -87,8 +85,9 @@ const config = {
         // VS Code extension support:
         'plugin-host': require.resolve('@theia/plugin-ext/lib/hosted/node/plugin-host'),
         
-        // Make sure the node-pty thread worker can be executed:
-        'worker/conoutSocketWorker': require.resolve('node-pty/lib/worker/conoutSocketWorker'),        
+        // Make sure the node-pty thread workers can be executed:
+        'worker/conoutSocketWorker': require.resolve('node-pty/lib/worker/conoutSocketWorker'),
+        'conpty_console_list_agent': require.resolve('node-pty/lib/conpty_console_list_agent'),        
         
         
         ...commonJsLibraries
@@ -111,6 +110,16 @@ const config = {
                 test: /\.js$/,
                 enforce: 'pre',
                 loader: 'source-map-loader'
+            },
+            // node-pty uses a dynamic require which needs to be rewritten to work with webpack.
+            {
+                test: /node_modules[/\\]node-pty[/\\]lib[/\\]utils.js$/,
+                loader: 'string-replace-loader',
+                options: {
+                    search: /require\(/,
+                    replace: '__non_webpack_require__(',
+                    flags: 'g'
+                }
             },
             // jsonc-parser exposes its UMD implementation by default, which
             // confuses Webpack leading to missing js in the bundles.

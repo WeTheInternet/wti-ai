@@ -197,7 +197,7 @@ export WTI_AI_ENV_FILES=~/.wti/.secure/env
 
 ---
 
-## LiSA loops (Conductor orchestration model)
+## LISA loops (Conductor orchestration model)
 
 WTI’s intended orchestration loop is a deliberate state machine—**LiSA loops**—to prevent accidental, repetitive, low-signal “Ralph loops”.
 

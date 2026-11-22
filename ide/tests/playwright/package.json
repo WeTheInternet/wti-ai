@@ -7,8 +7,8 @@
     "test:ui": "playwright test --ui"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.0",
-    "wait-on": "^7.2.0",
-    "typescript": "^5.9.0"
+    "@playwright/test": "^1.61.1",
+    "typescript": "^5.9.3",
+    "wait-on": "^7.2.0"
   }
 }
