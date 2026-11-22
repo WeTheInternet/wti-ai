@@ -449,7 +449,9 @@ def main(argv=None):
         p.add_argument("--sender", required=True)
         p.add_argument("--message-id", required=True)
         if command != "status":
-            p.add_argument("--text", required=True)
+            body = p.add_mutually_exclusive_group(required=True)
+            body.add_argument("--text", help="Short inline receipt text")
+            body.add_argument("--body-file", type=Path, help="Read the exact UTF-8 receipt body from a file")
         if command == "finish":
             p.add_argument("--outcome", required=True, choices=("completed", "blocked", "declined", "superseded", "cancelled"))
         if command == "delivery":
@@ -472,10 +474,11 @@ def main(argv=None):
             snapshot = box.snapshot()
             result = box.status(box.message(args.sender, args.message_id, snapshot), snapshot)
         else:
+            body = safe_read(args.body_file) if args.body_file is not None else args.text
             result = box.receipt(actor, args.sender, args.message_id,
                                  {"finish": "result", "accept": "acceptance",
                                   "accept-execution": "execution_acceptance"}.get(args.command, args.command),
-                                 args.text, "accepted" if args.command in ("accept", "accept-execution") else getattr(args, "outcome", None),
+                                 body, "accepted" if args.command in ("accept", "accept-execution") else getattr(args, "outcome", None),
                                  getattr(args, "attempt_id", None))
         print(json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True))
         return 0

@@ -31,6 +31,8 @@ the sender's own messages. Never clear `CODEX_THREAD_ID` to impersonate a sender
 3. Pass the exact sender, UUID and hash from scan to `once`. This submits ONE
    `codex queue --thread <UUID> --message <notification>` using argv, WITHOUT `--resume`,
    the existing session's model and no `--remote`, config changes or credentials.
+   The notification names the exact outbox, message UUID and hash. Read the
+   request ID and full payload from that record.
    This can consume quota by starting a turn. It requires authorization for the
    particular existing recipient; a skill does not grant that authority.
 4. Scan again when the recipient responds or at a later authorized reconciliation.
@@ -96,8 +98,13 @@ recipient, original attempt ID, outcome and delivery body with lossless provider
 streams. Preserve that output privately. `storage: unverified` means accounting
 may be absent or may have been replaced before a later fsync failed. Read the
 existing outbox first. Once storage is available, the original sender may append
-only the missing delivery record using that same attempt ID/body; an identical
-retry is idempotent. Do not rerun queue, create a new message or fabricate receipt.
+only the missing delivery record using that same attempt ID/body. Decode
+`recovery_evidence.body` as a JSON string and write its exact UTF-8 bytes to a
+private file without adding a newline. Pass that path to
+`mailbox.py delivery --body-file PATH` with the saved attempt ID and outcome.
+An identical retry is idempotent. If the record still exceeds the outbox limit,
+retain the evidence privately and report accounting as blocked. Do not rerun
+queue, create a new message or fabricate receipt.
 The fallback itself is not durable unless the caller retains it; a process/host
 failure can still leave only the original intent for reconciliation.
 

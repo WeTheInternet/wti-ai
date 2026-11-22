@@ -148,7 +148,7 @@ def wake_prompt(box, message):
     # shared-file access. It contains identity and a pointer, never shell commands.
     return (
         f"Addressed wti-ai-msg notification. To: {message['to']}; from: {message['actor']}. "
-        f"Message: {message['message_id']}; request: {message['request_id']}; revision: {message['revision']}; "
+        f"Message: {message['message_id']}; revision: {message['revision']}; "
         f"payload SHA256: {message['sha256']}. "
         f"Use the existing helper {HELPER} and skill {HELPER.parent.parent / 'SKILL.md'}. "
         f"Your writable outbox: {box.path(message['to'])}. Peer outbox, read-only: {box.path(message['actor'])}. "

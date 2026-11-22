@@ -63,6 +63,10 @@ class DispatchEvals(unittest.TestCase):
         self.box.receipt(BOB, ALICE, self.mid, "result", "Saved fixture result", "completed")
 
     def test_admission_is_not_activation_ack_result_or_acceptance(self):
+        self.mid = str(uuid.uuid4())
+        request_id = "large-request-" + "x" * (160 * 1024)
+        body = "large-body-" + "z" * (160 * 1024)
+        self.message = self.box.send(ALICE, BOB, self.mid, request_id, 1, body, ALICE)["event"]
         status = self.run_once()
         self.assertEqual(status["provider_admission"], "observed")
         self.assertEqual(status["activation"], "unverified")
@@ -77,6 +81,9 @@ class DispatchEvals(unittest.TestCase):
         self.assertNotIn("shell", options)
         self.assertIn(str(self.box.path(BOB)), args[5])
         self.assertIn(str(self.box.path(ALICE)), args[5])
+        self.assertIn(self.mid, args[5])
+        self.assertIn(self.message["sha256"], args[5])
+        self.assertLess(len(args[5].encode("utf-8")), 4096)
 
     def test_repeat_after_admission_does_not_enqueue(self):
         self.run_once()
@@ -356,7 +363,7 @@ d.dispatch(box,actor,mid,sys.argv[5],json.loads(sys.argv[6]),sys.executable,sys.
         self.assertEqual(len(self.calls), 1)
 
     def test_timeout_and_accounting_failure_retain_exact_attempt_and_streams(self):
-        raw = b'provider output with invalid utf8 \xff'
+        raw = b'provider output with invalid utf8 \xff\r\n' * 5000
         def timeout(args, **kwargs):
             self.calls.append((args, kwargs))
             self.failure = patch.object(mail.os, 'fsync', side_effect=OSError('synthetic full disk'))
@@ -375,6 +382,24 @@ d.dispatch(box,actor,mid,sys.argv[5],json.loads(sys.argv[6]),sys.executable,sys.
         intent = self.box.status(self.message)['delivery_reports'][0]
         self.assertEqual(evidence['attempt_id'], intent['attempt_id'].replace(':intent', ':uncertain'))
         self.assertEqual(evidence['outcome'], 'uncertain')
+
+        body = evidence["body"].encode("utf-8")
+        self.assertGreater(len(body), 128 * 1024)
+        body_file = self.root / "recovery-body.json"
+        body_file.write_bytes(body)
+        command = [
+            sys.executable, str(dispatch.HELPER), "--root", str(self.root), "--actor", ALICE,
+            "delivery", "--sender", ALICE, "--message-id", self.mid,
+            "--attempt-id", evidence["attempt_id"], "--outcome", evidence["outcome"],
+            "--body-file", str(body_file),
+        ]
+        for wrote in (True, False):
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIs(json.loads(result.stdout)["written"], wrote)
+        recovered = self.box.status(self.message)["delivery_reports"][-1]
+        self.assertEqual(recovered["body"].encode("utf-8"), body)
+        self.assertEqual(recovered["attempt_id"], evidence["attempt_id"])
         self.run_once()
         self.assertEqual(len(self.calls), 1)
 
