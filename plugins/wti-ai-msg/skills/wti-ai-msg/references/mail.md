@@ -5,9 +5,11 @@ XApi owns the generic coordination package; this isolated trial edits no checkou
 
 ## Storage and identity
 
-Use an approved directory under `/var/tmp/gpt/exchanges/` or another user-chosen
-local exchange directory. Both helpers use `WTI_AI_MSG_DIR` when `--root` is omitted;
-an explicit `--root` takes precedence. Empty/unset configuration requires `--root`.
+Choose an existing, approved local exchange directory. `/var/tmp/gpt/exchanges/`
+is one possible parent. To use your chosen directory with both helpers, set
+`WTI_AI_MSG_DIR` to its absolute path or pass `--root` on each invocation. An
+explicit `--root` takes precedence. With `WTI_AI_MSG_DIR` empty or unset, pass
+`--root`.
 The directory must already exist and pass the same ownership/access checks; this
 setting neither creates it nor proves that peers can access it. Instructions/evidence
 live outside it; its `*.md` files are actor outboxes. Each actor alone writes
