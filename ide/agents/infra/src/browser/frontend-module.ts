@@ -7,7 +7,7 @@
 import { ContainerModule } from '@theia/core/shared/inversify';
 import { Agent } from '@theia/ai-core/lib/common';
 import { ChatAgent } from '@theia/ai-chat/lib/common/chat-agents';
-import { InfraAgent } from './infra-agent';
+import { InfraAgent } from './infra-agent.js';
 
 export default new ContainerModule(bind => {
     bind(InfraAgent).toSelf().inSingletonScope();

@@ -15,7 +15,7 @@ export async function startTheia(params?: { port?: number }): Promise<StartedThe
 
   const ideRoot = path.resolve(__dirname, '../../..');
 
-  const proc = spawn('pnpm', ['--filter', '@wti/wti-ide', 'run', 'start', '--', '--port', String(port)], {
+  const proc = spawn('pnpm', ['--filter', '@wti/wti-ide', 'exec', 'theia', 'start', '--hostname', '127.0.0.1', '--port', String(port)], {
     cwd: ideRoot,
     stdio: 'inherit',
     env: {
