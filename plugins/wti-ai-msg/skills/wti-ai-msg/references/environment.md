@@ -22,6 +22,15 @@ an intended participant may access it; the locator must not embed credentials,
 signed access tokens or secret values. Keep sensitive locators on an approved
 private surface and verify access separately. If the recipient cannot access the
 resource, report that boundary instead of pasting the secret into the handoff.
+
+When credentials are required, give the user a command they can run to supply
+or store the credential at the specific approved destination. Verify the service
+and command first. Prefer the provider's supported interactive login or a command
+that prompts for the secret without echoing it. Keep secret values out of the
+command text, command-line arguments, shell history, logs and handoff. Tell the
+user how to verify setup without displaying the credential. If the destination or
+secure input method is unverified, report what needs checking before giving a command.
+
 Capability is per session and account, not guaranteed by an agent's model, title or
 another agent's connector. Recheck after relevant changes.
 
