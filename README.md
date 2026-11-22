@@ -208,6 +208,21 @@ Phases:
 3. **Solve** — implement bounded changes with explicit steps and artifacts.
 4. **Assess** — verify outcomes (tests/diagnostics), update docs, decide next transition.
 
+### Current evaluation and next panel slice
+
+Conductor and LiSA remain active design work. Generated prompts continue to inform that design and prompt assembly. Task-context reading and authority follow [the prompt router](./.prompts/PURPOSE.md) and [AGENTS.md](./AGENTS.md).
+
+System reports that both the Codex and LiSA arms passed clean and delayed reload in the tiny synthetic comparison. Wrong builds were rejected before scoring. This was one comparison in a fixed order, with different cache usage between arms. The results establish success for the exercised checks under those conditions. Relative performance and the broader orchestration design require further evidence.
+
+The team's next Theia panel direction starts with synthetic fixtures. A separate supervision panel should make run state and supporting evidence inspectable. Proposed checks focus on observable panel behavior.
+
+- Show the responsible agent, next action, and any blocking condition.
+- Let the operator open the evidence supporting the displayed result.
+- Exercise clean and delayed reload against an identified fixture/build.
+- Make fixture-derived state and results visibly attributable to that fixture.
+
+Live execution and control behavior need separate evaluation. The synthetic comparison leaves multi-agent coordination, interruption, retry safety and knowledge promotion unverified. Further comparisons with a plain CLI workflow should assess useful operator visibility alongside delivery quality, latency and coordination effort.
+
 Design goal reference:
 - [`docs/goals/conductor-lisa-loops.md`](./docs/goals/conductor-lisa-loops.md)
 
