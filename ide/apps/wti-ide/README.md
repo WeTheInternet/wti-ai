@@ -9,4 +9,6 @@ From `ide/`:
 - `./build.sh`
 - `./run.sh`
 
-Default URL: http://localhost:1771
+Default local access URL: http://localhost:1771. The dev server binds to `0.0.0.0` (all IPv4 interfaces), not just loopback.
+
+See the [canonical workflow](../../../docs/theia/WTI_IDE_WORKFLOW.md) for prerequisites, approval gates, environment inheritance, and the tracked lockfile removed by `clean.sh`.

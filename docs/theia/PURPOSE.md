@@ -21,4 +21,4 @@ Routing hub for Theia-related documentation in this repository.
 
 ## Repo boundaries
 
-- `REPO_BOUNDARIES.md`
+- [Repository operating rules and runtime boundaries](../../AGENTS.md)

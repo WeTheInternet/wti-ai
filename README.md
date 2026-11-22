@@ -98,7 +98,7 @@ A Theia browser IDE workspace is built and run from the standalone `ide/` pnpm w
 `ide/run.sh` supports loading secrets from a directory pointed to by `WTI_AI_ENV_FILES`.
 
 Behavior (as implemented):
-- For each file in the directory:
+- For each regular file directly in the directory:
   - env var name = file basename
   - env var value = file contents
 
@@ -172,7 +172,11 @@ cd ide
 - Default port: `1771`
 - Override: `WTI_IDE_PORT=1771` (or any port)
 
-### Secure env-file workflow (recommended)
+The dev server binds to `0.0.0.0` (all IPv4 interfaces); a localhost URL does not make it loopback-only. Follow the [workflow’s operating notes](./docs/theia/WTI_IDE_WORKFLOW.md) and the approval gates in `AGENTS.md` before running scripts.
+
+### Env-file loading
+
+The loader exports variables into the IDE environment, where child processes can inherit them. Private file permissions do not provide process isolation. Load only secrets intended for that process tree.
 
 Create a private directory of secret files:
 

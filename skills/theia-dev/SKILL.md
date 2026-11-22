@@ -4,7 +4,7 @@ name: Theia Plugin & AI Development Helper
 version: 0.2.0
 description: >
   Repo-specific guidance for developing and extending Eclipse Theia / Theia AI in this workspace,
-  including verified extension points for registering chat agents, adding modes, and contributing UI.
+  including active workspace routing and reference notes for registering chat agents, adding modes, and contributing UI.
 tags:
   - theia
   - theia-ai
@@ -20,13 +20,14 @@ triggers:
 
 ## Repo boundary policy (must follow)
 
-- Theia is run from the command line in `/opt/theia`.
+- Build and run Theia from the standalone `ide/` workspace; see [the canonical workflow](../../docs/theia/WTI_IDE_WORKFLOW.md) for prerequisites and commands.
+- Follow [AGENTS.md](../../AGENTS.md), including explicit approval before running workspace tasks/scripts.
 - If a `repos/theia/**` directory exists in this repo, it is for IDE-performance purposes (workspace excludes) and for source lookup only.
   - Do not reference `repos/theia` in code/config/scripts.
   - Only inspect/modify it when the user explicitly requests.
-- `ai/agents/**` is intended for WTI agent implementations and is safe for agent work.
+- Active WTI agent implementations live in `ide/agents/**`; the app is `ide/apps/wti-ide`. `ai/agents/infra` is the legacy duplicate.
 
-Boundary markers are declared via `WTI-ROLES.md`.
+The older boundary markers remain in [ai/agents/WTI-ROLES.md](../../ai/agents/WTI-ROLES.md); use `AGENTS.md` for current runtime routing. These notes do not expand task authorization.
 
 ## How to use this skill
 
@@ -40,19 +41,21 @@ Copy/paste prompt for safe inspection:
 
 ```text
 You are operating under repo boundary rules.
-- Prefer changes under `ai/**` and `docs/**`.
-- Theia is run from `/opt/theia`.
+- Prefer WTI agent changes under `ide/agents/**` and documentation under `docs/**`.
+- Theia is built and run from `ide/`; follow AGENTS.md approval gates.
 - Do not reference `repos/theia` in code/config/scripts.
 When you reference Theia extension points, include exact file paths and the symbol names you relied on.
 ```
 
-## In this repo: verified extension points
+## Active registration and upstream reference notes
 
-All paths below were verified in `repos/theia/**`.
+The checked-in registration example is `ide/agents/infra/src/browser/frontend-module.ts`, which binds `InfraAgent` to itself, `Agent`, and `ChatAgent`. Its package declares the frontend module in `ide/agents/infra/package.json`; the app depends on `@wti/infra-agent` in `ide/apps/wti-ide/package.json`.
+
+The paths below are retained from the earlier `repos/theia/**` inspection. Its revision was not recorded here; these notes are source-lookup leads, not verification against the current dependency pin. Check symbols against the selected version before using them. Main currently pins Theia 1.68.2; the separate unmerged 1.77.0 migration is not established by this skill, and no upgrade procedure is certified here.
 
 ### 1) Register a new ChatAgent (DI bindings)
 
-Primary module used to register IDE agents:
+Upstream reference module from the earlier inspection (WTI registration belongs in `ide/agents/`):
 
 - `repos/theia/packages/ai-ide/src/browser/frontend-module.ts`
 
@@ -125,6 +128,6 @@ Another usage (retry):
 - [ ] Implement a `ChatAgent` class (often by extending `AbstractStreamParsingChatAgent` or `AbstractModeAwareChatAgent`).
 - [ ] Assign `id` and `name` (these drive selection and `@Name` mentions).
 - [ ] If needed, define `modes` (or use prompt-variant-based modes via `AbstractModeAwareChatAgent`).
-- [ ] Bind the agent in `repos/theia/packages/ai-ide/src/browser/frontend-module.ts` as singleton and to both `Agent` and `ChatAgent`.
+- [ ] Bind the agent in its WTI extension frontend module under `ide/agents/` as singleton and to both `Agent` and `ChatAgent`; follow `ide/agents/infra/src/browser/frontend-module.ts`. Check the package’s `theiaExtensions` entry and the app dependency registration.
 - [ ] If you add UI, follow `ai-chat-ui` patterns (`AbstractViewContribution`, `WidgetFactory`, commands).
 - [ ] Document exact file paths/symbols in a short report to prevent drift.

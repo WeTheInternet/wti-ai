@@ -4,16 +4,9 @@ This is a bash-first, idempotent-ish scaffolding for provisioning a **GKE Autopi
 
 ## Quick start
 
-### Prereqs: Node + pnpm
+### Prerequisite routing
 
-- Use Node LTS 22 (Theia is not compatible with Node 24).
-- Enable pnpm via corepack.
-
-```bash
-cd ai/infra
-
-./bin/ensure-pnpm.sh
-```
+The previously listed `ai/infra/bin/ensure-pnpm.sh` helper is not checked in. For the separate Theia IDE’s Node/pnpm prerequisites, use the [IDE workflow](../../docs/theia/WTI_IDE_WORKFLOW.md). Infrastructure task prerequisites must be checked separately before running them; see [repository approval gates](../../AGENTS.md).
 
 ```bash
 cd ai/infra

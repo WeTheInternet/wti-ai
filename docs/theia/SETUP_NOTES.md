@@ -12,7 +12,7 @@ Canonical build/run workflow:
   - Task context storage directory: `.prompts/task-contexts`
   - Workspace template directories: `.prompts`
 - **Skills**
-  - Add `ai/skills` to Skill Directories
+  - Add the repository’s `skills/` directory to Skill Directories
 - **SCANOSS**
   - Optional; keep OFF until you explicitly want code-snippet analysis off-box.
 

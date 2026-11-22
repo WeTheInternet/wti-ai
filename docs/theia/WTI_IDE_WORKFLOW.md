@@ -17,7 +17,11 @@ The supported way to build and run the WTI Theia browser IDE is from the standal
 
 - Node.js 20.x (see `ide/.nvmrc`)
 - `corepack` enabled
-- `pnpm` (via corepack)
+- `pnpm` 9.15.5 (via corepack; see `ide/package.json`)
+
+The checked-in app and agent dependencies pin Theia **1.68.2**. Separate, unmerged 1.77.0 migration work is not the baseline for these instructions. This document is not an upgrade procedure.
+
+Follow [AGENTS.md](../../AGENTS.md): workspace tasks/scripts require explicit user approval.
 
 ## Workspace layout
 
@@ -53,14 +57,18 @@ Port:
 - Default: `1771`
 - Override with `WTI_IDE_PORT`
 
+`run.sh` starts Theia in development mode with `--hostname 0.0.0.0` (all IPv4 interfaces). `http://localhost:1771` is a local access URL, not a loopback-only binding; network reachability also depends on host/network controls.
+
 ### Secret loading (Phase 1)
 
 `./run.sh` supports loading secrets from a directory pointed to by `WTI_AI_ENV_FILES`.
 
 Behavior:
-- For each file in the directory:
+- For each regular file directly in the directory:
   - env var name = file basename
-  - env var value = file contents
+  - env var value = file contents (shell command substitution strips trailing newlines)
+
+These variables are exported into the IDE process environment and can be inherited by child processes. File permissions protect files at rest; this loader does not isolate credentials or limit which child receives them. Load only variables intended for this process tree.
 
 Example:
 
@@ -113,6 +121,8 @@ This removes build outputs and dependency folders under `ide/`, including:
 - `**/src-gen`
 - `ide/pnpm-lock.yaml`
 - `ide/pnpm-workspace.yaml.lock`
+
+`ide/pnpm-lock.yaml` is tracked. Cleaning deletes it and creates a tracked deletion; a subsequent install can resolve a different dependency graph. Preserve or restore the intended lockfile before reinstalling when reproducibility is required.
 
 ## Known issues / callouts
 

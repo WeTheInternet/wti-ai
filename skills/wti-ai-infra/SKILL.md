@@ -25,7 +25,7 @@ triggers:
 - Required for cluster creation: `ADMIN_IP_CIDR`.
 
 ## Source of truth
-- `docs/MASTER_PLAN.md`
+- [Root roadmap context](../../MASTER_PLAN.md) (not evidence of deployed infrastructure)
 - `ai/infra/lib/wti-gcloud.sh` for script utilities
 
 ## Allowlist automation
