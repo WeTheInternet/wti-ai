@@ -27,5 +27,15 @@ mkdir -p "$THEIA_CONFIG_DIR"
 pnpm install --frozen-lockfile --registry=https://registry.npmjs.org
 pnpm --filter @wti/infra-agent run build
 pnpm --filter @wti/wti-ide run build
-exec pnpm --filter @wti/wti-ide exec theia start /workspace --hostname 0.0.0.0 --port 1771
+workspace_file=/work/wti-ai.theia-workspace
+python3 - "$workspace_file" <<"PY"
+import json
+import sys
+from pathlib import Path
+
+workspace = json.loads(Path("/workspace/wti-ai.theia-workspace").read_text())
+workspace["folders"] = [{"path": "/workspace"}]
+Path(sys.argv[1]).write_text(json.dumps(workspace))
+PY
+exec pnpm --filter @wti/wti-ide exec theia start "$workspace_file" --hostname 0.0.0.0 --port 1771
 '

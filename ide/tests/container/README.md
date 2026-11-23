@@ -61,11 +61,16 @@ bash ide/tests/container/gui.sh
 
 After the build/startup output, open http://127.0.0.1:1771. This reuses the existing
 image (no apt run), but installs and builds a fresh snapshot of the current IDE
-source. The repository is mounted writable at `/workspace` so editor saves persist
-in this checkout. Build output and dependencies stay inside the disposable
-container; GUI preferences are temporary. Restart after editing IDE implementation
-to build a new snapshot. No home or credentials are mounted. The server listens on
-all interfaces inside the container so Podman forwarding works; the host port is
+source. Separately, the GUI mounts the **entire checkout** writable at
+`/workspace` so editor saves persist. This mount includes ignored files such as
+`.env` and `.env.*`. Remove repository-local credentials or launch from a clean
+checkout before starting the GUI. The host home directory is outside the mount.
+
+The GUI opens a container-local copy of the workspace configuration with
+`/workspace` as its only folder, preserving the checked-in watcher and search
+exclusions. Build output, dependencies and GUI preferences stay in the
+disposable container. Restart after editing IDE implementation to build a new
+snapshot. The server listens on all container interfaces. The host port is
 published only on IPv4 loopback. This is a personal local server, without login.
 
 Ctrl+C stops the foreground process; if needed, `podman stop wti-ai-gui` stops
