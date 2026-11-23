@@ -11,12 +11,12 @@
   ],
   "packageManager": "pnpm@9.15.5",
   "dependencies": {
-    "@theia/ai-chat": "1.68.2",
-    "@theia/ai-core": "1.68.2",
-    "@theia/core": "1.68.2"
+    "@theia/ai-chat": "1.77.0",
+    "@theia/ai-core": "1.77.0",
+    "@theia/core": "1.77.0"
   },
   "devDependencies": {
-    "@theia/cli": "1.68.2",
+    "@theia/cli": "1.77.0",
     "typescript": "^5.9.0"
   },
   "theiaExtensions": [
@@ -34,5 +34,6 @@
     "compile": "pnpm exec tsc -p tsconfig.json",
     "lint": "echo 'no lint configured'",
     "watch": "pnpm exec tsc -p tsconfig.json --watch"
-  }
+  },
+  "type": "module"
 }

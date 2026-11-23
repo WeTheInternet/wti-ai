@@ -1,0 +1,27 @@
+FROM docker.io/library/ubuntu:24.04
+
+ARG PLAYWRIGHT_VERSION
+ENV DEBIAN_FRONTEND=noninteractive \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers \
+    CI=true \
+    THEIA_CONFIG_DIR=/tmp/theia-validation-config
+
+RUN test "$(dpkg --print-architecture)" = amd64 && \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl xz-utils git build-essential python3 pkg-config libsecret-1-dev && \
+    curl --fail --location --retry 3 \
+      https://nodejs.org/dist/v24.22.3/node-v24.22.3-linux-x64.tar.xz -o /tmp/node.tar.xz && \
+    echo '4f2b175a6d53a5c617a80dba2676238a0688cef28c6da4eba35c7d844e66fcfb  /tmp/node.tar.xz' | sha256sum --check - && \
+    tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 && \
+    rm /tmp/node.tar.xz && \
+    npm install --global pnpm@9.15.5 --registry=https://registry.npmjs.org
+
+RUN test -n "$PLAYWRIGHT_VERSION" && \
+    npm install --prefix /opt/playwright --no-audit --no-fund \
+      --registry=https://registry.npmjs.org "@playwright/test@$PLAYWRIGHT_VERSION" && \
+    /opt/playwright/node_modules/.bin/playwright install --with-deps chromium && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY run-in-container.sh /usr/local/bin/wti-validate
+WORKDIR /work
+ENTRYPOINT ["bash", "/usr/local/bin/wti-validate"]
