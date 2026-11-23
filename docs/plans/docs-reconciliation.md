@@ -27,7 +27,7 @@ The initial reconciliation was merged in [PR #5](https://github.com/WeTheInterne
 
 This is a targeted disposition, not a claim that every recovered document has been reconciled. The original manual-approval stance and the later autonomous default remain visible as different decisions. The existing follow-up list below remains open; no snapshot is rewritten or reclassified by this cut.
 
-For operator-flow evidence after the initial patch, use the separately merged [crew-ledger runbook](crew-ledger-runbook.md), which distinguishes native local reading, hosted roster refresh and portable fixtures. Its scope and evidence limits do not establish automated answer delivery, resumed work or a complete Conductor runtime.
+For later operator-flow guidance and evidence boundaries, use the separately merged [crew-ledger runbook](crew-ledger-runbook.md), which distinguishes native local reading, hosted roster refresh and portable fixtures. Its scope and evidence limits do not establish automated answer delivery, resumed work or a complete Conductor runtime.
 
 ## Established direction and initial owner reports
 
