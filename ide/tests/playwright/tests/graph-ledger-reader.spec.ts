@@ -81,3 +81,40 @@ test('RPC facade exposes no transport, configuration, constructor or prototype o
     expect(endpoint.sources).toBeUndefined();
     expect(endpoint.constructor).toBeUndefined();
 });
+
+
+test('UTC timestamps reject normalized impossible dates at every summary timestamp boundary', async () => {
+    const read = async (value: unknown) => new LocalGraphLedger([source], fake(Buffer.from(JSON.stringify(value))).run).refresh(source.id);
+    for (const valid of ['2024-02-29T23:59:59Z', '2024-02-29T23:59:59.123Z']) {
+        const result = await read({ ...summary, reportedAt: valid });
+        expect(result.ok).toBe(true);
+        if (result.ok) expect(result.value.snapshot.asOf).toBe(valid);
+    }
+    for (const invalid of ['2026-02-30T00:00:00Z', '2026-02-29T00:00:00.000Z', '2026-04-31T12:00:00Z', '2026-11-23T24:00:00Z']) {
+        for (const field of ['reportedAt', 'participant', 'assignment', 'communication']) {
+            const value: any = structuredClone(summary);
+            if (field === 'reportedAt') value.reportedAt = invalid;
+            if (field === 'participant') value.participants[0].updatedAt = invalid;
+            if (field === 'assignment') value.assignments[0].updatedAt = invalid;
+            if (field === 'communication') value.communication[0].at = invalid;
+            const result = await read(value);
+            expect(result.ok).toBe(false);
+            if (!result.ok) expect(result.error.code).toBe('invalid');
+        }
+    }
+});
+
+test('non-string enum values remain unknown instead of coercing arrays into valid states', async () => {
+    for (const invalid of [['active'], ['completed'], ['acknowledged'], [], {}, null, 1, true, 'unsupported']) {
+        const value: any = structuredClone(summary);
+        value.participants[0].status = invalid;
+        value.assignments[0].status = invalid;
+        value.communication[0].kind = invalid;
+        const result = await new LocalGraphLedger([source], fake(Buffer.from(JSON.stringify(value))).run).refresh(source.id);
+        expect(result.ok).toBe(true);
+        if (!result.ok) throw new Error('Unknown enum values should remain inspectable');
+        expect(result.value.participantReports[0].status).toBe('unknown');
+        expect(result.value.snapshot.links[0].status).toBe('unknown');
+        expect(result.value.snapshot.communication[0].kind).toBe('unknown');
+    }
+});

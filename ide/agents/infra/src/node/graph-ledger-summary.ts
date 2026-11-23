@@ -17,6 +17,8 @@ const id = (value: unknown): string => {
 const time = (value: unknown): string => {
     const result = text(value, 40);
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(result) || !Number.isFinite(Date.parse(result))) throw new Error('Invalid UTC time');
+    const canonical = result.includes('.') ? result : result.replace('Z', '.000Z');
+    if (new Date(result).toISOString() !== canonical) throw new Error('Invalid UTC calendar time');
     return result;
 };
 const list = (value: unknown, max: number): unknown[] => {
@@ -44,7 +46,7 @@ export function decodeLedgerSummary(raw: string, commit: string): {
         const participant: Participant = { id: id(p.id), name: text(p.name, 128), role: text(p.role, 128) };
         if (p.creatorId !== undefined) participant.creatorId = id(p.creatorId);
         if (p.workstreamIds !== undefined) participant.workstreamIds = list(p.workstreamIds, 16).map(id);
-        const status = ['active', 'blocked', 'idle', 'completed', 'unknown'].includes(String(p.status))
+        const status = typeof p.status === 'string' && ['active', 'blocked', 'idle', 'completed', 'unknown'].includes(p.status)
             ? p.status as ParticipantReport['status'] : 'unknown';
         participantReports.push({
             participantId: participant.id, status,
@@ -70,7 +72,7 @@ export function decodeLedgerSummary(raw: string, commit: string): {
         if (link.kind !== 'delegation' && link.kind !== 'dependency') throw new Error('Invalid structural kind');
         const result: GraphLink = {
             id: id(link.id), from: participantId(link.from), to: participantId(link.to), kind: link.kind,
-            status: ['active', 'action', 'check', 'hold', 'interrupted', 'completed', 'unknown'].includes(String(link.status))
+            status: typeof link.status === 'string' && ['active', 'action', 'check', 'hold', 'interrupted', 'completed', 'unknown'].includes(link.status)
                 ? link.status as GraphLink['status'] : 'unknown',
             updatedAt: time(link.updatedAt), label: text(link.label, 512)
         };
@@ -86,7 +88,7 @@ export function decodeLedgerSummary(raw: string, commit: string): {
         fields(event, ['id', 'from', 'to', 'kind', 'at', 'source', 'correlationId', 'label']);
         return {
             id: id(event.id), from: participantId(event.from), to: participantId(event.to),
-            kind: ['queued', 'delivered', 'acknowledged', 'resultReported', 'resultAccepted', 'unknown'].includes(String(event.kind))
+            kind: typeof event.kind === 'string' && ['queued', 'delivered', 'acknowledged', 'resultReported', 'resultAccepted', 'unknown'].includes(event.kind)
                 ? event.kind as CommunicationEvent['kind'] : 'unknown',
             at: time(event.at), source: text(event.source, 128), label: text(event.label, 512),
             ...(event.correlationId === undefined ? {} : { correlationId: id(event.correlationId) })
