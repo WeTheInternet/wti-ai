@@ -13,9 +13,13 @@ verification:
 The portable `../agent-graph` source is pinned to `agent-graph-portable-v0.1.0.zip`
 (36,127 bytes), SHA-256
 `b9b5332e7885bd6af0b6877bf55d02f56cda28057c8ece13114d8bf54694b242`.
-The sole approved source exception changes three display strings to **Graph alerts**
-and **No graph alerts** in `src/AgentBubbles.jsx`; resulting SHA-256:
-`e3487a912a6f752ab8882840882b8cda7f6012279b6c845864d7f94b0c751ec7`.
+Two owner-approved changes affect only `src/AgentBubbles.jsx`: the three display
+strings scoped to **Graph alerts** / **No graph alerts**, and
+`agent-graph-timestamps-v0.1.0-1`, which compares parsed timestamp instants while
+retaining ID tie-breaks. This orders second-only and millisecond UTC forms correctly.
+Resulting SHA-256:
+`38a3bd55d05830fd60f474d55b42a624555bfdec04f56c96cde337a361cb106e`.
+Resulting Git blob: `4692a2fab0a66b9179cc6de8d43773a188f2764d`.
 All other imported files remain byte-identical. See `portable-provenance.json`.
 This milestone does not include later standalone playtest releases.
 

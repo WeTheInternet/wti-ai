@@ -3,10 +3,23 @@
   "archiveSha256": "b9b5332e7885bd6af0b6877bf55d02f56cda28057c8ece13114d8bf54694b242",
   "approvedExceptions": {
     "src/AgentBubbles.jsx": {
-      "sha256": "e3487a912a6f752ab8882840882b8cda7f6012279b6c845864d7f94b0c751ec7",
+      "sha256": "38a3bd55d05830fd60f474d55b42a624555bfdec04f56c96cde337a361cb106e",
       "owner": "Lab: Agent Graph",
-      "change": "Three display strings scoped to Graph alerts / No graph alerts",
-      "relayedPatchSha256": "9080610e356a025fa9e7e479b6c3919164c893c571250f73bfeab761d9d88f54"
+      "change": "Approved Graph alerts wording and epoch-based timestamp ordering with ID tie-breaks",
+      "gitBlob": "4692a2fab0a66b9179cc6de8d43773a188f2764d",
+      "patches": [
+        {
+          "change": "Three display strings scoped to Graph alerts / No graph alerts",
+          "sha256": "9080610e356a025fa9e7e479b6c3919164c893c571250f73bfeab761d9d88f54",
+          "resultSha256": "e3487a912a6f752ab8882840882b8cda7f6012279b6c845864d7f94b0c751ec7"
+        },
+        {
+          "id": "agent-graph-timestamps-v0.1.0-1",
+          "change": "Parse link and communication timestamps as instants before descending comparison; retain ID tie-breaks",
+          "sha256": "eb2e0013fd128df783a4ba567baeacdd1473e40aa4bcf2c82ce221ff30598b1c",
+          "resultGitBlob": "4692a2fab0a66b9179cc6de8d43773a188f2764d"
+        }
+      ]
     }
   }
 }

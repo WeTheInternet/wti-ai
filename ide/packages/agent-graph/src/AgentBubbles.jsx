@@ -5,7 +5,7 @@ import { RadialMap } from './RadialMap.jsx';
 import { communicationLabel, liveLinksOf, normalizeLinkStatus, selectionFor } from './model.ts';
 
 const priority = ['action', 'interrupted', 'check', 'hold', 'unknown', 'active', 'completed'];
-const byRecent = (a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id);
+const byRecent = (a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt) || a.id.localeCompare(b.id);
 const utcFormat = new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' });
 const symbols = {
   Driver: '✱', Person: '◈', Coordinator: '⌘', Observer: '◉',
@@ -199,7 +199,7 @@ function BubbleMap({ snapshot, now, selection, onSelectionChange, host }) {
   const height = points ? Math.max(178, ...visible.map((agent) => points.get(agent.id).y + 70)) : 178;
   const attention = live.filter((link) => link.status === 'action').sort(byRecent);
   const events = snapshot.communication.filter((event) => focus && (event.from === focus.id || event.to === focus.id))
-    .sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at) || a.id.localeCompare(b.id));
   const history = links.filter((link) => link.status === 'completed'
     && (!focus || link.from === focus.id || link.to === focus.id)).sort(byRecent);
 
