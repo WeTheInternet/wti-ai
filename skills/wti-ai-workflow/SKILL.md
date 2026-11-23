@@ -53,9 +53,13 @@ the lead so they can reconcile affected work and possible prior effects.
 
 Resume from the current assignment, spec revision and exact evidence of prior
 attempts. Preserve one writer during handoff. Treat history as reported evidence.
-In a Conductor-managed watcher, Conductor owns the history cursor, action
-deduplication and authorization. An agent notification requires a matching
-approved pending record. A human notification requires a current, explicitly
-addressed decision or action. Environment adapters verify the local route and
-return evidence. Use wti-ai-msg for attempt correlation and receipt recovery.
+For an explicitly configured watcher, Conductor owns the history cursor and
+action deduplication. Before requesting an agent notification, verify that the
+user-authorized workflow policy permits the recipient and action. Reconcile the
+still-pending wti-ai-msg envelope and match its sender, recipient, request ID,
+revision, UUID and payload hash. For a human alert, verify the policy's current,
+unresolved decision or action record and its explicit addressee. If the policy
+or matching record is unavailable, keep the action pending and report the gap.
+Environment adapters verify the local route and return evidence. Use wti-ai-msg
+for attempt correlation and receipt recovery.
 Use `report-workflow-to-history` for enrolled owner checkpoints.
