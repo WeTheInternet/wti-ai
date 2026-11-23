@@ -1,6 +1,6 @@
 ---
 name: wti-ai-workflow
-description: Route personal WTI-AI work to the right actor and environment, validate Theia IDE changes with the rootless Podman harness, and track work and launched resources across handoffs or restarts. Use when choosing who should act, recording or cleaning up resources, recovering blocked local execution, or deciding which evidence supports a validation claim.
+description: Route personal WTI-AI work to the right actor and environment, validate Theia IDE changes with the rootless Podman harness, and track work and launched resources across handoffs or restarts. Use for Conductor handoffs, choosing who should act, recording or cleaning up resources, recovering blocked local execution, or deciding which evidence supports a validation claim.
 ---
 
 # WTI-AI workflow
@@ -41,3 +41,25 @@ link exact evidence so the next owner can continue from the checkpoint.
 For a launched or allocated resource that needs a cleanup owner, create a
 [resource receipt](references/work-ledger.md#resource-receipts) at launch.
 Update it at handoff and stop, including who owns cleanup.
+
+## Conductor-managed work
+
+Use the [feature delivery workflow](https://github.com/WeTheInternet/wti-ai/blob/main/docs/specs/agent-workflow.md)
+for ownership. Conductor owns intent, spec revisions and direction. The feature
+lead owns implementation, verification and delivery. Triage preserves the
+addressed handoff and its receipts, and surfaces delivery problems. When a direct
+human instruction changes scope, honor it and route its source to Conductor and
+the lead so they can reconcile affected work and possible prior effects.
+
+Resume from the current assignment, spec revision and exact evidence of prior
+attempts. Preserve one writer during handoff. Treat history as reported evidence.
+For an explicitly configured watcher, Conductor owns the history cursor and
+action deduplication. Before requesting an agent notification, verify that the
+user-authorized workflow policy permits the recipient and action. Reconcile the
+still-pending wti-ai-msg envelope and match its sender, recipient, request ID,
+revision, UUID and payload hash. For a human alert, verify the policy's current,
+unresolved decision or action record and its explicit addressee. If the policy
+or matching record is unavailable, keep the action pending and report the gap.
+Environment adapters verify the local route and return evidence. Use wti-ai-msg
+for attempt correlation and receipt recovery.
+Use `report-workflow-to-history` for enrolled owner checkpoints.
