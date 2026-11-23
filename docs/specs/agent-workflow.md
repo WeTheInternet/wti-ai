@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-11-23T01:41:28Z
+lastUpdated: 2026-11-23T09:43:27Z
 verification:
   - "Role direction supplied by The Human; implementation and proposed recovery mechanics not certified"
 ---
@@ -55,6 +55,18 @@ Agent-backed Conductor judgment refines intent, requirements and specs and decid
 A spec does not create permission. The lead cannot silently redefine acceptance criteria to fit its result. Conductor cannot treat an inferred requirement or provisional assumption as accepted user intent. The flow scales with the task and does not require seven agents, screens or repeated human sign-off.
 
 LISA remains useful inside this flow without requiring a rigid GUI phase selector.
+
+## Design, feedback and revision
+
+The flow is iterative: **shape a small outcome → design and implement → inspect evidence and feedback → revise the affected intent, spec or implementation → verify again**. A useful prototype can expose the next question without settling the final architecture. This proposed loop makes the recovered [interpretation revision rules](../history/snapshots/recovered-design/intent/reference/original-seed/interpretation.md?plain=1#L108-L147) explicit; it does not introduce a mandatory meeting, extra agent or routine approval gate.
+
+Start with enough intent and observable acceptance criteria to judge the next useful result. The lead selects proportionate design review, experiments and independent challenge before expensive or difficult-to-reverse work. For a small, well-understood change, a short spec and direct implementation can suffice. For an uncertain interaction, inspect a small prototype or playtest before expanding it.
+
+User feedback, failed verification, a conflicting constraint or hidden coupling can reopen the relevant decision. The lead owns changes to the implementation and plan within the spec. If the desired behavior, scope or acceptance criteria need to change, the lead sends the evidence and proposed change to Conductor. Conductor resolves direction within its authority or asks The Human where needed; autonomous and manual scope rules still apply.
+
+Keep the prior spec and decision evidence. Record what changed, why, who owns the next step, and which assignments or verification results are affected. The lead reconciles in-flight attempts before retrying and re-verifies affected claims against the resulting spec revision. Unaffected authorized work can continue. A passing check against an obsolete spec is not evidence that the revised request is satisfied.
+
+At a useful milestone, report the usable outcome, evidence, remaining uncertainty and next feedback opportunity. Mark temporary shortcuts and their revisit triggers so a later architect can distinguish delivery expedience from an accepted design. The lead selects durable learning through the [knowledge workflow](project-knowledge.md); neither a successful prototype nor an accumulated transcript automatically becomes project policy.
 
 ## Autonomous scopes, changes and human steering
 
