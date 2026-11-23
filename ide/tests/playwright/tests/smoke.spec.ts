@@ -18,7 +18,7 @@ test.describe('wti-ide smoke', () => {
 
     // A credential-free profile has no ready model, so chat input can be
     // disabled. Verify the actual registered agent through its configuration.
-    await page.getByRole('button', { name: 'Open AI Configuration', exact: true }).click();
+    await chat.getByRole('button', { name: 'Open AI Configuration', exact: true }).click();
     const configuration = page.locator('#ai-configuration');
     await expect(configuration).toBeVisible();
     // The clean test profile hides agent settings until AI is enabled.
