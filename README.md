@@ -1,6 +1,6 @@
 # WTI Agentic Development Platform
 
-WTI-AI aims to turn intent into delivered, verified software through a visible workflow:
+WTI-AI aims to turn intent into delivered, verified software using **LISA — Locate, Investigate, Solve, Assess**:
 
 **Receive intent → discuss → create spec → deliver spec to workers → create and execute implementation → verify → report.**
 

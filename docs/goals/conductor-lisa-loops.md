@@ -3,14 +3,16 @@ status: DRAFT
 teams: []
 roles: []
 authors: []
-lastUpdated: 2026-11-23T00:26:41Z
+lastUpdated: 2026-11-23T00:55:55Z
 lifecycle: TRIAGE
 maturity: NONE
 verification:
   - "(manual) Conductor docs describe agent orchestration as a deliberate multi-agent symphony"
 ---
 
-# Goal: Conductor as “LISA Loops” (not “Ralph loops”)
+# Goal: LISA — Locate, Investigate, Solve, Assess
+
+LISA is the evidence-driven loop used within Conductor-led work: locate the relevant sources, investigate what they establish, solve the bounded problem, and assess the result.
 
 ## Goal
 

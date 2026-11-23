@@ -4,12 +4,14 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-11-23T00:28:53Z
+lastUpdated: 2026-11-23T00:55:55Z
 verification:
   - "Role direction supplied by The Human; implementation and proposed recovery mechanics not certified"
 ---
 
 # Feature delivery workflow
+
+**LISA** stands for **Locate, Investigate, Solve, Assess**.
 
 The Human has defined the role and authority split below. This DRAFT records that direction; it does not certify an implementation. Artifact details, state mechanics and evaluation checks remain design proposals. Repository execution permissions remain governed by AGENTS.md.
 
@@ -52,7 +54,7 @@ Agent-backed Conductor judgment refines intent, requirements and specs and decid
 
 A spec does not create permission. The lead cannot silently redefine acceptance criteria to fit its result. Conductor cannot treat an inferred requirement or provisional assumption as accepted user intent. The flow scales with the task and does not require seven agents, screens or repeated human sign-off.
 
-**LISA** means Locate relevant evidence, Investigate it, Solve bounded work and Assess the result. It remains useful inside this flow without requiring a rigid GUI phase selector.
+LISA remains useful inside this flow without requiring a rigid GUI phase selector.
 
 ## Autonomous scopes, changes and human steering
 
@@ -74,7 +76,7 @@ Conductor makes the feature ownership transfer explicit. Preserve predecessor/te
 
 - **Guru:** understands recorded knowledge and in-flight intent; supplies evidence, alternatives and pitfalls. Show both sides of unresolved claims and flag new evidence that merits reopening discussion.
 - **Researcher:** acquires relevant external information within scoped read-only context and assesses relevance/resource safety without giving orders. The Human requires input before an operation affected by an exfiltration warning proceeds; timeout/redaction details remain open.
-- **Chronicler:** records what happened, distinguishing attributed reports from observed events and verified results.
+- **Chronicler:** records what happened, distinguishing attributed reports from observed events and verified results. It also selects useful ledger evidence and explains its future value in a paper-trail PR for the lead to review into the feature's working branch. Keep that PR open while work develops and merge selected evidence at a meaningful feature milestone, within delegated permissions. See [Chronicler evidence curation](project-knowledge.md#chronicler-evidence-curation-and-milestone-review).
 - **Historian:** may act as a scribe tracking official documentation and carrying out lead/Conductor recording decisions. By default it accepts knowledge-recording requests only from Conductor or a lead; workers ask their lead to forward them. See [project knowledge](project-knowledge.md).
 - **Implementation specialists:** coders, designers, reviewers and testers contribute under the lead's coordination; the lead owns the implementation response and next step.
 
