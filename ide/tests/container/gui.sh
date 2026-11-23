@@ -18,7 +18,7 @@ printf 'After startup, open http://localhost:1771. Ctrl+C stops the GUI.\n'
 printf 'Editable workspace: %s (shown as /workspace inside the IDE)\n' "$repo_root"
 podman run --rm --name wti-ai-gui --init --shm-size=1g \
     --publish 127.0.0.1:1771:1771 \
-    --volume "$run_dir/source.tar:/input/source.tar:ro" \
+    --volume "$run_dir/source.tar:/input/source.tar:ro,Z" \
     --volume "$repo_root:/workspace:rw" \
     --entrypoint bash "$image_id" -c '
 set -euo pipefail

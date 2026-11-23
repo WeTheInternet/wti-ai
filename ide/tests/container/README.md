@@ -66,6 +66,7 @@ source. Separately, the GUI mounts the **entire checkout** writable at
 `/workspace` so editor saves persist. This mount includes ignored files such as
 `.env` and `.env.*`. Remove repository-local credentials or launch from a clean
 checkout before starting the GUI. The host home directory is outside the mount.
+Podman applies a private SELinux label (`:Z`) to the per-run source archive.
 The launcher leaves the shared checkout’s SELinux labels untouched. GUI access
 on an SELinux-enforcing host depends on its existing mount permissions and
 labels. The GUI has been validated on Ubuntu with SELinux disabled.
