@@ -1,0 +1,4 @@
+interface:
+  display_name: "WTI-AI Workflow"
+  short_description: "Route, validate, and checkpoint WTI-AI work"
+  default_prompt: "Use $wti-ai-workflow to choose the right owner and validation path for this WTI-AI task."
