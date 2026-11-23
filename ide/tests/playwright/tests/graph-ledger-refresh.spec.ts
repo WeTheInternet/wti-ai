@@ -38,7 +38,10 @@ test('synthetic local status updates become visible only through explicit Refres
         return { commit, reportedAt: summary.reportedAt, status: summary.participants[0].status,
             summarySha256: createHash('sha256').update(bytes).digest('hex') };
     };
-    const first = await push(makeSummary('active', 'Read the first synthetic report.'));
+    const initialSummary = makeSummary('active', 'Read the first synthetic report.');
+    // Exercise startup taking over a minute without adding a slow test sleep.
+    initialSummary.reportedAt = new Date(Date.now() - 90000).toISOString();
+    const first = await push(initialSummary);
     const started = await startTheia({ port: 1339, ledgerSources: JSON.stringify([{
         id: 'synthetic-source', label: 'SYNTHETIC reader refresh ledger', repo: bare,
         ref: 'refs/heads/synthetic-reader-worker', summaryPath: 'status/summary.json', staleAfterMs: 1000
@@ -63,13 +66,27 @@ test('synthetic local status updates become visible only through explicit Refres
         await provenance.locator('summary').click();
         const reported = panel.getByTestId('ledger-reported-time');
         await expect(reported).toHaveAttribute('datetime', first.reportedAt);
-        await expect(reported).toHaveText(/^(?:just now|\d+ sec ago)$/);
+        await expect.poll(async () => {
+            const sample = await reported.evaluate(element => ({
+                text: element.textContent ?? '', age: Date.now() - Date.parse(element.getAttribute('datetime')!)
+            }));
+            const match = /^(\d+) (sec|min|hr|day|days) ago$/.exec(sample.text);
+            const units: Record<string, number> = { sec: 1000, min: 60000, hr: 3600000, day: 86400000, days: 86400000 };
+            const unit = match ? units[match[2]] : 1000;
+            const lower = match ? Number(match[1]) * unit : 0;
+            // The display clock ticks each second; permit the previous tick at a boundary.
+            return (Boolean(match) || sample.text === 'just now') && sample.age >= lower && sample.age < lower + unit + 2000;
+        }).toBe(true);
         const exact = reported.locator('..').getByRole('tooltip');
         await reported.hover();
         await expect(exact).toHaveText(`${first.reportedAt} (UTC)`);
         await expect(exact).toBeVisible();
         await exact.hover(); // Tooltip remains available when the pointer enters it.
         await expect(exact).toBeVisible();
+        await refresh.focus();
+        await page.keyboard.press('Escape'); // Hover-only tooltip: focus is not on the timestamp.
+        await expect(exact).toBeHidden();
+        await expect(refresh).toBeFocused();
         await refresh.focus();
         await page.keyboard.press('Tab');
         await expect(reported).toBeFocused();
@@ -99,6 +116,7 @@ test('synthetic local status updates become visible only through explicit Refres
         await expect(card.getByText('Owner:', { exact: false })).toHaveCount(0); // Same owner is the named agent.
         await card.getByRole('button', { name: 'Inspect Synthetic reader worker', exact: true }).press('Enter');
         await expect(panel.getByRole('heading', { name: 'Agent inspector for Synthetic reader worker' })).toBeVisible();
+        await expect(panel.getByRole('heading', { name: 'Agent inspector for Synthetic reader worker' })).toBeFocused();
         await expect(panel.getByRole('region', { name: 'Graph alerts', exact: true }).getByText('No graph alerts', { exact: true })).toBeVisible();
         await expect(panel.getByText('No action is needed in this snapshot.', { exact: true })).toHaveCount(0);
         await panel.evaluate(element => { element.scrollTop = 0; });

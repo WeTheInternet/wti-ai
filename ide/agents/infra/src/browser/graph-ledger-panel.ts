@@ -51,6 +51,7 @@ export function GraphLedgerPanel({ service }: { service: GraphLedgerService }): 
         if (!current) return;
         setSelection({ effortId: current.snapshot.effortId, participantId });
         graph.current?.scrollIntoView({ block: 'nearest' });
+        requestAnimationFrame(() => graph.current?.querySelector<HTMLElement>('.br-inspector-head h3[tabindex="-1"]')?.focus());
     }
     return h('section', { className: 'wti-ledger', 'aria-label': 'Git ledger status' },
         h('header', { className: 'wti-ledger-toolbar' },

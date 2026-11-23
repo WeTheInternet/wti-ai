@@ -6,6 +6,15 @@ export function LedgerRelativeTime({ timestamp, now, label, testId, seconds }: {
 }): React.ReactElement {
     const tooltipId = React.useId();
     const [open, setOpen] = React.useState(false);
+    React.useEffect(() => {
+        if (!open) return;
+        const dismiss = (event: KeyboardEvent): void => {
+            if (event.key === 'Escape') { setOpen(false); event.stopPropagation(); }
+        };
+        // Hover must also be dismissible while keyboard focus is elsewhere.
+        document.addEventListener('keydown', dismiss, true);
+        return () => document.removeEventListener('keydown', dismiss, true);
+    }, [open]);
     return React.createElement('span', {
         className: 'wti-ledger-time',
         onMouseEnter: () => setOpen(true),
@@ -18,10 +27,7 @@ export function LedgerRelativeTime({ timestamp, now, label, testId, seconds }: {
     }, React.createElement('time', {
         dateTime: timestamp, tabIndex: 0, 'aria-describedby': tooltipId,
         'aria-label': `${label} ${relativeTime(timestamp, now, seconds)}`, 'data-testid': testId,
-        onFocus: () => setOpen(true),
-        onKeyDown: (event: React.KeyboardEvent<HTMLTimeElement>) => {
-            if (event.key === 'Escape') { setOpen(false); event.stopPropagation(); }
-        }
+        onFocus: () => setOpen(true)
     }, relativeTime(timestamp, now, seconds)),
     React.createElement('span', { id: tooltipId, role: 'tooltip', hidden: !open, className: 'wti-ledger-time-exact' }, `${timestamp} (UTC)`));
 }

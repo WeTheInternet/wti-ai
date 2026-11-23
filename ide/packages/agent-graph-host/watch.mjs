@@ -97,7 +97,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         controller,
         prebuilt: process.env.WTI_AGENT_GRAPH_PREBUILT === '1',
         inputs: [path.resolve(here, '../agent-graph/src'), path.resolve(here, '../agent-graph/fixtures'),
-            path.join(here, 'chrome.css'), path.join(here, 'build.mjs'), path.join(here, 'package.json')],
+            path.join(here, 'chrome.css'), path.join(here, 'build.mjs'), path.join(here, 'promote.mjs'), path.join(here, 'package.json')],
         build: signal => runBuild(here, signal)
     });
     if (stopping) await watcher.close();

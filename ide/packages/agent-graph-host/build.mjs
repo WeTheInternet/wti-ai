@@ -1,19 +1,20 @@
 // Host packaging only. The imported portable release is never rewritten.
-import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile, lstat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import ts from 'typescript';
 import { build } from 'esbuild';
+import { promotePackage } from './promote.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const source = path.resolve(here, '../agent-graph');
-const staged = path.join(here, '.build-src');
-const out = path.join(here, 'dist');
-await rm(staged, { recursive: true, force: true });
-await rm(out, { recursive: true, force: true });
-await cp(path.join(source, 'src'), staged, { recursive: true });
-await mkdir(path.join(out, 'types'), { recursive: true });
+const work = await mkdtemp(path.join(here, '.build-'));
+const staged = path.join(work, 'src');
+const out = path.join(work, 'dist');
+const backup = path.join(work, 'previous');
 try {
+    await cp(path.join(source, 'src'), staged, { recursive: true });
+    await mkdir(path.join(out, 'types'), { recursive: true });
     const names = await readdir(staged);
     const program = ts.createProgram(names.filter(name => name.endsWith('.ts')).map(name => path.join(staged, name)), {
         target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext,
@@ -54,6 +55,12 @@ try {
     await writeFile(path.join(out, 'artifact.d.ts'), 'declare const content: string;\nexport default content;\n');
     await cp(path.join(here, 'chrome.css'), path.join(out, 'chrome.css'));
     await cp(path.join(source, 'fixtures'), path.join(out, 'fixtures'), { recursive: true });
+    await promotePackage(out, path.join(here, 'dist'), backup);
 } finally {
-    await rm(staged, { recursive: true, force: true });
+    // A failed rollback must never erase the recoverable previous exports.
+    const hasBackup = await lstat(backup).then(() => true, error => {
+        if (error.code === 'ENOENT') return false;
+        throw error;
+    });
+    if (!hasBackup) await rm(work, { recursive: true, force: true });
 }

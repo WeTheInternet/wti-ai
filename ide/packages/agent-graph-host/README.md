@@ -78,7 +78,14 @@ clean staging directory. It checks only portable source/fixtures and host build/
 inputs every 500 ms, serializes builds, and notices edits made during a build.
 Each build has a five-minute limit; shutdown terminates its owned build process group.
 Later build errors are reported and retried only after another source edit.
+Builds stage all exports in a unique local directory; failed compilation leaves
+the last working `dist` intact. Successful builds replace it with same-filesystem
+renames, rolling back if promotion fails. This is not an atomic directory exchange:
+readers may briefly see a missing directory between the two renames. A failed
+rollback retains the previous exports at the recovery path printed in the error.
 `pnpm --filter @wti/agent-graph test` exercises initial output, changed input,
 ignored generated output, edits during builds, and cancellation with a fake builder.
 It also builds a disposable copy with the real packager, then changes its fixture
 and verifies the generated artifact bytes change without modifying portable sources.
+It also checks failed compilation preserves every last-good export and a later
+repair rebuilds successfully. Separate promotion tests cover rollback failures.
