@@ -118,6 +118,12 @@ test('synthetic local status updates become visible only through explicit Refres
         await provenance.locator('summary').click();
         // Deliberate local read failure: retain the second snapshot with an error.
         await rename(bare, bare + '.offline'); hidden = true;
+        // Fixture navigation must not discard the only cached successful read.
+        await panel.getByRole('combobox', { name: 'Graph fixture', exact: true }).selectOption('small');
+        await expect(panel.locator('.wti-ledger')).toBeHidden();
+        await panel.getByRole('combobox', { name: 'Graph fixture', exact: true }).selectOption('ledger');
+        await expect(panel.getByTestId('ledger-commit')).toHaveText(second.commit);
+        await expect(panel.getByTestId('ledger-status-synthetic-reader-worker')).toHaveText('Reported blocked');
         await refresh.click();
         await expect(panel.getByRole('alert')).toContainText('Showing the last successful snapshot');
         await expect(panel.getByTestId('ledger-commit')).toHaveText(second.commit);

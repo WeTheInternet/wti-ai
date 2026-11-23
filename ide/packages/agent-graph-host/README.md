@@ -69,4 +69,16 @@ private ledger configuration, writer implementation, or rollout evidence is incl
 The newly composed branch requires combined exact-head validation; historical
 results from other worktrees are not a validation claim for this composition.
 Manual drag-docking, standalone/native visual parity and browser editing rejection
-remain separate checks. Staging currently has no watch rebuild command.
+remain separate checks.
+
+`ide/watch.sh` builds the host exports before starting compiler watchers and includes
+the host staging watcher in explicit prebuilt mode (no concurrent initial deletion
+of those exports). `pnpm --filter @wti/agent-graph watch` also works from a
+clean staging directory. It checks only portable source/fixtures and host build/CSS
+inputs every 500 ms, serializes builds, and notices edits made during a build.
+Each build has a five-minute limit; shutdown terminates its owned build process group.
+Later build errors are reported and retried only after another source edit.
+`pnpm --filter @wti/agent-graph test` exercises initial output, changed input,
+ignored generated output, edits during builds, and cancellation with a fake builder.
+It also builds a disposable copy with the real packager, then changes its fixture
+and verifies the generated artifact bytes change without modifying portable sources.

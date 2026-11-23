@@ -55,8 +55,9 @@ export class AgentGraphWidget extends ReactWidget {
                     }
                 }, ...[...Object.keys(snapshots), 'ledger'].map(key => React.createElement('option', { key, value: key }, key)))),
             // Do not key by revision: same-effort updates preserve portable focus/camera.
-            this.fixture === 'ledger' ? React.createElement(GraphLedgerPanel, { service: this.ledger })
-                : React.createElement(AgentGraph, { snapshot: snapshots[this.fixture], host: this.host })
+            React.createElement('div', { hidden: this.fixture !== 'ledger' },
+                React.createElement(GraphLedgerPanel, { service: this.ledger })),
+            this.fixture !== 'ledger' && React.createElement(AgentGraph, { snapshot: snapshots[this.fixture], host: this.host })
         );
     }
 }

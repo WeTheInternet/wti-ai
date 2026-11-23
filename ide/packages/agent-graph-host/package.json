@@ -36,6 +36,8 @@
     "esbuild": "^0.28.2"
   },
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "watch": "node watch.mjs",
+    "test": "node --test watch.test.mjs packaging-watch.test.mjs"
   }
 }
