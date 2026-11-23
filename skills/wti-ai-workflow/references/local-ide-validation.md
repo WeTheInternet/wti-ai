@@ -1,9 +1,15 @@
 # Container-first WTI-AI IDE validation
 
 1. Confirm the host is the intended personal MSI and the checkout is the assigned,
-   isolated durable source. Read `AGENTS.md` and the current
-   `ide/tests/container/README.md`. Inspect Git HEAD and working status. Identify
-   exactly what the harness will snapshot, including working changes.
+   isolated durable source. Read `AGENTS.md` and inspect Git HEAD and working
+   status. Confirm the selected checkout contains `ide/tests/container/README.md`,
+   `build.sh`, and `test.sh` in that directory. The
+   [reviewed harness source](https://github.com/WeTheInternet/wti-ai/tree/2a6d673fca3378355b9d31eb1b1610042167ccb9/ide/tests/container)
+   identifies the entrypoints and prerequisites. If the selected checkout lacks
+   the harness, ask the execution owner for an approved compatible validation
+   checkout that preserves the intended source snapshot. Until then report
+   container validation as blocked for that checkout. Read its harness README
+   and identify exactly what it will snapshot, including working changes.
 2. Probe rootless Podman on the supported, authorized execution surface. The
    managed default exec sandbox can fail with
    `Failed to obtain podman configuration: set sticky bit on: chmod /run/user/1000/libpod: read-only file system`.
