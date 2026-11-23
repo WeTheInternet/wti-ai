@@ -1,248 +1,55 @@
-# WTI Agentic Development Platform (WTI-AI)
+# WTI Agentic Development Platform
 
-WTI-AI bridges the gap between a “smart internet agent” and a **local, project-aware IDE** by turning vague ideas into an explicit, reviewable workflow: clarify intent → produce a plan → create durable artifacts → implement safely → verify.
+WTI-AI aims to turn intent into delivered, verified software using **LISA — Locate, Investigate, Solve, Assess**:
 
-The core metaphor is a multi-agent **symphony**: a set of specialized AI “voices” that contribute their parts, while a **Conductor** orchestrates the work into a coherent chorus of user-approved workflow automation.
+**Receive intent → discuss → create spec → deliver spec to workers → create and execute implementation → verify → report.**
 
-Start here:
-- [`AGENTS.md`](./AGENTS.md) — operating rules + approval gates
-- [`PURPOSE.md`](./PURPOSE.md) — repo router
-- [`docs/PURPOSE.md`](./docs/PURPOSE.md) — docs taxonomy router
-- [`docs/theia/WTI_IDE_WORKFLOW.md`](./docs/theia/WTI_IDE_WORKFLOW.md) — canonical IDE workflow
+Conductor works with The Human to refine intent, requirements and specs and establish feature leads. Each feature lead owns implementation and delivery, doing the work directly or coordinating specialists; spec changes return to Conductor. The lead also decides what knowledge from the feature should persist, with Historian as an optional recording helper. The default is continued authorized work; The Human can select manual stop-on-ambiguity behavior per scope. The role direction is decided; detailed implementation contracts remain DRAFT and do not change repository operating permissions.
 
----
+## Start here
 
-## TL;DR
+- [AGENTS.md](AGENTS.md) — repository operating rules and permission gates.
+- [Conductor/LISA goal](docs/goals/conductor-lisa-loops.md) — purpose and durable workflow intent.
+- [Feature delivery workflow](docs/specs/agent-workflow.md) — stages, ownership, autonomy and verification.
+- [Project knowledge](docs/specs/project-knowledge.md) — Chronicler, lead-selected knowledge and authorized Historian recording.
+- [Operator supervision](docs/specs/operator-supervision.md) — progress, evidence, steering and continuity.
+- [Reconciliation plan](docs/plans/docs-reconciliation.md) — exact changes, current owners, pending choices and completion checks.
+- [Preserved design sources](docs/history/INDEX.md) — source snapshots and unresolved/deferred ideas.
 
-- **What exists now:** a Theia browser IDE workflow under `ide/`, env-file secret loading via `WTI_AI_ENV_FILES`, and a docs system with explicit trust routing (`status: CERTIFIED` is the only authoritative truth).
-- **What’s planned:** a Quarkus `conductor` control plane, MCP tool services (least-privilege filesystem + ripgrep), and Step Mode (plan → approve → execute) to scale from “careful human oversight” toward “safe automation”.
+## Current work and evidence
 
----
+Theia's active build/run workspace is `ide/`. Use [the existing IDE workflow](docs/theia/WTI_IDE_WORKFLOW.md) and its prerequisites; this docs proposal makes no dependency or migration claim. Secret loading behavior is documented there and implemented in [ide/run.sh](ide/run.sh).
 
-## The sales pitch: from “crazy idea” to “shipped reality”
+The existing Graph preview is fixture-backed, with no demonstrated active ledger ingestion. CLI Adapter now owns a separate, explicitly configured read-only Git-ledger-to-Graph slice; the initial source is a dedicated localhost bare Git repository with one agent-written status branch. CLI Adapter is proving two local pushes and explicit refresh; completion is not claimed here. CLI adapter research owns Graph integration, Lab owns portable UI/fixtures and Triage provides the communication relay. Reported tests and remaining gaps are recorded separately in [operator supervision](docs/specs/operator-supervision.md#evidence-currently-available).
 
-Using AI effectively requires careful, focused expression of intent. WTI-AI is designed to make that practical inside your real repository:
+The harness is intended to work independently of its GUI. GKE/Quarkus deployment designs remain recoverable options in [the roadmap router](MASTER_PLAN.md); this workflow does not require choosing the deployment stack first.
 
-1. You describe a goal (often ambiguous).
-2. The system helps you refine it into an **actionable plan**.
-3. Agents produce and maintain **durable artifacts** (goals/specs/plans/ADRs/tests) so progress compounds instead of resetting each chat.
-4. You approve changes at the right level:
-   - early: more docs/spec changes, fewer code changes
-   - later: more code diffs, fewer doc diffs
-5. Over time, as artifacts and behavior become trustworthy, you automate more of the workflow—with less oversight and more design intervention.
-6. When a feature's requirements change or something breaks, the stored decisions and the reasons for making them become invaluable.
-7. When a reviewer, human or otherwise, points out a problem, new goals and features can be started, spec's updated and tests entirely automated.
----
+## LISA activities
 
-## Feature lifecycle (how work matures)
+1. **Locate** — find the relevant sources.
+2. **Investigate** — examine evidence and constraints.
+3. **Solve** — carry out bounded work.
+4. **Assess** — verify, record outcomes and choose the next action.
 
-A typical WTI feature matures through stages. The key idea is deliberate progression from intent → clarity → implementation → verification.
+These activities support the delivery flow without prescribing a fixed GUI layout.
 
-Recommended lifecycle (artifacts):
+### Current evaluation and next panel slice
 
-1. **Triage** → capture the intent as a goal (`docs/goals/*`)
-2. **Spec** → define behavior and acceptance criteria (`docs/specs/*`)
-3. **ADR (if needed)** → record architecture decisions (`docs/adr/*`)
-4. **Plan** → sequence work and gates (`docs/plans/*`) or a task context
-5. **Implement** → small, reviewable diffs
-6. **Verify** → tests/diagnostics (run only with approval gates)
-7. **Certify docs** → promote key docs to `status: CERTIFIED` when reviewed
+Conductor and LISA remain active design work. Generated prompts continue to inform that design and prompt assembly. Task-context reading and authority follow [the prompt router](./.prompts/PURPOSE.md) and [AGENTS.md](./AGENTS.md).
 
-Note: there are triage-level guidance docs (non-authoritative):
-- [`docs/0_triage/workflow/feature-lifecycle-and-maturity.md`](./docs/0_triage/workflow/feature-lifecycle-and-maturity.md) (`status: UNREVIEWED`)
-- [`docs/0_triage/workflow/role-based-reading-and-trust.md`](./docs/0_triage/workflow/role-based-reading-and-trust.md) (`status: UNREVIEWED`)
+System reports that both the Codex and LISA arms passed clean and delayed reload in the tiny synthetic comparison. Wrong builds were rejected before scoring. This was one comparison in a fixed order, with different cache usage between arms. The results establish success for the exercised checks under those conditions. Relative performance and the broader orchestration design require further evidence.
 
----
+The team's next Theia panel direction starts with synthetic fixtures. A separate supervision panel should make run state and supporting evidence inspectable. Proposed checks focus on observable panel behavior.
 
-## How the symphony works: Conductor + agent voices
+- Show the responsible agent, next action, and any blocking condition.
+- Let the operator open the evidence supporting the displayed result.
+- Exercise clean and delayed reload against an identified fixture/build.
+- Make fixture-derived state and results visibly attributable to that fixture.
 
-In the intended model:
+Live execution and control behavior need separate evaluation. The synthetic comparison leaves multi-agent coordination, interruption, retry safety and knowledge promotion unverified. Further comparisons with a plain CLI workflow should assess useful operator visibility alongside delivery quality, latency and coordination effort.
 
-- The **Conductor** listens to your request, asks specialist agents for help, and proposes a structured plan.
-- As you refine your request, agents improve the recorded spec and plan, with explicit approval.
-- As the feature matures, your approvals shift from “lots of documentation diffs” toward “mostly code + tests”.
-- The end state is repeatable: tests pass, the feature is complete, and docs are upgraded to certified truth.
+## Documentation authority
 
----
+Only `status: CERTIFIED` establishes repository document authority. Location, generated status and the word “current” do not certify a proposal. See [the docs system](docs/features/doc-system-spec.md) and [documentation router](docs/PURPOSE.md). Direct user instructions continue to govern within system and permission limits.
 
-## Agent personalities + responsibilities
-
-These are the intended “personalities” in the platform model. Some are already reflected in how work is performed in this repo (especially the rules), even if the full multi-agent runtime is not yet implemented.
-
-- **Conductor** (planned): orchestrator and state machine; owns dispatch, transitions, and approval gates.
-- **Scout / Navigator**: read-only context retrieval; finds relevant routers/docs/code.
-- **Planner**: produces a plan/task context with acceptance criteria.
-- **Coder**: proposes code/doc changes as small diffs.
-- **Reviewer / Validator**: checks diffs against rules, acceptance criteria, and repo reality.
-- **Tester**: defines and runs verification strategy (tests/diagnostics) when approved.
-- **Compliance / Safety** (optional): enforces trust rules and prevents secret leakage.
-- **Guru** (internet-connected; unable to write repo content):
-  - Q&A only for general knowledge.
-  - Never receives repo secrets.
-  - Never executes tasks.
-  - Must not be used to process or summarize private repo content.
-
----
-
-## What’s implemented today (repo reality)
-
-### 1) Theia IDE build/run scripts (`ide/`)
-
-A Theia browser IDE workspace is built and run from the standalone `ide/` pnpm workspace.
-
-- Canonical workflow: [`docs/theia/WTI_IDE_WORKFLOW.md`](./docs/theia/WTI_IDE_WORKFLOW.md)
-- Helper scripts live in `ide/` (e.g. `build.sh`, `run.sh`, `watch.sh`, `test.sh`, `clean.sh`).
-
-### 2) Secret loading via env-file directory (`WTI_AI_ENV_FILES`)
-
-`ide/run.sh` supports loading secrets from a directory pointed to by `WTI_AI_ENV_FILES`.
-
-Behavior (as implemented):
-- For each file in the directory:
-  - env var name = file basename
-  - env var value = file contents
-
-Source of truth: [`ide/run.sh`](./ide/run.sh)
-
-### 3) Documentation taxonomy + trust model
-
-This repo treats documentation as a first-class system.
-
-- **Authority is determined by frontmatter**:
-  - Only documents with `status: CERTIFIED` are authoritative.
-  - Folder location is **not** authoritative (including `docs/5_certified/`).
-- Taxonomy hubs:
-  - [`docs/README.md`](./docs/README.md) — taxonomy + status header rules
-  - [`docs/PURPOSE.md`](./docs/PURPOSE.md) — router for doc areas
-- Operating rules and safety gates:
-  - [`AGENTS.md`](./AGENTS.md)
-
----
-
-## What’s planned / in progress (vision)
-
-These items are referenced in docs and plans, but are not fully implemented in this repo yet.
-
-### `conductor` (Quarkus orchestration control plane)
-
-A Quarkus service intended to own planning, step mode, and multi-agent orchestration.
-
-- Roadmap context: [`MASTER_PLAN.md`](./MASTER_PLAN.md)
-- Certified term definition: [`docs/5_certified/WTI_AI_GLOSSARY.md`](./docs/5_certified/WTI_AI_GLOSSARY.md)
-
-### MCP tool services (least privilege)
-
-Planned MCP services provide tools like `rg` and filesystem reads with least-privilege boundaries.
-
-- Roadmap context: [`MASTER_PLAN.md`](./MASTER_PLAN.md)
-- Certified term definition: [`docs/5_certified/WTI_AI_GLOSSARY.md`](./docs/5_certified/WTI_AI_GLOSSARY.md)
-
-### Step Mode gating (plan → approve → execute)
-
-Default safety model (planned): the system produces a plan, a human approves it, then the system executes bounded steps.
-
-- Safety/approval gating rules today: [`AGENTS.md`](./AGENTS.md)
-- Roadmap context: [`MASTER_PLAN.md`](./MASTER_PLAN.md)
-
-### Long-lived curated contexts + durable artifacts (avoid “Ralph loops”)
-
-Planned: curate durable artifacts (plans, decisions, outcomes) and re-use them across loop iterations to prevent low-signal repetition.
-
-- Goal doc: [`docs/goals/conductor-lisa-loops.md`](./docs/goals/conductor-lisa-loops.md)
-
----
-
-## Quick start (quick & dirty)
-
-Canonical instructions live in [`docs/theia/WTI_IDE_WORKFLOW.md`](./docs/theia/WTI_IDE_WORKFLOW.md). This section is the minimum.
-
-### Prereqs
-
-- Node.js **20.x** (see `ide/.nvmrc`)
-- `corepack` enabled (the scripts handle this best-effort)
-
-### Build + run
-
-```bash
-cd ide
-./build.sh
-./run.sh
-```
-
-- Default port: `1771`
-- Override: `WTI_IDE_PORT=1771` (or any port)
-
-### Secure env-file workflow (recommended)
-
-Create a private directory of secret files:
-
-```bash
-mkdir -p -m 700 ~/.wti/.secure/env
-```
-
-Put secrets in files, one per environment variable.
-
-Example for `OPENAI_API_KEY`:
-
-```bash
-printf '%s' "$OPENAI_API_KEY" > ~/.wti/.secure/env/OPENAI_API_KEY
-chmod 600 ~/.wti/.secure/env/OPENAI_API_KEY
-```
-
-Point the IDE runner at that directory (e.g., in your shell rc):
-
-```bash
-export WTI_AI_ENV_FILES=~/.wti/.secure/env
-```
-
----
-
-## LiSA loops (Conductor orchestration model)
-
-WTI’s intended orchestration loop is a deliberate state machine—**LiSA loops**—to prevent accidental, repetitive, low-signal “Ralph loops”.
-
-Phases:
-
-1. **Locate** — identify the correct sources of truth (routers, certified docs, code).
-2. **Investigate** — gather evidence and constraints; confirm repo reality.
-3. **Solve** — implement bounded changes with explicit steps and artifacts.
-4. **Assess** — verify outcomes (tests/diagnostics), update docs, decide next transition.
-
-Design goal reference:
-- [`docs/goals/conductor-lisa-loops.md`](./docs/goals/conductor-lisa-loops.md)
-
----
-
-## Features table generation from `docs/features/` (manual for now)
-
-`docs/features/` is a legacy area (see [`docs/PURPOSE.md`](./docs/PURPOSE.md)). A lightweight, manual approach is to generate a README table by prompting an agent to summarize each doc.
-
-### Slash command / prompt
-
-Copy/paste this into your IDE chat (or ChatGPT) to generate a Markdown table:
-
-```text
-/features-table
-
-Read: docs/features/* (only the first ~200 lines of each file unless it’s shorter).
-Output: a single Markdown table with columns:
-- Feature
-- Status (from frontmatter status: ...)
-- Goal (1 sentence)
-- Lifecycle/Maturity (from frontmatter if present; else blank)
-- Links (relative links)
-
-Rules:
-- Do not invent status/lifecycle/maturity if not present.
-- If a doc is missing frontmatter, mark Status as "(missing)".
-- Keep Goal factual; if unclear, write "(unclear)".
-```
-
-Planned follow-up: add a small script to generate/refresh this table automatically.
-
----
-
-## Glossary & roadmap links
-
-- Certified glossary: [`docs/5_certified/WTI_AI_GLOSSARY.md`](./docs/5_certified/WTI_AI_GLOSSARY.md)
-- Infra/product roadmap context: [`MASTER_PLAN.md`](./MASTER_PLAN.md)
+Generated prompts remain active design and workflow evidence. Follow [their router](.prompts/PURPOSE.md) for reading boundaries; a preserved task context is not an instruction to execute its old task.
