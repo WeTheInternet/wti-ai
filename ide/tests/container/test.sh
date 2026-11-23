@@ -15,9 +15,11 @@ fi
 # Never copy node_modules, ignored credentials, other repositories or host home.
 python3 "$container_dir/snapshot.py" "$repo_root" "$run_dir/source.tar"
 sha256sum "$run_dir/source.tar" > "$run_dir/source.sha256"
-podman image inspect "$image_tag" --format '{{.Id}}' > "$run_dir/image-id.txt"
+image_id=$(podman image inspect "$image_tag" --format '{{.Id}}')
+printf '%s\n' "$image_id" > "$run_dir/image-id.txt"
 printf 'Results: %s\n' "$run_dir"
+mkdir "$run_dir/artifacts"
 podman run --rm --shm-size=1g \
     --volume "$run_dir/source.tar:/input/source.tar:ro" \
-    --volume "$run_dir:/results:rw" \
-    "$image_tag"
+    --volume "$run_dir/artifacts:/results:rw" \
+    "$image_id"

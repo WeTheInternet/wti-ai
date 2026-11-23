@@ -23,8 +23,8 @@ terminal; the scripts do not bypass that restriction.
 
 `test.sh` snapshots Git-known, non-ignored files under `ide/`, including working
 changes and new files. Deleted files are skipped; symlinks require manual review.
-The archive is mounted read-only. Only the new results directory is mounted
-writable. No home, credentials, container socket, host networking or published
+The archive is mounted read-only. Only the run’s `artifacts/` subdirectory is mounted writable. The host keeps the
+source archive and provenance files in its parent directory. No home, credentials, container socket, host networking or published
 ports are used. The container is root inside a rootless user namespace, not host
 root. The IDE binds to container loopback through the smoke-test fixture.
 
@@ -37,7 +37,7 @@ under `${XDG_STATE_HOME:-$HOME/.local/state}/wti-ai/`, separate from the checkou
 and `/tmp`. Both build and test commands create a timestamped directory and record
 stdout/stderr starting before preflight checks, start/end times and the real exit
 code. Test runs also record Git HEAD, working status and the exact source archive
-checksum. Browser artifacts are retained there. If the state directory cannot be
+checksum. Browser output is retained under `artifacts/test-results/`. If the state directory cannot be
 created, the command fails before validation. A missing `exit-code.txt` means the
 run did not finalize (for example, a power loss); it is not a passing result.
 

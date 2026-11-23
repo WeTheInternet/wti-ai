@@ -12,7 +12,7 @@ test.describe('wti-ide smoke', () => {
       const chat = page.locator('#chat-view-widget');
       if (!await chat.isVisible()) {
         // Theia 1.77's aiChat:toggle binding reveals the collapsed right panel.
-        await page.keyboard.press('Control+Alt+i');
+        await page.keyboard.press(process.platform === 'darwin' ? 'Control+Meta+i' : 'Control+Alt+i');
       }
       await expect(chat).toBeVisible();
 

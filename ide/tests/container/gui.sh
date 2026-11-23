@@ -12,14 +12,15 @@ if ! podman image exists "$image_tag"; then
 fi
 python3 "$container_dir/snapshot.py" "$repo_root" "$run_dir/source.tar"
 sha256sum "$run_dir/source.tar" > "$run_dir/source.sha256"
-podman image inspect "$image_tag" --format '{{.Id}}' > "$run_dir/image-id.txt"
+image_id=$(podman image inspect "$image_tag" --format '{{.Id}}')
+printf '%s\n' "$image_id" > "$run_dir/image-id.txt"
 printf 'After startup, open http://127.0.0.1:1771 . Ctrl+C stops the GUI.\n'
 printf 'Editable workspace: %s (shown as /workspace inside the IDE)\n' "$repo_root"
 podman run --rm --name wti-ai-gui --init --shm-size=1g \
     --publish 127.0.0.1:1771:1771 \
     --volume "$run_dir/source.tar:/input/source.tar:ro" \
     --volume "$repo_root:/workspace:rw" \
-    --entrypoint bash "$image_tag" -c '
+    --entrypoint bash "$image_id" -c '
 set -euo pipefail
 tar -xf /input/source.tar -C /work
 mkdir -p "$THEIA_CONFIG_DIR"
