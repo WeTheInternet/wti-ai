@@ -59,12 +59,16 @@ From the repository root:
 bash ide/tests/container/gui.sh
 ```
 
-After the build/startup output, open http://127.0.0.1:1771. This reuses the existing
+After the build/startup output, open http://localhost:1771. Markdown preview uses a
+webview subdomain of `localhost`. This reuses the existing
 image (no apt run), but installs and builds a fresh snapshot of the current IDE
 source. Separately, the GUI mounts the **entire checkout** writable at
 `/workspace` so editor saves persist. This mount includes ignored files such as
 `.env` and `.env.*`. Remove repository-local credentials or launch from a clean
 checkout before starting the GUI. The host home directory is outside the mount.
+The launcher leaves the shared checkout’s SELinux labels untouched. GUI access
+on an SELinux-enforcing host depends on its existing mount permissions and
+labels. The GUI has been validated on Ubuntu with SELinux disabled.
 
 The GUI opens a container-local copy of the workspace configuration with
 `/workspace` as its only folder, preserving the checked-in watcher and search
