@@ -21,3 +21,7 @@ A plan should include:
 ## Current reconciliation
 
 - [Bounded documentation reconciliation](docs-reconciliation.md)
+
+## Operational proposals
+
+- [Crew ledger runbook](crew-ledger-runbook.md) — publisher ownership, reporting, host-specific inspection, Git verification and missing/stale reports. Adoption decisions remain explicit.
