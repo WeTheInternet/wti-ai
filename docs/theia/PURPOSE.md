@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - wti
-lastUpdated: 2026-02-17T00:00:00Z
+lastUpdated: 2026-11-22T23:25:11Z
 verification:
   - "(manual) Links resolve and canonical workflow is clearly identified"
 ---
@@ -22,3 +22,7 @@ Routing hub for Theia-related documentation in this repository.
 ## Repo boundaries
 
 - `REPO_BOUNDARIES.md`
+
+## Supervision design
+
+- [Operator supervision draft](../specs/operator-supervision.md) — requirements and attributed evidence, separate from build/run instructions.

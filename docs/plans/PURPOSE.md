@@ -11,9 +11,13 @@ changelog:
 
 # PURPOSE
 
-Approved work plans and execution playbooks.
+Work plans and execution playbooks. Approval is recorded separately; placement here does not establish approval.
 
 A plan should include:
 - acceptance criteria
 - steps with explicit approval gates
 - verification checklist
+
+## Current reconciliation
+
+- [Bounded documentation reconciliation](docs-reconciliation.md)

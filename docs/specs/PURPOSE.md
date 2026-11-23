@@ -6,7 +6,7 @@ roles:
   - engineer
 authors:
   - JamesXNelson
-lastUpdated: 2026-02-16T00:00:00Z
+lastUpdated: 2026-11-22T23:25:11Z
 verification:
   - "(manual) Specs contain acceptance criteria and do not embed agent operating rules"
 ---
@@ -28,3 +28,9 @@ May reference:
 Do not place:
 - raw imports (use `docs/0_triage/`)
 - generated indexes (use `docs/status/`)
+
+## Current workflow drafts
+
+- [Feature delivery](agent-workflow.md)
+- [Project knowledge](project-knowledge.md)
+- [Operator supervision](operator-supervision.md)

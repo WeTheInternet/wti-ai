@@ -1,0 +1,215 @@
+# WTI Agentic Dev Platform — Master Plan (DEV → PROD)
+
+> Targets: GKE Autopilot + Envoy Gateway now, Istio later.  
+> UI: Theia. Orchestration: Quarkus `conductor`. Tools: MCP (`rg`/filesystem) read-only first.
+
+---
+
+## 0. Glossary
+- **demo**: Theia web frontend (`demo.wti.net`)
+- **conductor**: Quarkus control plane (`conductor.wti.net`)
+- **mcp**: MCP tool endpoints (`mcp.wti.net/fs`, `/git`, ...)
+- **workspace**: shared repo volume mounted at `/opt/workspace`
+
+---
+
+## 1. Goals
+1. Theia provides IDE shell + custom UI panels (threaded convos, approvals, streaming).
+2. `conductor` owns prompt parsing (javacc), planning, multi-agent workflow, cancellation.
+3. MCP servers provide repo access (ripgrep + file_get), sandboxed to `/opt/workspace`.
+4. Default safety: **Step Mode** (plan → approve → execute), tool approvals ON.
+5. DEV cluster first (`wti-dev`), then rebuild as PROD (`wti-ai`).
+
+---
+
+## 2. Traffic & Control Flow
+### 2.1 Default request path
+Theia UI → `conductor` → OpenAI API → (tool calls) → `mcp` → back to `conductor` → Theia UI
+
+### 2.2 Why keep external `conductor` even if Theia supports OpenAI
+- `conductor` keeps prompt parsing + dispatch rules out of model prompts.
+- `conductor` implements plan gating + fan-out/fan-in merge logic.
+- Theia “direct LLM provider” remains optional for quick ad-hoc use.
+
+---
+
+## 3. Domains (no wildcard certs)
+**DEV (now):**
+- `demo.wti.net` (Theia)
+- `conductor.wti.net` (Quarkus)
+- `mcp.wti.net` (Envoy Gateway; path-based routing)
+
+**Later:**
+- `api.wti.net` (shared APIs)
+- `src.wti.net` (read-only workspace browser)
+- `repo.wti.net` (artifact mirror UI)
+
+---
+
+## 4. Security Model
+### 4.1 Edge TLS & allowlists
+- Separate cert per hostname (no wildcards).
+- Static external IP(s) for load balancers.
+- **Allowlist**:
+  - `mcp.wti.net`: OpenAI egress CIDRs + optionally home IP
+  - `conductor.wti.net`: home IP only (and maybe VPN/mobile)
+  - `demo.wti.net`: home IP only (initially)
+
+### 4.2 OpenAI allowlist source of truth
+Plan: CronJob sync from OpenAI’s published CIDR list:
+- `chatgpt-connectors.json` (used for ChatGPT calling external endpoints)
+
+CronJob will:
+1) fetch CIDR list
+2) compute allowlist
+3) update Envoy Gateway policy / config
+
+### 4.3 Internal mTLS later (mesh)
+- Add Istio after WIP works for service-to-service mTLS inside cluster.
+- Keep Gateway API/Envoy Gateway at edge so work isn’t discarded.
+
+### 4.4 Crawlers
+Not needed. Don’t expose sensitive endpoints to crawlers.
+
+---
+
+## 5. Deep Research (later)
+- Deep research workflows may require approval-free tools.
+- Introduce a separate “read-only/no-approval” tool profile later.
+
+---
+
+## 6. Region choice
+Use `us-west1` for DEV (per your measurements/preferences).
+To compare without deploying: use `gcping.com` and Google’s Region Picker.
+
+---
+
+## 7. Workspace Storage & Repo Sync
+### 7.1 Mount strategy
+- Mount shared volume at `/opt/workspace` (avoid mounting over `/opt`).
+
+### 7.2 “1 writer, many readers”
+Preferred: **RWX** volume so one sync pod can update while others read.
+- Use Filestore CSI (NFS) for RWX.
+- repo-sync pod: RW
+- Theia: RW
+- MCP: RO
+
+### 7.3 Repo update model
+Long-lived repo-sync pod does periodic fetch/reset (or your preferred strategy),
+avoiding repeated init-container reclones.
+
+---
+
+## 8. Networking (VPC-native)
+We avoid `10.128.0.0/9` because of your VPN.
+
+Suggested CIDRs (small but with headroom):
+- **Subnet (nodes primary):** `10.44.0.0/24`
+- **Pods secondary:** `10.44.8.0/21`  (2048 pod IPs)
+- **Services secondary:** `10.44.4.0/23` (512 service IPs)
+
+Names:
+- network: `wti-ai-net`
+- subnet: `wti-ai-subnet`
+- secondary ranges: `pods`, `services`
+
+---
+
+## 9. Cluster (GKE Autopilot)
+### 9.1 Required vars
+- `GOOGLE_PROJECT_ID`
+- `GKE_REGION`
+- `GKE_CLUSTER_NAME`
+- `ADMIN_IP_CIDR`  (required; used for master authorized networks)
+
+### 9.2 Control plane lockdown
+Enable master authorized networks to restrict control plane access to `ADMIN_IP_CIDR`.
+
+---
+
+## 10. Static IPs
+Reserve regional static external IP(s), named from cluster:
+- `${GKE_CLUSTER_NAME}-gw-ip` (Envoy Gateway LB)
+
+Later add:
+- `${GKE_CLUSTER_NAME}-demo-ip`
+- `${GKE_CLUSTER_NAME}-conductor-ip`
+
+---
+
+## 11. Addons
+### 11.1 cert-manager
+Install via Helm. Use DNS-01 for cert issuance once DNS is configured.
+
+### 11.2 Envoy Gateway
+Install via Helm. Use Gateway API resources (Gateway + HTTPRoute) for:
+- `demo.wti.net` → Theia service
+- `conductor.wti.net` → conductor service
+- `mcp.wti.net/fs` → mcp-fs service
+
+Bind static IP by setting `Gateway.spec.addresses` (type `IPAddress`) to the reserved IP.
+
+### 11.3 Canonical execution plans (router)
+Detailed infra execution lives under:
+- `docs/plans/infra/PURPOSE.md`
+
+Backlog and open questions live under:
+- `docs/0_triage/goals/setup-infra.md`
+
+---
+
+## 12. No-root container policy
+- Image runs as `wti:1000`.
+- Optional additional account `wti-admin:1337` for debug shells (not default).
+- Kubernetes: set `runAsNonRoot`, drop capabilities, read-only FS where feasible.
+
+---
+
+## 13. Build/Dev notes (Theia)
+Theia dev requires Node 22 and native deps per Theia docs:
+- see `doc/Developing.md#quick-start` in the upstream repo.
+
+We’ll build separate images for Theia and Quarkus, but keep a shared “base utils”
+layer where practical (curl, git, bash, ca-certs).
+
+---
+
+## 14. Milestones
+### Phase 0 (DEV infrastructure & skeleton apps)
+1) Create DEV cluster `wti-dev` in `us-west1`.
+2) Install cert-manager + Envoy Gateway.
+3) Stand up shared workspace volume.
+4) Deploy skeleton:
+   - Theia (demo)
+   - Quarkus conductor (stub endpoints)
+   - MCP fs (rg + file_get)
+
+Exit: Theia can call conductor; conductor can call MCP; end-to-end request works.
+
+#### Phase 0 edge vertical slice (concrete)
+Serve HTTPS for `conductor.wti.net` through Envoy Gateway with cert-manager DNS-01:
+- Plan: `docs/plans/kube-infra.md`
+- Backlog: `docs/0_triage/goals/setup-infra.md`
+
+### Phase 1 (tightening + step mode)
+1) Add allowlist CronJob for OpenAI CIDRs.
+2) Add Step Mode UI (plan/approve).
+3) Add repo-sync pod.
+
+### Phase 2 (multi-agent workflow)
+1) Dispatcher creates plan with dependencies.
+2) Workers execute bounded tasks.
+3) Dispatcher merges results.
+
+### Phase 3 (mesh)
+1) Add Istio internal mTLS.
+2) Adopt ACP if/when Theia ecosystem makes it clearly beneficial.
+
+---
+
+## 15. Graduation
+When DEV is stable, re-run Terraform with:
+- `cluster_name = "wti-ai"`
+and migrate DNS/certs, then scale down DEV.

@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-02-16T00:00:00Z
+lastUpdated: 2026-11-23T00:24:36Z
 verification:
   - "(manual) Subdirectory PURPOSE.md files exist for all major doc areas"
 ---
@@ -42,7 +42,7 @@ Generated/index content is not authoritative unless it is explicitly `status: CE
 - `teams/` — team charters and roles
   - `teams/PURPOSE.md`
 
-- `features/` — legacy feature specs/notes (keep for now)
+- `features/` — feature-specific specs and notes of mixed maturity
   - `features/PURPOSE.md`
 
 - `status/` — generated indexes only (non-authoritative)
@@ -50,5 +50,12 @@ Generated/index content is not authoritative unless it is explicitly `status: CE
 
 - `theia/` — Theia integration notes
 
-- `trash/` — staging area for deletions (ignored by agents)
-  - `trash/PURPOSE.md`
+
+## Current design and source history
+
+- [Conductor/LISA goal](goals/conductor-lisa-loops.md)
+- [Delivery workflow](specs/agent-workflow.md)
+- [Project knowledge](specs/project-knowledge.md)
+- [Operator supervision](specs/operator-supervision.md)
+- [Reconciliation plan](plans/docs-reconciliation.md)
+- [Recoverable history](history/PURPOSE.md)
