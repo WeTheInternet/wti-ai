@@ -45,9 +45,11 @@ The smoke test verifies the workbench, chat view and the registered Infra agent'
 configuration details using a temporary profile. It enables AI UI only in that
 profile, supplies no model credentials and sends no prompts. The build downloads the pinned Markdown preview extension from Open VSX.
 
-Validation: the rootless Ubuntu container run completed successfully on
-2026-11-22 at 02:31:40 UTC: frozen installation, native loading, Infra compilation,
-IDE bundling and browser smoke (`1 passed`). That run predates the Markdown extension deployment.
+The November 23 UTC validation of commit `88a47d53` completed the frozen
+install, native module checks, Infra compile, Markdown-enabled IDE build and
+all four Playwright cases. A focused browser check opened a Markdown file and
+verified its heading in the rendered preview webview. See PR #3 for the latest
+validated head and lifecycle regression results.
 
 ## Explore the GUI locally
 

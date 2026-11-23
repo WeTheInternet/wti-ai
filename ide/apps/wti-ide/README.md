@@ -42,11 +42,11 @@ publicly hoists only native assets that Theia resolves from the application root
 
 ### Validation
 
-The rootless Ubuntu 24.04 container run completed successfully on 2026-11-22
-at 02:31:40 UTC with Node 24.22.3 and pnpm 9.15.5: frozen install including native
-modules, InfraAgent compilation, IDE bundling, frontend startup and Playwright
-smoke (`1 passed`). The smoke verifies the registered Infra agent in AI settings.
-No credentials or model prompts were used. The optional theme installer is separate from the Markdown plugin deployment.
+The rootless Ubuntu harness checks the frozen install, native modules, Infra
+compilation, Markdown-enabled IDE build, lifecycle and browser smoke. At
+`88a47d53` all four Playwright cases passed and a focused browser check
+confirmed that the pinned plugins rendered Markdown in a preview webview.
+The optional theme installer is separate from the Markdown plugin deployment.
 
 For reproducible validation or a local GUI using the cached container image, see
 [container instructions](../../tests/container/README.md).

@@ -9,7 +9,7 @@ import { startTheia } from '../fixtures/start-theia';
 // a backend stand-in that launches a long-lived child.
 test.describe('Theia process lifecycle', () => {
   test.describe.configure({ mode: 'serial' });
-  for (const mode of ['ready', 'exit', 'timeout']) {
+  for (const mode of ['ready', 'exit', 'late-exit', 'timeout']) {
     test(`${mode}: isolates config and cleans up backend and child`, async () => {
       if (mode === 'timeout') test.setTimeout(10_000);
       test.skip(process.platform === 'win32', 'POSIX process groups');
@@ -31,10 +31,11 @@ test.describe('Theia process lifecycle', () => {
       await writeFile(backendPath, `
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
+process.on('SIGUSR2', () => process.exit(23));
 const child = spawn(process.execPath, ['-e', 'process.on("SIGTERM", () => {}); setInterval(() => {}, 1000)'], { stdio: 'inherit' });
 fs.writeFileSync(${JSON.stringify(receipt)}, JSON.stringify({ config: process.env.THEIA_CONFIG_DIR, child: child.pid, parent: process.pid }));
 if (${JSON.stringify(mode)} === 'exit') setTimeout(() => process.exit(23), 150);
-else if (${JSON.stringify(mode)} === 'ready') require('node:http').createServer((req, res) => res.end('ready')).listen(${port}, '127.0.0.1');
+else if (['ready', 'late-exit'].includes(${JSON.stringify(mode)})) require('node:http').createServer((req, res) => res.end('ready')).listen(${port}, '127.0.0.1');
 else setInterval(() => {}, 1000);
 `);
       process.env.THEIA_CONFIG_DIR = inheritedConfig;
@@ -51,6 +52,14 @@ else setInterval(() => {}, 1000);
             expect(record.config).not.toBe(firstRecord.config);
             expect(record.config).not.toBe(inheritedConfig);
           } finally { await second.dispose(); }
+        } else if (mode === 'late-exit') {
+          const started = active = await startTheia({ backendPath, port, timeout: 5_000 });
+          const closed = new Promise<void>(resolve => started.proc.once('close', () => resolve()));
+          started.proc.kill('SIGUSR2');
+          await closed;
+          await expect(started.dispose()).rejects.toThrow('code=23');
+          await expect(started.dispose()).rejects.toThrow('code=23');
+          active = undefined;
         } else {
           await expect(startTheia({ backendPath, port, timeout: mode === 'timeout' ? 1_000 : 5_000 }))
             .rejects.toThrow(mode === 'exit' ? 'code=23' : 'Timed out waiting');

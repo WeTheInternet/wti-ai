@@ -34,9 +34,10 @@ export async function startTheia(params?: { port?: number; timeout?: number; bac
 
   let failure: Error | undefined;
   let closed = false;
+  let stopping = false;
   proc.once('error', error => { failure = error; });
   proc.once('exit', (code, signal) => {
-    failure ??= new Error(`Theia exited before/during test (code=${code}, signal=${signal})`);
+    if (!stopping) failure ??= new Error(`Theia exited before/during test (code=${code}, signal=${signal})`);
   });
   proc.once('close', () => { closed = true; });
 
@@ -52,7 +53,8 @@ export async function startTheia(params?: { port?: number; timeout?: number; bac
   }
 
   let disposal: Promise<void> | undefined;
-  const dispose = (): Promise<void> => disposal ??= (async () => {
+  const cleanup = (): Promise<void> => disposal ??= (async () => {
+    stopping = true;
     signalGroup('SIGTERM');
     const deadline = Date.now() + 3_000;
     while (signalGroup(0) && Date.now() < deadline) await delay(50);
@@ -65,7 +67,7 @@ export async function startTheia(params?: { port?: number; timeout?: number; bac
   })();
 
   // Also clean up on unexpected server exit after a successful start.
-  proc.once('close', () => { void dispose().catch(error => console.error('Theia cleanup failed:', error)); });
+  proc.once('close', () => { void cleanup().catch(error => console.error('Theia cleanup failed:', error)); });
   try {
     const deadline = Date.now() + (params?.timeout ?? 120_000);
     while (true) {
@@ -82,10 +84,16 @@ export async function startTheia(params?: { port?: number; timeout?: number; bac
       }
       await delay(100);
     }
-    return { port, url, proc, dispose };
+    return {
+      port, url, proc,
+      async dispose() {
+        await cleanup();
+        if (failure) throw failure;
+      }
+    };
   } catch (error) {
     try {
-      await dispose();
+      await cleanup();
     } catch (cleanupError) {
       // Keep the actual startup failure as the primary error.
       console.error('Theia cleanup failed after startup error:', cleanupError);
