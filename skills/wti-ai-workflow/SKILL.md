@@ -1,6 +1,6 @@
 ---
 name: wti-ai-workflow
-description: Route personal WTI-AI work to the right actor and environment, validate Theia IDE changes with the rootless Podman harness, and checkpoint work across agent handoffs or restarts. Use when choosing who should act, recovering blocked local execution, or deciding which evidence supports a validation claim.
+description: Route personal WTI-AI work to the right actor and environment, validate Theia IDE changes with the rootless Podman harness, and track work and launched resources across handoffs or restarts. Use when choosing who should act, recording or cleaning up resources, recovering blocked local execution, or deciding which evidence supports a validation claim.
 ---
 
 # WTI-AI workflow
@@ -38,3 +38,6 @@ or is unreachable before asking for a ping.
 Use [work ledgers and resumption](references/work-ledger.md) when pausing, handing
 off work, or resuming after interruption. Record the existing work identity and
 link exact evidence so the next owner can continue from the checkpoint.
+For a launched or allocated resource that needs a cleanup owner, create a
+[resource receipt](references/work-ledger.md#resource-receipts) at launch.
+Update it at handoff and stop, including who owns cleanup.
