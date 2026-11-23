@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-11-23T00:28:53Z
+lastUpdated: 2026-11-23T01:41:28Z
 verification:
   - "Source and direction review pending; no runtime behavior certified"
 ---
@@ -47,7 +47,7 @@ A smallest proposed exercise can test that handover with one lead and two worker
 
 The recovered threaded editor proposes stable source anchors, comments, focused deliberation and accepted replacement text. This addresses editing intent; runtime supervision addresses ongoing work. Retain the former as a linked design without requiring its entire implementation for the first supervision slice.
 
-The seven workflow steps do not require seven panes. LISA describes useful activities without prescribing a phase-selector UI or particular renderer.
+The seven workflow steps do not require seven panes. LISA (Locate, Investigate, Solve, Assess) describes useful activities without prescribing a phase-selector UI or particular renderer.
 
 ## Evidence currently available
 
@@ -83,4 +83,4 @@ These are proposed checks. Require an evidence record before marking any one exe
 
 ## Provenance
 
-[Seed workbench and controls](../history/snapshots/recovered-design/intent/reference/original-seed/theia.md#L43-L98), [verified handoff](../history/snapshots/recovered-design/intent/reference/original-seed/handoff.md#L24-L55), [threaded editor](../history/snapshots/recovered-design/intent/threaded-chat-view.md#L7-L67), [portable sidebar boundary](../history/snapshots/recovered-design/.prompts/task-contexts/Theia-Orchestrator-Sidebar-Panel.md#L98-L175).
+[Seed workbench and controls](../history/snapshots/recovered-design/intent/reference/original-seed/theia.md?plain=1#L43-L98), [verified handoff](../history/snapshots/recovered-design/intent/reference/original-seed/handoff.md?plain=1#L24-L55), [threaded editor](../history/snapshots/recovered-design/intent/threaded-chat-view.md?plain=1#L7-L67), [portable sidebar boundary](../history/snapshots/recovered-design/.prompts/task-contexts/Theia-Orchestrator-Sidebar-Panel.md?plain=1#L98-L175).

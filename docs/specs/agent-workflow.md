@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-11-23T00:55:55Z
+lastUpdated: 2026-11-23T01:41:28Z
 verification:
   - "Role direction supplied by The Human; implementation and proposed recovery mechanics not certified"
 ---
@@ -92,7 +92,7 @@ Budget coordination and verification effort before the exercise. Compare deliver
 
 ## Provenance and open implementation choices
 
-[Recovered fast paths and deliberate transitions](../history/snapshots/recovered-design/intent/delta-from-seed.md#L22-L45), [revisioned interpretation](../history/snapshots/recovered-design/intent/reference/original-seed/interpretation.md#L108-L147), and [verified handoff](../history/snapshots/recovered-design/intent/reference/original-seed/handoff.md#L24-L55) preserve useful prior design. The older [worker pause rule](../history/snapshots/recovered-design/intent/worker.md#L32-L40) differs from The Human's later autonomous-default decision and should not silently override it.
+[Recovered fast paths and deliberate transitions](../history/snapshots/recovered-design/intent/delta-from-seed.md?plain=1#L22-L45), [revisioned interpretation](../history/snapshots/recovered-design/intent/reference/original-seed/interpretation.md?plain=1#L108-L147), and [verified handoff](../history/snapshots/recovered-design/intent/reference/original-seed/handoff.md?plain=1#L24-L55) preserve useful prior design. The older [worker pause rule](../history/snapshots/recovered-design/intent/worker.md?plain=1#L32-L40) differs from The Human's later autonomous-default decision and should not silently override it.
 
 The transport, runtime process count, storage engine and deployment architecture remain implementation choices. This contract does not adopt Quarkus, GKE, Deephaven, a fixed graph schema or a particular GUI renderer.
 

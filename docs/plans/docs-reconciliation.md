@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-11-23T00:28:53Z
+lastUpdated: 2026-11-23T01:41:28Z
 verification:
   - "Draft source reconciliation; no runtime behavior certified"
 ---
@@ -69,7 +69,7 @@ These are identified changes, not untracked omissions or adoption of the recover
 
 ## Closure checks
 
-- Privately verify every copied snapshot against its pinned Git blob; every selected source has a public snapshot row and private provenance mapping.
+- Privately verify every copied snapshot against its pinned Git blob. Each non-withheld selected source has a public snapshot row and private provenance mapping; verify withheld sources only through private provenance and keep them out of public navigation.
 - Verify maintained relative links and planned path replacements, and verify original locators privately; separate preserved-source link defects from current navigation defects.
 - Preserve generated prompts, original dissent and seed details; show the current destination or preserved source for each removed root-doc claim.
 - Keep direct user direction, proposal, source observation, owner report and tested behavior distinct.

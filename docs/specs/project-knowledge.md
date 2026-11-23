@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-11-23T00:55:55Z
+lastUpdated: 2026-11-23T01:41:28Z
 verification:
   - "Role direction supplied by The Human; implementation and proposed recovery mechanics not certified"
 ---
@@ -84,7 +84,7 @@ A later contradictory run returns through the lead, with both arguments and depe
 
 ## Provenance and remaining mechanics
 
-[Early storage and automatic-persistence proposal](../history/snapshots/recovered-design/docs/0_triage/ideas/agent-ideas.md#L3-L30); [seed classes and controlled promotion](../history/snapshots/recovered-design/intent/reference/original-seed/knowledge.md#L26-L95); [later human commitment](../history/snapshots/recovered-design/intent/knowledge.md#L13-L24); [Chronicler's record/commit distinction](../history/snapshots/recovered-design/intent/chronicler.md#L11-L81); [typed statements and retention options](../history/snapshots/recovered-design/intent/reference/original-seed/ideas.md#L16-L42).
+[Early storage and automatic-persistence proposal](../history/snapshots/recovered-design/docs/0_triage/ideas/agent-ideas.md?plain=1#L3-L30); [seed classes and controlled promotion](../history/snapshots/recovered-design/intent/reference/original-seed/knowledge.md?plain=1#L26-L95); [later human commitment](../history/snapshots/recovered-design/intent/knowledge.md?plain=1#L13-L24); [Chronicler's record/commit distinction](../history/snapshots/recovered-design/intent/chronicler.md?plain=1#L11-L81); [typed statements and retention options](../history/snapshots/recovered-design/intent/reference/original-seed/ideas.md?plain=1#L16-L42).
 
 Open mechanics: evidence criteria appropriate to each claim, whether a lead uses a separate Historian invocation, retention/deletion, concurrency and invalidation. The lead's selection responsibility is already decided.
 
