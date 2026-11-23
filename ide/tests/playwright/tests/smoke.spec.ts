@@ -1,3 +1,6 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { expect } from '@playwright/test';
 import { test } from '../fixtures/theia-test';
 
@@ -35,5 +38,32 @@ test.describe('wti-ide smoke', () => {
     await expect(infra).toBeVisible();
     await infra.click();
     await expect(configuration.getByText('Id: Infra', { exact: true })).toBeVisible();
+  });
+
+  test('renders Markdown in the preview webview', async ({ theia, page }) => {
+    const workspace = await mkdtemp(path.join(tmpdir(), 'wti-markdown-'));
+    try {
+      await writeFile(path.join(workspace, 'sample.md'), '# Rendered preview marker\n');
+      // The webview uses a subdomain; Chromium resolves *.localhost to loopback.
+      const url = new URL(theia.url);
+      url.hostname = 'localhost';
+      url.hash = workspace;
+      await page.goto(url.href);
+      await page.getByRole('button', { name: /Yes, I trust/i }).click();
+      await expect(page.locator('.theia-preload')).toHaveCount(0);
+      await page.keyboard.press('ControlOrMeta+p');
+      await page.keyboard.type('sample.md');
+      await page.getByRole('option').filter({ hasText: 'sample.md' }).first().click();
+      await expect(page.getByText('Markdown', { exact: true }).first()).toBeVisible();
+      await page.keyboard.press('ControlOrMeta+Shift+v');
+      await expect.poll(async () => {
+        for (const frame of page.frames().slice(1)) {
+          if (await frame.getByRole('heading', { name: 'Rendered preview marker', exact: true }).count()) return true;
+        }
+        return false;
+      }, { timeout: 30_000 }).toBe(true);
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
   });
 });
