@@ -23,7 +23,7 @@ Record the approved repository, exact ref, record path and publishing route. Dis
 
 **Proposed triggers:** acceptance; state, blocker or decision changes; verification that changes the record; pause; handoff; completion. Do not commit unchanged reports merely to reset age.
 
-A 30-minute active interval is only a proposal. The lead agrees a task-specific UTC due time with the writer, or sets it under explicit delegated authority. Otherwise show **No due time agreed** and leave overdue unclassified. The reader's configured age threshold is a separate display rule.
+A 30-minute active interval is only a proposal. The lead agrees a task-specific UTC due time with the writer, or sets it under explicit delegated authority. Otherwise record **No due time agreed** in the approved operational record and leave overdue unclassified. The reader's configured age threshold is a separate display rule.
 
 Keep the strict summary schema unchanged. Put unsupported assignment, evidence and decision details in approved separate records; keep the compact ACTIVE record separate from the replace-in-place machine projection. Schema validity does not prove truth or safe content. Preserve source `reportedAt`, participant `updatedAt` and observation time separately. Distinguish the affected human's dependency from the agent's follow-up; do not invent an assignee.
 
@@ -40,15 +40,18 @@ Do not transfer capabilities or acceptance evidence between hosts. Portable dial
 For local inspection, substitute approved absolute repository and exact ref/path values:
 
 ```bash
+(
+export GIT_NO_LAZY_FETCH=1 GIT_NO_REPLACE_OBJECTS=1 GIT_ALLOW_PROTOCOL=''
 LEDGER_GIT_DIR='/absolute/path/to/approved-ledger.git'
 BRANCH_REF='refs/heads/assigned-status-branch'
 SUMMARY_PATH='status/summary.json'
 COMMIT=$(git --git-dir="$LEDGER_GIT_DIR" rev-parse --verify "$BRANCH_REF^{commit}") || exit 1
 BLOB=$(git --git-dir="$LEDGER_GIT_DIR" rev-parse --verify "$COMMIT:$SUMMARY_PATH") || exit 1
 git --git-dir="$LEDGER_GIT_DIR" cat-file blob "$BLOB"
+)
 ```
 
-This pins a committed read; it neither fetches nor validates the schema. For hosted refs, inspect the exact displayed commit through the approved source route, not a potentially stale local ref.
+This pins a committed read with lazy fetching, transport protocols and replacement objects disabled; it does not validate the schema or reproduce all reader resource limits. For hosted refs, inspect the exact displayed commit through the approved source route, not a potentially stale local ref.
 
 Record ref, commit, blob/digest, reader build, observation time and per-field comparison. Compare only displayed fields; unavailable fields mean **verification incomplete**. An unchanged-tip refresh must preserve report time. A later tip is a new observation. Matching Git proves faithful display, not completed work; ACK is not completion.
 
