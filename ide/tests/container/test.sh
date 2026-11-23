@@ -13,21 +13,7 @@ fi
 
 # Snapshot only Git-known, non-ignored IDE files, including uncommitted changes.
 # Never copy node_modules, ignored credentials, other repositories or host home.
-python3 - "$repo_root" "$run_dir/source.tar" <<'PY'
-import pathlib, subprocess, sys, tarfile
-root = pathlib.Path(sys.argv[1])
-paths = subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'ide/']).split(b'\0')
-with tarfile.open(sys.argv[2], 'w') as archive:
-    for name in sorted(set(paths)):
-        if not name:
-            continue
-        relative = pathlib.Path(name.decode())
-        source = root / relative
-        if source.is_symlink():
-            sys.exit(f'Symlink requires explicit review before container inclusion: {relative}')
-        if source.is_file():
-            archive.add(source, arcname=str(relative.relative_to('ide')), recursive=False)
-PY
+python3 "$container_dir/snapshot.py" "$repo_root" "$run_dir/source.tar"
 sha256sum "$run_dir/source.tar" > "$run_dir/source.sha256"
 podman image inspect "$image_tag" --format '{{.Id}}' > "$run_dir/image-id.txt"
 printf 'Results: %s\n' "$run_dir"

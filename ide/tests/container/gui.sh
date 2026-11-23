@@ -10,21 +10,7 @@ if ! podman image exists "$image_tag"; then
     echo 'Image missing. Run: bash ide/tests/container/build.sh' >&2
     exit 1
 fi
-python3 - "$repo_root" "$run_dir/source.tar" <<'PY'
-import pathlib, subprocess, sys, tarfile
-root = pathlib.Path(sys.argv[1])
-paths = subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'ide/']).split(b'\0')
-with tarfile.open(sys.argv[2], 'w') as archive:
-    for name in sorted(set(paths)):
-        if not name:
-            continue
-        relative = pathlib.Path(name.decode())
-        source = root / relative
-        if source.is_symlink():
-            sys.exit(f'Symlink requires explicit review before container inclusion: {relative}')
-        if source.is_file():
-            archive.add(source, arcname=str(relative.relative_to('ide')), recursive=False)
-PY
+python3 "$container_dir/snapshot.py" "$repo_root" "$run_dir/source.tar"
 sha256sum "$run_dir/source.tar" > "$run_dir/source.sha256"
 podman image inspect "$image_tag" --format '{{.Id}}' > "$run_dir/image-id.txt"
 printf 'After startup, open http://127.0.0.1:1771 . Ctrl+C stops the GUI.\n'

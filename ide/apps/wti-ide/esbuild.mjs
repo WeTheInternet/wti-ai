@@ -5,7 +5,9 @@ import { browserOptions, watch } from './gen-esbuild.browser.mjs';
 import { nodeOptions } from './gen-esbuild.node.mjs';
 
 // Preserve the optional static extension assets from the previous webpack setup.
-browserOptions.plugins.push({
+// Theia compression must run last, after all onEnd asset writers.
+// https://github.com/eclipse-theia/theia/blob/v1.77.0/dev-packages/application-manager/src/generator/bundler-generator.ts#L182-L183
+browserOptions.plugins.unshift({
     name: 'wti-extension-assets',
     setup(build) {
         build.onEnd(async result => {
