@@ -72,10 +72,10 @@
     "resolve-package-path": "^4.0.3"
   },
   "scripts": {
-    "build": "theia download:plugins && theia build --mode development",
-    "build:prod": "theia download:plugins && theia build --mode production",
+    "build": "node ./scripts/install-markdown.mjs && theia build --mode development",
+    "build:prod": "node ./scripts/install-markdown.mjs && theia build --mode production",
     "start": "theia start --mode development --hostname 0.0.0.0 --port 1771 --plugins=local-dir:plugins",
-    "watch": "theia download:plugins && theia build --watch --mode development",
+    "watch": "node ./scripts/install-markdown.mjs && theia build --watch --mode development",
     "extensions:install": "node ./scripts/install-vsix.mjs",
     "extensions:clean": "node ./scripts/install-vsix.mjs --clean"
   },
