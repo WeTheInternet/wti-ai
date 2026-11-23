@@ -4,7 +4,7 @@ teams: []
 roles: []
 authors:
   - JamesXNelson
-lastUpdated: 2026-11-23T01:41:28Z
+lastUpdated: 2026-11-23T09:43:27Z
 verification:
   - "Draft source reconciliation; no runtime behavior certified"
 ---
@@ -13,13 +13,29 @@ verification:
 
 DRAFT plan; preparation and review do not authorize runtime work. Steward owns synthesis and the proposed docs patch. This plan separates confirmed user direction, owner-reported evidence and design recommendations.
 
-## Current direction and owners
+## Recovery follow-up: explicit feedback cycles
+
+The initial reconciliation was merged in [PR #5](https://github.com/WeTheInternet/wti-ai/pull/5). Preserving the sources was a baseline, not completion of their substantive review. This bounded follow-up makes design, feedback and revision explicit in the [delivery workflow](../specs/agent-workflow.md#design-feedback-and-revision). It does not gate current delivery on a recovery audit or architecture redesign.
+
+| Recovered problem and source | Current disposition |
+|---|---|
+| Hidden coupling, failed acceptance or changed intent can require a recorded interpretation revision, not silent drift: [interpretation, lines 108–147](../history/snapshots/recovered-design/intent/reference/original-seed/interpretation.md?plain=1#L108-L147). | Carry forward as an explicit feedback loop. Conductor owns spec/direction changes; the lead revises implementation, reconciles affected work and verifies again. |
+| A checker can appear successful while validating a weak interpretation, or enforce unstated policy: [linter, lines 67–81](../history/snapshots/recovered-design/intent/reference/original-seed/linter.md?plain=1#L67-L81). | Keep verification tied to current intent and criteria, with independent challenge proportionate to the task. A green check alone does not establish the right result. No separate mandatory Linter role is adopted. |
+| Simple work must retain fast paths, while logs and accepted state remain distinct: [delta from seed, lines 22–45](../history/snapshots/recovered-design/intent/delta-from-seed.md?plain=1#L22-L45). | Already reflected in compact stage outputs and program-owned mechanics. Feedback cycles should improve delivery without imposing the full design mock on routine work. Generated prompts remain active design. |
+| Saving every true observation creates stale knowledge and authority confusion: [knowledge, lines 59–95](../history/snapshots/recovered-design/intent/reference/original-seed/knowledge.md?plain=1#L59-L95). | Already covered by [lead-selected knowledge and evidence curation](../specs/project-knowledge.md). Record temporary decisions and revisit conditions; storage and invalidation mechanisms remain open. |
+| Early implementation proposed explicit manual approvals: [orchestrator, lines 144–152](../history/snapshots/recovered-design/intent/reference/original-seed/orchestrator.md?plain=1#L144-L152). | Preserve that narrower early proposal. The Human's later [autonomous default and per-scope manual mode](../specs/agent-workflow.md#autonomous-scopes-changes-and-human-steering) govern the current design; do not restore routine approval gates by importing old text. |
+
+This is a targeted disposition, not a claim that every recovered document has been reconciled. The original manual-approval stance and the later autonomous default remain visible as different decisions. The existing follow-up list below remains open; no snapshot is rewritten or reclassified by this cut.
+
+For later operator-flow guidance and evidence boundaries, use the separately merged [crew-ledger runbook](crew-ledger-runbook.md), which distinguishes native local reading, hosted roster refresh and portable fixtures. Its scope and evidence limits do not establish automated answer delivery, resumed work or a complete Conductor runtime.
+
+## Established direction and initial owner reports
 
 The Human chose the delivery flow, autonomous default, direct steering and platform-independent harness. The latest role decision distinguishes Conductor's intent/requirements/spec/direction ownership from the feature lead's implementation and delivery ownership. Workers negotiate with their lead; spec conflicts and proposed spec changes go through the lead to Conductor, which may appeal to The Human. The lead selects what knowledge should persist; an optional Historian scribe accepts recording requests from Conductor or leads by default. Workers submit candidates through their lead. Chronicler records events and Triage remains a raw connector. The [workflow](../specs/agent-workflow.md) and [knowledge](../specs/project-knowledge.md) drafts record these decisions. Their runtime packaging remains open.
 
-System's input arrived through Triage's verified pull relay. CLI adapter research owns Graph integration, Lab owns portable UI/fixtures and Triage provides the communication relay. The existing Graph preview remains fixture-backed, without active Git-ledger ingestion. System has assigned CLI Adapter the first explicitly configured read-only Git-ledger-to-Graph slice; that assignment is not a report of delivered ingestion. System reports that the initial source is a dedicated localhost bare Git repository with one agent-written status branch. CLI Adapter is proving two local pushes followed by explicit refresh; this is a local proof in progress, not a hosted ledger or completed integration claim. This status is neither a documentation publication gate nor a delivery promise. The reported five-test run and unverified reload/build attribution are documented in [operator supervision](../specs/operator-supervision.md). Earlier synthetic comparison results are a separate evidence set.
+**Initial reconciliation evidence, not a current runtime status report.** System's input arrived through Triage's verified pull relay. CLI adapter research owns Graph integration, Lab owns portable UI/fixtures and Triage provides the communication relay. The existing Graph preview remains fixture-backed, without active Git-ledger ingestion. System has assigned CLI Adapter the first explicitly configured read-only Git-ledger-to-Graph slice; that assignment is not a report of delivered ingestion. System reports that the initial source is a dedicated localhost bare Git repository with one agent-written status branch. CLI Adapter is proving two local pushes followed by explicit refresh; this is a local proof in progress, not a hosted ledger or completed integration claim. This status is neither a documentation publication gate nor a delivery promise. The reported five-test run and unverified reload/build attribution are documented in [operator supervision](../specs/operator-supervision.md). Earlier synthetic comparison results are a separate evidence set.
 
-## Exact proposed first patch
+## Initial patch scope (merged in PR #5)
 
 | Path | Change |
 |---|---|
@@ -42,7 +58,7 @@ The snapshot index records screened local sources, current-use links and disposi
 
 The indexed snapshot selection compares an earlier historical baseline to the recovered design collection; exact refs remain in private provenance. It is not a diff against initial proposal main `9de86d6c40ccdf230db330008d32f416d04b4e65`, which includes later transport work. Its seven deletions are historical inventory evidence, never instructions to delete current-main files. Unchanged old documents remain in their existing paths and Git history.
 
-Preserve `intent/reference/Wti.jjt` separately as one byte-identical, unreviewed design grammar. The public candidate retains 71 indexed documents plus that grammar and two initial-main root versions: 74 source artifacts. Three source documents containing employer-specific material are withheld from this candidate; originals are preserved in the existing private archive. Existing remote history is unchanged. The next-cut patch base is `f5edfdc37e3c622bd347cca6e631c6a5bc04a26e`; later transport work is retained. No runtime, lockfile, credential, archive binary or infrastructure-configuration transfer is proposed.
+Preserve `intent/reference/Wti.jjt` separately as one byte-identical, unreviewed design grammar. The public candidate retains 71 indexed documents plus that grammar and two initial-main root versions: 74 source artifacts. Three source documents containing employer-specific material are withheld from this candidate; originals are preserved in the existing private archive. Existing remote history is unchanged. The initial patch base was `f5edfdc37e3c622bd347cca6e631c6a5bc04a26e`; later transport work is retained. No runtime, lockfile, credential, archive binary or infrastructure-configuration transfer is proposed.
 
 ## Explicitly separate follow-ups
 
@@ -54,10 +70,10 @@ Preserve `intent/reference/Wti.jjt` separately as one byte-identical, unreviewed
 
 These are identified changes, not untracked omissions or adoption of the recovered runtime.
 
-## Review/evaluation sequence
+## Initial review sequence and separate proposed evaluation
 
 1. Validate this docs patch with experienced knowledge/operator readers, a fresh curation reader and an independent skeptical read of the resulting draft.
-2. Keep the existing preview explicitly fixture-backed. CLI Adapter owns the separately assigned, explicitly configured read-only Git-ledger-to-Graph slice; the fixture preview does not prove that slice implemented. Apply Lab's Graph contract without inventing edges or online presence.
+2. At the initial patch baseline, keep the preview explicitly fixture-backed. CLI Adapter owns the separately assigned, explicitly configured read-only Git-ledger-to-Graph slice; the fixture preview does not prove that slice implemented. Apply Lab's Graph contract without inventing edges or online presence.
 3. Separately prepare the previously requested realistic design mock. It is neither a gate for the fixture/ledger UI work nor a mandatory flow for routine tasks. It assigns no new implementation work here. Four ordered stories:
    - autonomous happy path from user intent to usable result, with spec/criteria traceability and independent challenge of implementation and verification;
    - human redirection during in-flight work, including revision changes, stale evidence and adapter retries;
@@ -77,7 +93,7 @@ These are identified changes, not untracked omissions or adoption of the recover
 - Distinguish the role authority directly supplied by The Human from unimplemented mechanics; these drafts do not certify deployment, live control or additional execution permissions.
 - Run only static documentation/diff checks for this patch. Runtime tests belong to their separately authorized work.
 
-## Bootstrap discovery ownership
+## Bootstrap discovery ownership (initial report)
 
 The skill builder owns `xapi-bootstrap`. System reports that it is prepared and checked against XApi `ee0377b`, but not installed or shipped. The current stable procedure locator is [XApi bootstrap/README.md](https://github.com/WeTheInternet/xapi/blob/main/bootstrap/README.md). The bootstrap documents the local inputs needed to reproduce the build; these docs provide rationale and discovery without copying its recipe, install instructions or transport setup. Prepared skill status is neither a publication gate nor a shipment promise.
 
