@@ -31,6 +31,14 @@ class SnapshotTests(unittest.TestCase):
         with tarfile.open(self.archive) as archive:
             self.assertEqual(archive.getnames(), ['new.txt'])
 
+    def test_skips_ignored_files_even_if_already_tracked(self):
+        (self.root / '.gitignore').write_text('file.txt\nignored.txt\n')
+        (self.root / 'ide/ignored.txt').write_text('ignored fixture')
+        (self.root / 'ide/new.txt').write_text('included fixture')
+        snapshot(self.root, self.archive)
+        with tarfile.open(self.archive) as archive:
+            self.assertEqual(archive.getnames(), ['new.txt'])
+
     def test_rejects_each_symlink_component_before_archive(self):
         for relative in ['ide/tracked/file.txt', 'ide/tracked', 'ide']:
             with self.subTest(relative=relative):

@@ -11,8 +11,12 @@ def snapshot(root, destination):
         'git', '-C', str(root), 'ls-files', '-z', '--cached', '--others',
         '--exclude-standard', '--', 'ide/'
     ]).split(b'\0')
+    ignored_tracked = subprocess.check_output([
+        'git', '-C', str(root), 'ls-files', '-z', '--cached', '--ignored',
+        '--exclude-standard', '--', 'ide/'
+    ]).split(b'\0')
     sources = []
-    for name in sorted(set(paths)):
+    for name in sorted(set(paths).difference(ignored_tracked)):
         if not name:
             continue
         relative = pathlib.Path(name.decode())

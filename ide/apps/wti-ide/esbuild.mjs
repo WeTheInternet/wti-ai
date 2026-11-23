@@ -1,4 +1,5 @@
-import { cp, stat } from 'node:fs/promises';
+import { cp, readdir, rm, stat } from 'node:fs/promises';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import esbuild from 'esbuild';
 import { browserOptions, watch } from './gen-esbuild.browser.mjs';
@@ -10,16 +11,38 @@ import { nodeOptions } from './gen-esbuild.node.mjs';
 browserOptions.plugins.unshift({
     name: 'wti-extension-assets',
     setup(build) {
+        const source = fileURLToPath(new URL('./extensions', import.meta.url));
+        const destination = fileURLToPath(new URL('./lib/frontend/extensions', import.meta.url));
+        if (watch) {
+            // Attach optional assets to the browser build's dependency graph.
+            const marker = 'wti-extension-watch';
+            (build.initialOptions.inject ??= []).push(marker);
+            build.onResolve({ filter: /^wti-extension-watch$/ }, () => ({ path: marker, namespace: marker }));
+            build.onLoad({ filter: /.*/, namespace: marker }, async () => {
+                const watchFiles = [];
+                const watchDirs = [path.dirname(source), source];
+                try {
+                    for (const entry of await readdir(source, { recursive: true, withFileTypes: true })) {
+                        const name = path.join(entry.parentPath, entry.name);
+                        (entry.isDirectory() ? watchDirs : watchFiles).push(name);
+                    }
+                } catch (error) {
+                    if (error.code !== 'ENOENT') throw error;
+                }
+                return { contents: '', watchDirs, watchFiles };
+            });
+        }
         build.onEnd(async result => {
             if (result.errors.length) return;
-            const source = fileURLToPath(new URL('./extensions/', import.meta.url));
+            // This output directory belongs to the asset copy, including deletions.
+            await rm(destination, { recursive: true, force: true });
             try {
                 await stat(source);
             } catch (error) {
                 if (error.code === 'ENOENT') return;
                 throw error;
             }
-            await cp(source, fileURLToPath(new URL('./lib/frontend/extensions/', import.meta.url)), { recursive: true });
+            await cp(source, destination, { recursive: true });
         });
     }
 });

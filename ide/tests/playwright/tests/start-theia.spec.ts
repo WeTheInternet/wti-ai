@@ -11,6 +11,7 @@ test.describe('Theia process lifecycle', () => {
   test.describe.configure({ mode: 'serial' });
   for (const mode of ['ready', 'exit', 'timeout']) {
     test(`${mode}: isolates config and cleans up wrapper and child`, async () => {
+      if (mode === 'timeout') test.setTimeout(10_000);
       test.skip(process.platform === 'win32', 'POSIX process groups');
       const folder = await mkdtemp(path.join(tmpdir(), 'wti-lifecycle-'));
       const receipt = path.join(folder, 'receipt.json');
