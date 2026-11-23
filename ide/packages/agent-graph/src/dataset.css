@@ -1,0 +1,23 @@
+.br-dataset-view { color: #20273a; font: 400 15px/1.45 system-ui, sans-serif; }
+.br-dataset-view :is(p, dl, dd) { margin: 0; }
+.br-dataset-bar, .br-dataset-provenance { background: #fffefa; border: 1px solid #dddce8; border-radius: 16px; }
+.br-dataset-bar { display: flex; align-items: end; flex-wrap: wrap; gap: 8px 16px; justify-content: flex-start; padding: 12px 16px; margin-bottom: 10px; }
+.br-dataset-control { display: grid; flex: 0 1 410px; gap: 3px; min-width: 0; }
+.br-dataset-control label { font-size: 13px; font-weight: 740; color: #3d2d84; }
+.br-dataset-control select { min-height: 40px; width: 100%; max-width: 410px; font: inherit; font-weight: 675; color: #20273a; background: #f7f3ff; border: 1px solid #cfc4e4; border-radius: 8px; padding: 5px 9px; }
+.br-dataset-source { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; padding-block: 6px; color: #555e74; font-size: 12px; }
+.br-dataset-source strong { border: 1px solid #d8cceb; border-radius: 99px; color: #5037a8; background: #f2ecfa; padding: 2px 8px; font-size: 11px; }
+.br-dataset-source[data-source="crew-ledger"] strong { border-color: #badbd0; color: #175d50; background: #e6f6ef; }
+.br-dataset-view > .br-widget { padding-top: 1px; }
+.br-dataset-provenance { margin-top: 10px; padding: 9px 14px; color: #555e74; font-size: 12px; overflow-wrap: anywhere; }
+.br-dataset-provenance summary { cursor: pointer; }
+.br-dataset-provenance dl { display: grid; gap: 5px; margin-top: 7px; }
+.br-dataset-provenance dl > div { display: grid; grid-template-columns: minmax(88px, 24%) minmax(0, 1fr); gap: 5px; }
+.br-dataset-provenance dt { font-weight: 720; }
+.br-dataset-view :is(select, summary):focus-visible { outline: 3px solid #6041d1; outline-offset: 3px; }
+
+.br-crew-source-note { padding: 14px 16px; margin: 10px 0; border: 1px solid #dddce8; border-radius: 14px; background: #fffefa; }
+.br-crew-source-note[role="status"] { border-inline-start: 4px solid #73678f; background: #f7f4fb; }
+.br-crew-source-note h3 { margin: 0 0 4px; font-size: 15px; }
+.br-crew-source-note p { color: #555e74; font-size: 13px; }
+.br-crew-source-note p + p { margin-top: 4px; }
