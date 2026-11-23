@@ -11,7 +11,7 @@ export type StartedTheia = {
   dispose: () => Promise<void>;
 };
 
-export async function startTheia(params?: { port?: number; timeout?: number; backendPath?: string }): Promise<StartedTheia> {
+export async function startTheia(params?: { port?: number; timeout?: number; backendPath?: string; ledgerSources?: string }): Promise<StartedTheia> {
   // Own the backend directly: the CLI otherwise forks it into a separate process group.
   if (process.platform === 'win32') throw new Error('Theia smoke fixture requires POSIX process groups');
   const port = params?.port ?? Number(process.env.WTI_IDE_TEST_PORT ?? '1337');
@@ -25,7 +25,7 @@ export async function startTheia(params?: { port?: number; timeout?: number; bac
       cwd: appRoot,
       detached: true,
       stdio: 'inherit',
-      env: { ...process.env, THEIA_CONFIG_DIR: configDir, WTI_IDE_PORT: String(port), THEIA_PARENT_PID: String(process.pid) }
+      env: { ...process.env, WTI_AGENT_GRAPH_LEDGER_SOURCES: params?.ledgerSources ?? '', THEIA_CONFIG_DIR: configDir, WTI_IDE_PORT: String(port), THEIA_PARENT_PID: String(process.pid) }
     });
   } catch (error) {
     await rm(configDir, { recursive: true, force: true }).catch(cleanupError => console.error('Theia config cleanup failed:', cleanupError));

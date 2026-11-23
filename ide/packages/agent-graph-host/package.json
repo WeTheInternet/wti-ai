@@ -1,0 +1,41 @@
+{
+  "name": "@wti/agent-graph",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/types/react.d.ts",
+      "import": "./dist/react.js"
+    },
+    "./fixtures": {
+      "types": "./dist/types/fixtures.d.ts",
+      "import": "./dist/fixtures.js"
+    },
+    "./artifact": {
+      "types": "./dist/artifact.d.ts",
+      "import": "./dist/artifact.js"
+    },
+    "./style.css": "./dist/react.css",
+    "./chrome.css": "./dist/chrome.css"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "agent-graph": "workspace:*",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.9.0",
+    "esbuild": "^0.28.2"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}

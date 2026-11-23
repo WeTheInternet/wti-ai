@@ -13,7 +13,9 @@
   "dependencies": {
     "@theia/ai-chat": "1.77.0",
     "@theia/ai-core": "1.77.0",
-    "@theia/core": "1.77.0"
+    "@theia/core": "1.77.0",
+    "@theia/editor": "1.77.0",
+    "@wti/agent-graph": "workspace:*"
   },
   "devDependencies": {
     "@theia/cli": "1.77.0",
@@ -21,7 +23,8 @@
   },
   "theiaExtensions": [
     {
-      "frontend": "lib/browser/frontend-module"
+      "frontend": "lib/browser/frontend-module",
+      "backend": "lib/node/backend-module"
     }
   ],
   "files": [
