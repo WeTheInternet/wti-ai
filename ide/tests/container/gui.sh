@@ -37,5 +37,5 @@ workspace = json.loads(Path("/workspace/wti-ai.theia-workspace").read_text())
 workspace["folders"] = [{"path": "/workspace"}]
 Path(sys.argv[1]).write_text(json.dumps(workspace))
 PY
-exec pnpm --filter @wti/wti-ide exec theia start "$workspace_file" --hostname 0.0.0.0 --port 1771
+exec pnpm --filter @wti/wti-ide exec theia start "$workspace_file" --plugins=local-dir:plugins --hostname 0.0.0.0 --port 1771
 '

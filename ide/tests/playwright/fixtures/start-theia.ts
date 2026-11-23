@@ -11,21 +11,21 @@ export type StartedTheia = {
   dispose: () => Promise<void>;
 };
 
-export async function startTheia(params?: { port?: number; timeout?: number }): Promise<StartedTheia> {
-  // pnpm launches descendants: a separate POSIX process group lets teardown stop
-  // the whole server tree, even if the wrapper has already exited.
+export async function startTheia(params?: { port?: number; timeout?: number; backendPath?: string }): Promise<StartedTheia> {
+  // Own the backend directly: the CLI otherwise forks it into a separate process group.
   if (process.platform === 'win32') throw new Error('Theia smoke fixture requires POSIX process groups');
   const port = params?.port ?? Number(process.env.WTI_IDE_TEST_PORT ?? '1337');
   const url = `http://127.0.0.1:${port}`;
-  const ideRoot = path.resolve(__dirname, '../../..');
+  const appRoot = path.resolve(__dirname, '../../../apps/wti-ide');
+  const backend = params?.backendPath ?? path.join(appRoot, 'lib/backend/main.js');
   const configDir = await mkdtemp(path.join(tmpdir(), 'wti-theia-test-'));
   let proc: ChildProcess;
   try {
-    proc = spawn('pnpm', ['--filter', '@wti/wti-ide', 'exec', 'theia', 'start', '--hostname', '127.0.0.1', '--port', String(port)], {
-      cwd: ideRoot,
+    proc = spawn(process.execPath, [backend, '--plugins=local-dir:plugins', '--hostname', '127.0.0.1', '--port', String(port)], {
+      cwd: appRoot,
       detached: true,
       stdio: 'inherit',
-      env: { ...process.env, THEIA_CONFIG_DIR: configDir, WTI_IDE_PORT: String(port) }
+      env: { ...process.env, THEIA_CONFIG_DIR: configDir, WTI_IDE_PORT: String(port), THEIA_PARENT_PID: String(process.pid) }
     });
   } catch (error) {
     await rm(configDir, { recursive: true, force: true }).catch(cleanupError => console.error('Theia config cleanup failed:', cleanupError));
@@ -56,7 +56,7 @@ export async function startTheia(params?: { port?: number; timeout?: number }): 
     signalGroup('SIGTERM');
     const deadline = Date.now() + 3_000;
     while (signalGroup(0) && Date.now() < deadline) await delay(50);
-    // Descendants may outlive pnpm or ignore TERM. Always address the group.
+    // Descendants may outlive the backend or ignore TERM. Always address the group.
     if (signalGroup(0)) signalGroup('SIGKILL');
     const closeDeadline = Date.now() + 5_000;
     while (!closed && Date.now() < closeDeadline) await delay(50);

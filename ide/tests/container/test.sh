@@ -20,6 +20,6 @@ printf '%s\n' "$image_id" > "$run_dir/image-id.txt"
 printf 'Results: %s\n' "$run_dir"
 mkdir "$run_dir/artifacts"
 podman run --rm --shm-size=1g \
-    --volume "$run_dir/source.tar:/input/source.tar:ro" \
-    --volume "$run_dir/artifacts:/results:rw" \
+    --volume "$run_dir/source.tar:/input/source.tar:ro,Z" \
+    --volume "$run_dir/artifacts:/results:rw,Z" \
     "$image_id"

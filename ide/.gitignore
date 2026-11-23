@@ -21,3 +21,6 @@
 # Playwright validation artifacts
 tests/playwright/test-results/
 tests/playwright/playwright-report/
+
+# Downloaded application plugins
+/apps/wti-ide/plugins/

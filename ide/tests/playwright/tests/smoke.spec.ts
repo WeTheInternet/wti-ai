@@ -7,6 +7,8 @@ test.describe('wti-ide smoke', () => {
 
     await expect(page.locator('#theia-app-shell')).toBeVisible({ timeout: 120_000 });
 
+    await expect(page.locator('.theia-preload')).toHaveCount(0, { timeout: 120_000 });
+
     const chat = page.locator('#chat-view-widget');
     if (!await chat.isVisible()) {
       // Theia 1.77's aiChat:toggle binding reveals the collapsed right panel.

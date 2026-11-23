@@ -17,8 +17,8 @@ Default URL: http://localhost:1771
 ## Upgrade notes (1.77.0)
 
 - Upstream retired `@theia/preview` and `@theia/scm-extra`; they are no longer
-  dependencies. Markdown preview should be provided by the built-in VS Code
-  Markdown extension. Verify that extension is deployed before relying on parity.
+  dependencies. The build downloads the pinned VS Code Markdown language features extension
+  from Open VSX. The app loads it at startup for Markdown preview.
 - Theia's runtime packages are ESM. The local infra extension uses NodeNext
   resolution and a `.js` relative import; the application build configuration
   remains an `.mjs` entry point.
@@ -46,9 +46,7 @@ The rootless Ubuntu 24.04 container run completed successfully on 2026-11-22
 at 02:31:40 UTC with Node 24.22.3 and pnpm 9.15.5: frozen install including native
 modules, InfraAgent compilation, IDE bundling, frontend startup and Playwright
 smoke (`1 passed`). The smoke verifies the registered Infra agent in AI settings.
-No credentials or model prompts were used. Markdown-preview parity remains
-unverified: the existing extension installer only lists a theme, not the Markdown
-language-features extension. Do not treat Markdown preview as restored yet.
+No credentials or model prompts were used. The optional theme installer is separate from the Markdown plugin deployment.
 
 For reproducible validation or a local GUI using the cached container image, see
 [container instructions](../../tests/container/README.md).
