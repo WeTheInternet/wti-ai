@@ -16,6 +16,8 @@ node --version
 pnpm --version
 pnpm install --frozen-lockfile --registry=https://registry.npmjs.org
 node -e "require('drivelist'); require('node-pty'); require('@parcel/watcher'); console.log('Native modules loaded successfully')"
-pnpm --filter @wti/infra-agent run build
+pnpm --filter agent-graph test
+pnpm --filter @wti/agent-graph test
+pnpm --filter @wti/infra-agent... run build
 pnpm --filter @wti/wti-ide run build
 pnpm --filter @wti/tests-playwright run test

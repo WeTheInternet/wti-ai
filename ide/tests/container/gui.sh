@@ -25,7 +25,7 @@ set -euo pipefail
 tar -xf /input/source.tar -C /work
 mkdir -p "$THEIA_CONFIG_DIR"
 pnpm install --frozen-lockfile --registry=https://registry.npmjs.org
-pnpm --filter @wti/infra-agent run build
+pnpm --filter @wti/infra-agent... run build
 pnpm --filter @wti/wti-ide run build
 workspace_file=/work/wti-ai.theia-workspace
 python3 - "$workspace_file" <<"PY"
