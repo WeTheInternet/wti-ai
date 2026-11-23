@@ -73,8 +73,21 @@
   display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap;
   gap: 2px 6px; min-width: 0; padding: 5px 7px; border: 1px solid #e7e4ec; border-radius: 6px; background: #faf9fc;
 }
-.br-crew-unreported li > span { color: var(--br-muted); font-size: 11px; }
-.br-widget .br-crew-unreported button { background: transparent; border: 0; min-width: 0; max-width: 100%; padding: 0; text-align: start; text-decoration: underline; }
+.br-crew-unreported li > span {
+  min-width: 0; max-width: 100%; color: var(--br-muted); font-size: 11px;
+  white-space: normal; overflow-wrap: anywhere;
+}
+.br-widget .br-crew-unreported button {
+  display: flex; flex: 1 1 8rem; min-width: 0; max-width: 100%; padding: 0;
+  background: transparent; border: 0; text-align: start; text-decoration: underline;
+}
+.br-crew-unreported .br-ledger-person-label {
+  overflow: visible; white-space: normal; overflow-wrap: anywhere;
+}
+
+@container br-widget (max-width: 375px) {
+  .br-widget .br-crew-unreported button { flex-basis: 100%; }
+}
 
 .br-widget .br-ledger-owner { font-size: 11px; }
 .br-participant-reports ul { list-style: none; padding: 0; }
