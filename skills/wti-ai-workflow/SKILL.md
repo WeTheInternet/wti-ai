@@ -32,6 +32,13 @@ owner-authored turn. A view-only transcript, link, running state, or the Dot's
 ability to send does not establish owner input. If the launch or input route is
 unavailable, report the blocker and keep readiness unverified.
 
+When addressing James in the app, use descriptive Markdown link text with the
+native `codex://threads/<thread-id>?hostId=<host-id>` link for Codex sessions.
+Use the verified thread and host IDs. For a verified local thread, the shape is
+`codex://threads/00000000-0000-4000-8000-000000000001?hostId=local`.
+A working link does not establish owner input. If native links are unsupported,
+give the exact session name and project.
+
 A **subagent** is a parent-managed worker. **cleansub** explicitly requests a
 subagent with no inherited parent conversation. Use a supported clean launch
 mode and provide the worker's brief and approved sources explicitly. The
