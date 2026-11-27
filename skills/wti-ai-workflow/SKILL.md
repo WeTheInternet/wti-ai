@@ -21,6 +21,36 @@ and confer no permissions.
 | Triage or coordinating Dot | Reconcile the exact task using supported status, latest relevant turn and receipts. Route the next authorized action. Notify James when a concrete blocker, decision or required input needs him. Carry out only the bounded checks assigned to this surface. |
 | Source or implementation owner | Keep one assigned writer per file or worktree. Delegate independent, bounded work only when user instructions and the tool permit it. Reconcile overlapping edits with the current owner before writing. |
 
+## Choose the agent launch mode
+
+An unqualified request for an **agent** means a **Direct Agent** (UI label
+**Direct**). Launch a standalone interactive session in the intended project and
+environment. Before reporting it ready, verify that the owner can submit a
+message to that exact session in the intended app without going through
+Conductor. Use a verified usable composer on the owner's surface or a confirmed
+owner-authored turn. A view-only transcript, link, running state, or the Dot's
+ability to send does not establish owner input. If the launch or input route is
+unavailable, report the blocker and keep readiness unverified.
+
+When addressing James in the app, use descriptive Markdown link text with the
+native `codex://threads/<thread-id>?hostId=<host-id>` link for Codex sessions.
+Use the verified thread and host IDs. For a verified local thread, the shape is
+`codex://threads/00000000-0000-4000-8000-000000000001?hostId=local`.
+A working link does not establish owner input. If native links are unsupported,
+give the exact session name and project.
+
+A **subagent** is a parent-managed worker. **cleansub** explicitly requests a
+subagent with no inherited parent conversation. Use a supported clean launch
+mode and provide the worker's brief and approved sources explicitly. The
+optional modifiers apply to that worker: **cleansub low** requests low reasoning
+effort, and **cleansub high** requests high reasoning effort. Bare **cleansub**
+uses the normal default. If the launcher cannot honor the requested mode,
+isolation or effort, report the limitation before using another option. Changing
+the launch mode or effort requires explicit direction, and these terms grant no
+additional data or tool access.
+
+## Work and handoff
+
 Use durable isolated work under `/opt/src` or an approved personal worktree.
 Preserve main, concurrent edits, and owner-private evidence. When the current
 owner or worktree is unverified, limit your work to inspection or a reviewable
