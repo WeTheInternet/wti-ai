@@ -23,24 +23,26 @@ and confer no permissions.
 
 ## Choose the agent launch mode
 
-In James's WTI-AI workflow, an unqualified request for an **agent** means a
-**Direct Agent** (UI label **Direct**). Use a standalone interactive session
-in the intended project and environment. Before calling it ready, verify that
-James can address it himself in the intended app, for example through a visible
-composer or a confirmed owner-authored turn. A view-only transcript, clickable
-link, current running state, or the Dot's ability to send is not that evidence.
-Conductor can assign and track the work without becoming the only feedback route.
-If a Direct launch is unavailable, report the blocker instead of silently
-substituting a subagent.
+An unqualified request for an **agent** means a **Direct Agent** (UI label
+**Direct**). Launch a standalone interactive session in the intended project and
+environment. Before reporting it ready, verify that the owner can submit a
+message to that exact session in the intended app without going through
+Conductor. Use a verified usable composer on the owner's surface or a confirmed
+owner-authored turn. A view-only transcript, link, running state, or the Dot's
+ability to send does not establish owner input. If the launch or input route is
+unavailable, report the blocker and keep readiness unverified.
 
-A **subagent** is an explicitly requested parent-managed worker rather than a
-Direct Agent. **cleansub** means a subagent with no inherited parent conversation.
-Provide its assignment and authorized sources explicitly. An optional modifier
-applies to that worker: **cleansub low** requests low reasoning effort;
-**cleansub high** requests high reasoning effort. Bare **cleansub** leaves effort
-at the normal default. If the launcher cannot honor context isolation or a
-requested effort, say so rather than silently substituting a different profile.
-These terms do not change what data or tools the worker is authorized to use.
+A **subagent** is a parent-managed worker. **cleansub** explicitly requests a
+subagent with no inherited parent conversation. Use a supported clean launch
+mode and provide the worker's brief and approved sources explicitly. The
+optional modifiers apply to that worker: **cleansub low** requests low reasoning
+effort, and **cleansub high** requests high reasoning effort. Bare **cleansub**
+uses the normal default. If the launcher cannot honor the requested mode,
+isolation or effort, report the limitation before using another option. Changing
+the launch mode or effort requires explicit direction, and these terms grant no
+additional data or tool access.
+
+## Work and handoff
 
 Use durable isolated work under `/opt/src` or an approved personal worktree.
 Preserve main, concurrent edits, and owner-private evidence. When the current
