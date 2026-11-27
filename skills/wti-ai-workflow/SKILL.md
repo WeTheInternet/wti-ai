@@ -21,6 +21,27 @@ and confer no permissions.
 | Triage or coordinating Dot | Reconcile the exact task using supported status, latest relevant turn and receipts. Route the next authorized action. Notify James when a concrete blocker, decision or required input needs him. Carry out only the bounded checks assigned to this surface. |
 | Source or implementation owner | Keep one assigned writer per file or worktree. Delegate independent, bounded work only when user instructions and the tool permit it. Reconcile overlapping edits with the current owner before writing. |
 
+## Choose the agent launch mode
+
+In James's WTI-AI workflow, an unqualified request for an **agent** means a
+**Direct Agent** (UI label **Direct**). Use a standalone interactive session
+in the intended project and environment. Before calling it ready, verify that
+James can address it himself in the intended app, for example through a visible
+composer or a confirmed owner-authored turn. A view-only transcript, clickable
+link, current running state, or the Dot's ability to send is not that evidence.
+Conductor can assign and track the work without becoming the only feedback route.
+If a Direct launch is unavailable, report the blocker instead of silently
+substituting a subagent.
+
+A **subagent** is an explicitly requested parent-managed worker rather than a
+Direct Agent. **cleansub** means a subagent with no inherited parent conversation.
+Provide its assignment and authorized sources explicitly. An optional modifier
+applies to that worker: **cleansub low** requests low reasoning effort;
+**cleansub high** requests high reasoning effort. Bare **cleansub** leaves effort
+at the normal default. If the launcher cannot honor context isolation or a
+requested effort, say so rather than silently substituting a different profile.
+These terms do not change what data or tools the worker is authorized to use.
+
 Use durable isolated work under `/opt/src` or an approved personal worktree.
 Preserve main, concurrent edits, and owner-private evidence. When the current
 owner or worktree is unverified, limit your work to inspection or a reviewable
